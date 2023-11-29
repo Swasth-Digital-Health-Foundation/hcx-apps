@@ -1,2 +1,5 @@
 # hcx-apps
-This repository contains the reference /management/operations related user facing application(s) 
+
+This repository contains code for below reference apps:
+- Beneficiary App
+- OPD Provider App
