@@ -77,6 +77,9 @@ const PreAuthRequest = () => {
   { label: "Wellness", value: "Wellness" },
   { label: "Diagnostics", value: "Diagnostics" },];
 
+  const email = localStorage.getItem('email');
+  const password = localStorage.getItem('password')
+
   let initiateClaimRequestBody: any = {
     insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
     insurancePlan: data?.insurancePlan || null,
@@ -84,7 +87,7 @@ const PreAuthRequest = () => {
       localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
     patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
     participantCode:
-      data?.participantCode || localStorage.getItem("senderCode"),
+      data?.participantCode || localStorage.getItem("senderCode") || email,
     payor: data?.payor || payorName,
     providerName: data?.providerName || localStorage.getItem("providerName"),
     serviceType: data?.serviceType || displayedData[0]?.claimType,
@@ -99,6 +102,8 @@ const PreAuthRequest = () => {
       },
     ],
     type: "provider_app",
+    password: password,
+    recipientCode: data?.recipientCode
   };
 
   const filter = {
@@ -169,17 +174,21 @@ const PreAuthRequest = () => {
       if (!_.isEmpty(selectedFile)) {
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
         if (response?.status === 200) {
-          handlePreAuthRequest()
+          // handlePreAuthRequest()
+          const preauthResponse = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
           setSubmitLoading(false);
           toast.success("Pre-auth request initiated successfully!")
+          navigate("/home");
         }
       }
       else {
-        handlePreAuthRequest()
-        toast.success("Pre-auth request initiated successfully!")
+        const preauthResponse = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
+        if(preauthResponse.status === 202){
+          toast.success("Pre-auth request initiated successfully!")
+          navigate("/home");
+          setSubmitLoading(false);
+        } 
       }
-      setSubmitLoading(false);
-      navigate("/home");
     } catch (err) {
       setSubmitLoading(false);
       toast.error("Faild to submit claim, try again!");

@@ -18,7 +18,6 @@ const PreAuthRequest = () => {
   );
   const [fileErrorMessage, setFileErrorMessage]: any = useState();
   const [isSuccess, setIsSuccess]: any = useState(false);
-
   const [estimatedAmount, setAmount] = useState<string>('');
   const [serviceType, setServiceType] = useState<string>('Consultation');
   const [documentType, setDocumentType] = useState<string>('Prescription');
@@ -28,6 +27,7 @@ const PreAuthRequest = () => {
   const [fileUrlList, setUrlList] = useState<any>([]);
   let mobile: any = localStorage.getItem('mobile');
   const [userInfo, setUserInformation] = useState<any>([]);
+  const [popup, setPopup] = useState(false);
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -38,12 +38,8 @@ const PreAuthRequest = () => {
 
   const preauthRequestDetails: any = [
     {
-      key: 'Provider name :',
+      key: 'Provider :',
       value: dataFromCard?.providerName || '',
-    },
-    {
-      key: 'Participant code :',
-      value: dataFromCard?.participantCode || '',
     },
     {
       key: 'Treatment/Service type :',
@@ -168,7 +164,7 @@ const PreAuthRequest = () => {
       <h2 className="mb-4 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
         {strings.NEW_PREAUTH_REQUEST}
       </h2>
-      <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="relative rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         {preauthRequestDetails.map((ele: any) => {
           return (
             <div className="mb-2">
@@ -179,6 +175,14 @@ const PreAuthRequest = () => {
             </div>
           );
         })}
+        <div className='absolute top-2 right-2' onClick={() => setPopup(!popup)}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+        </div>
+        {popup ? <div className='absolute top-8 right-2 bg-black text-white p-4'>
+          BSP_hcx_code : {dataFromCard?.participantCode} <br />
+        </div> : null}
       </div>
       <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <h2 className="text-bold mb-4 text-base font-bold text-black dark:text-white">

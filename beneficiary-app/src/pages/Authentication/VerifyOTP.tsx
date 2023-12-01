@@ -38,9 +38,7 @@ const VerifyOTP = () => {
       if (otpResponse.status === 200) {
         const searchUser = await postRequest('/search', filter);
         if (searchUser?.data?.length !== 0) {
-          toast.success('OTP verified successfully!', {
-            position: toast.POSITION.TOP_CENTER,
-          });
+          toast.success('OTP verified successfully!');
           navigate('/home', { state: filter });
         } else {
           navigate('/signup');
@@ -50,13 +48,9 @@ const VerifyOTP = () => {
       setLoading(false);
       if (error.response?.status === 400) {
         // console.log("status",error.response)
-        toast.error('Enter valid OTP!', {
-          position: toast.POSITION.TOP_CENTER,
-        });
+        toast.error('Enter valid OTP!');
       } else {
-        toast.error('Request timed out,try again!', {
-          position: toast.POSITION.TOP_CENTER,
-        });
+        toast.error('Request timed out,try again!');
       }
     }
   };

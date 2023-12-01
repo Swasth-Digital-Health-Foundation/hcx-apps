@@ -17,20 +17,15 @@ const ViewClaimRequestDetails = () => {
   const navigate = useNavigate();
 
   const [token, setToken] = useState<string>('');
-
   const [providerName, setProviderName] = useState<string>('');
   const [payorName, setPayorName] = useState<string>('');
-
   const [initiated, setInitiated] = useState(false);
-
   const [OTP, setOTP] = useState<any>();
   const [docs, setSupportingDocs] = useState<any>({});
-
   const [preAuthAndClaimList, setpreauthOrClaimList] = useState<any>([]);
-
   const [refresh, setRefresh] = useState<any>(false);
-
   const [loading, setLoading] = useState<any>(false);
+  const [popup, setPopup] = useState(false);
 
   const participantCodePayload = {
     filters: {
@@ -44,12 +39,6 @@ const ViewClaimRequestDetails = () => {
     },
   };
 
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-
   const sendInfo = {
     ...details,
     payor: payorName,
@@ -57,17 +46,17 @@ const ViewClaimRequestDetails = () => {
   };
 
   useEffect(() => {
-    const search = async () => {
-      try {
-        const tokenResponse = await generateToken();
-        if (tokenResponse.statusText === 'OK') {
-          setToken(tokenResponse.data.access_token);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    search();
+    // const search = async () => {
+    //   try {
+    //     const tokenResponse = await generateToken();
+    //     if (tokenResponse.statusText === 'OK') {
+    //       setToken(tokenResponse.data.access_token);
+    //     }
+    //   } catch (err) {
+    //     console.log(err);
+    //   }
+    // };
+    // search();
     getSupportingDocsFromList();
   }, []);
 
@@ -103,16 +92,12 @@ const ViewClaimRequestDetails = () => {
     } catch (err) {
       console.log(err);
     }
-  }, [token]);
+  }, []);
 
   const claimRequestDetails: any = [
     {
-      key: 'BSP name :',
+      key: 'Provider :',
       value: providerName || '',
-    },
-    {
-      key: 'Participant code :',
-      value: details?.participantCode || '',
     },
     {
       key: 'Treatment/Service type :',
@@ -159,7 +144,7 @@ const ViewClaimRequestDetails = () => {
     }
   };
 
-  const recipientCode = localStorage.getItem('payorCode');
+  const recipientCode = localStorage.getItem('recipientCode');
   const payload = {
     request_id: details?.apiCallId,
     mobile: localStorage.getItem('mobile'),
@@ -201,13 +186,6 @@ const ViewClaimRequestDetails = () => {
     const claimAndPreauthEntries = data.filter(
       (entry: any) => entry.type === 'claim' || entry.type === 'preauth'
     );
-
-    // Extract supporting documents from the filtered entries
-    // const supportingDocumentsArray =
-    //   _.map(claimAndPreauthEntries, (entry: any) => entry.supportingDocuments)
-    //     .flat();
-    console.log(claimAndPreauthEntries)
-
     setSupportingDocs(claimAndPreauthEntries?.supportingDocuments);
   };
 
@@ -232,9 +210,8 @@ const ViewClaimRequestDetails = () => {
         <h2 className="sm:text-title-xl1 text-2xl font-semibold text-black dark:text-white">
           {strings.CLAIM_REQUEST_DETAILS}
         </h2>
-        <span>{details?.workflowId}</span>
       </div>
-      <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="relative rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div>
           {_.map(claimRequestDetails, (ele: any, index: any) => {
             return (
@@ -247,6 +224,16 @@ const ViewClaimRequestDetails = () => {
             );
           })}
         </div>
+        <div className='absolute top-2 right-2' onClick={() => setPopup(!popup)}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+        </div>
+        {popup ? <div className='absolute top-8 right-2 bg-black text-white p-4'>
+          Api call Id : {location.state?.apiCallId} <br />
+          BSP_hcx_code : {details?.participantCode} <br />
+          workflowId : {details?.workflowId}
+        </div> : null}
       </div>
       <div className="mt-3 rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-center justify-between">
@@ -274,29 +261,6 @@ const ViewClaimRequestDetails = () => {
               {strings.SUPPORTING_DOCS}
             </h2>
           </div>
-          {/* <div className="flex flex-wrap gap-2">
-            {_.map(docs, (ele: any, index: any) => {
-              console.log(ele)
-              const parts = ele.split('/');
-              const fileName = parts[parts.length - 1];
-              return (
-                <div>
-                  <a
-                    href={ele}
-                    download
-                    className="flex flex-col w-50 shadow-sm border border-gray-300 hover:border-gray-400 rounded-md px-3 py-1 font-medium text-gray-700 hover:text-black"
-                  >
-                    <span className="text-center">{fileName}</span>
-                    <img src={ele} alt="" />
-                    <div className="flex items-center justify-center">
-                      <ArrowDownTrayIcon className="h-5 w-5 flex-shrink-0 mr-2 text-indigo-400" />
-                      <span>Download</span>
-                    </div>
-                  </a>
-                </div>
-              );
-            })}
-          </div> */}
         </div>
       </>}
 

@@ -43,7 +43,7 @@ const Html5QrcodePlugin = (props: any) => {
         html5QrcodeScanner.render(
           props.qrCodeSuccessCallback,
           props.qrCodeErrorCallback
-        );
+        );  
 
         // Cleanup function when component will unmount
         return () => {

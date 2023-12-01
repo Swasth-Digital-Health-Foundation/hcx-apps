@@ -24,6 +24,7 @@ const ActiveClaimCycleCard = (Props: any) => {
     workflowId: Props.workflowId,
     patientMobile: Props.patientMobileNumber,
     patientName: Props.patientName,
+    recipientCode: Props.recipient_code
   };
 
   const data: any = [

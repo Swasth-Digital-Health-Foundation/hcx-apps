@@ -24,6 +24,7 @@ const ActiveClaimCycleCard = (Props: any) => {
     patientName: Props.patientName,
   };
 
+  localStorage.setItem('recipientCode', information?.payorCode)
   const data: any = [
     {
       key: 'Patient name :',
