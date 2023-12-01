@@ -70,15 +70,12 @@ const AddConsultation = () => {
   const patientMobile = location.state?.patientMobile || localStorage.getItem("patientMobile");
   const addConsultation = async () => {
     try {
-      setLoaderSubmit(true);
       const response = await generateOutgoingRequest(
         "consultation/add",
         consultationPayload)
-      setLoaderSubmit(false);
-      toast.success("Consultation added successfully!");
-      navigate("/coverage-eligibility", { state: location.state });
+        toast.success("Consultation added successfully!");
+        navigate("/coverage-eligibility", { state: location.state });
     } catch (err) {
-      setLoaderSubmit(false);
       toast.error("Faild to add consultation, try again!");
     }
   };
@@ -110,11 +107,10 @@ const AddConsultation = () => {
       ]);
       consultationPayload.supporting_documents_url = uploadedUrls;
       toast.info("Documents uploaded successfully!");
-      // addConsultation()
-      // console.log(response)
       if (response.status === 200) {
         addConsultation()
       }
+      setLoading(false)
     } catch (error) {
       setLoading(false);
       toast.error("Faild to upload documents, please try again!");
@@ -281,7 +277,7 @@ const AddConsultation = () => {
         )}
       </div>
 
-      {!loaderSubmit ? (
+      {!loading ? (
         <div>
           <CustomButton
             text="Add consultation"
