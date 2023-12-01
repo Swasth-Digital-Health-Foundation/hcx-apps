@@ -77,7 +77,7 @@ const SendBankDetails = () => {
     }
   };
 
-  const recipientCode = localStorage.getItem('payorCode');
+  const recipientCode = localStorage.getItem('recipientCode');
   const bankDetailsPayload = {
     request_id: details?.apiCallId,
     type: 'bank_details',

@@ -26,6 +26,7 @@ const InitiateNewClaimRequest = () => {
   const [payorName, setPayorName] = useState<string>('');
   const [fileUrlList, setUrlList] = useState<any>([]);
   const [userInfo, setUserInformation] = useState<any>([]);
+  const [popup, setPopup] = useState(false)
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -35,12 +36,8 @@ const InitiateNewClaimRequest = () => {
   const cliamDetails = location.state;
   const claimRequestDetails: any = [
     {
-      key: 'Provider name :',
+      key: 'Provider :',
       value: cliamDetails?.providerName || providerName,
-    },
-    {
-      key: 'Participant code :',
-      value: cliamDetails?.participantCode || '',
     },
     {
       key: 'Treatment/Service type :',
@@ -75,7 +72,7 @@ const InitiateNewClaimRequest = () => {
       },
     ],
     type: 'OPD',
-    bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME, 
+    bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
     recipientCode: userInfo[0]?.payor_details[0]?.recipientCode
   };
@@ -110,7 +107,7 @@ const InitiateNewClaimRequest = () => {
           requestBody
         );
         setLoading(false);
-        toast.success("Claim request initiated successfully!")
+        toast.success("Claim request initiated successfully")
         navigate('/home');
       }, 2000);
     } catch (err) {
@@ -161,7 +158,7 @@ const InitiateNewClaimRequest = () => {
       <h2 className="mb-4 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
         {strings.NEW_CLAIM_REQUEST}
       </h2>
-      <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="relative rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         {_.map(claimRequestDetails, (ele: any, index: any) => {
           return (
             <div key={index} className="mb-2">
@@ -172,6 +169,14 @@ const InitiateNewClaimRequest = () => {
             </div>
           );
         })}
+        <div className='absolute top-2 right-2' onClick={() => setPopup(!popup)}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+        </div>
+        {popup ? <div className='absolute top-8 right-2 bg-black text-white p-4'>
+          Participant code : {location.state?.participantCode} <br />
+        </div> : null}
       </div>
       <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <h2 className="text-bold text-base font-bold text-black dark:text-white">
