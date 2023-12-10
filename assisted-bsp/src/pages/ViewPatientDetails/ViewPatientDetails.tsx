@@ -155,14 +155,16 @@ const ViewPatientDetails = () => {
 
   const preauthOrClaimListPayload = {
     workflow_id: requestDetails?.workflowId || location.state?.workflowId,
-    app: "OPD",
+    app: "ABSP",
   };
 
   const patientMobile = localStorage.getItem("patientMobile");
+  console.log(patientMobile);
+  
   const coverageEligibilityPayload = {
     mobile:
-      location.state?.patientMobile || patientMobile,
-    app: "OPD",
+       patientMobile,
+    app: "ABSP",
   };
 
   const getActivePlans = async () => {
@@ -176,13 +178,12 @@ const ViewPatientDetails = () => {
         "bsp/request/list",
         preauthOrClaimListPayload
       );
-      console.log(response.data)
       let preAuthAndClaimList = response.data?.entries;
+      console.log(preAuthAndClaimList);
       setpreauthOrClaimList(preAuthAndClaimList);
       for (const entry of preAuthAndClaimList) {
         if (entry.type === "claim") {
-          console.log(" API caa" ,entry.apiCallId);
-          
+          console.log(" API call id" ,entry.apiCallId); 
           setApicallID(entry.apiCallId);
           break;
         }
@@ -216,8 +217,11 @@ const ViewPatientDetails = () => {
 
   useEffect(() => {
     tokenGeneration();
+  }, [preauthOrClaimListPayload.workflow_id]);
+
+  useEffect(()=>{
     getActivePlans();
-  }, [preauthOrClaimListPayload.workflow_id, patientMobile]);
+  },[patientMobile])
 
   // const getConsultation = async () => {
   //   try {

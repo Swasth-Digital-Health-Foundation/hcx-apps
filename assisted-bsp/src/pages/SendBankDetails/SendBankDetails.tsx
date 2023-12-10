@@ -143,7 +143,7 @@ const SendBankDetails = () => {
           })}
         </div>
       </div>
-      <div className="mt-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-center justify-between">
           <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
             {strings.TREATMENT_AND_BILLING_DETAILS}
@@ -175,8 +175,8 @@ const SendBankDetails = () => {
 
       {bankDetails ? (
         <>
-          <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <h2 className="text-bold text-base font-bold text-black dark:text-white">
+          <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <h2 className="mt-2 text-bold text-base font-bold text-black dark:text-white">
               Beneficiary account details :
             </h2>
             <p className="mt-2">

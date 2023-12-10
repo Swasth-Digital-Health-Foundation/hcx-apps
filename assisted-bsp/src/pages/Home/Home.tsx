@@ -11,6 +11,7 @@ import CustomButton from "../../components/CustomButton";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { postRequest } from "../../services/registryService";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ const Home = () => {
   const [initialized, setInitialized] = useState(true);
   const [isValid, setIsValid] = useState(true);
   const [finalData, setFinalData] = useState<any>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [patientInfo, seetPatientInfo] = useState<any>([]);
+  const [workflowId, setWorkflowId] = useState<any>("");
 
   const getEmailFromLocalStorage = localStorage.getItem("email");
 
@@ -36,12 +40,123 @@ const Home = () => {
     finalData.slice(0, 5)
   );
 
-  if (qrCodeData !== undefined) {
-    let obj = JSON.parse(qrCodeData);
-    navigate("/add-patient", {
-      state: { obj: obj, mobile: location.state },
-    });
-  }
+  useEffect(() => {
+    if (qrCodeData !== undefined) {
+      let obj = JSON.parse(qrCodeData);
+      localStorage.setItem("patientInsuranceId", obj.insuranceId)
+      const patientSearchPayload = {
+        entityType: ["Beneficiary"],
+        filters: {
+          mobile: { eq: obj?.mobile },
+        },
+      };
+
+      const patientSearch = async () => {
+        try {
+          setSearchLoading(true);
+          let registerResponse: any = await postRequest(
+            "search",
+            patientSearchPayload
+          );
+          const responseData = registerResponse.data;
+          console.log(responseData);
+          seetPatientInfo(responseData);
+          setSearchLoading(false);
+          if (responseData.length === 0) {
+            // toast.error("Patient not found!");
+            navigate("/add-patient", { state: { obj: obj, mobile: location.state } })
+          } else {
+            toast.success("Patient already exists!");
+          }
+        } catch (error: any) {
+          setSearchLoading(false);
+          toast.error("patient not found!", {
+            position: toast.POSITION.TOP_CENTER,
+          });
+        }
+      };
+
+      patientSearch();
+
+      if (_.isEmpty(patientInfo)) {
+        navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId } })
+      }
+
+      let payload = {
+        providerName: localStorage.getItem('providerName'),
+        participantCode: localStorage.getItem('senderCode'),
+        serviceType: 'OPD',
+        mobile: obj?.mobile,
+        payor: obj?.payorName,
+        insuranceId: obj?.insuranceId,
+        patientName: obj?.patientName,
+        app: "ABSP",
+        bspParticipantCode: localStorage.getItem('senderCode'),
+        password: localStorage.getItem('password'),
+        recipientCode: obj?.hcxPayorCode
+      };
+
+      const sendCoverageEligibilityRequest = async () => {
+        try {
+          setLoading(true);
+          let response = await generateOutgoingRequest(
+            'create/coverageeligibility/check',
+            payload
+          );
+          if (response?.status === 202) {
+            setWorkflowId(response?.data?.workflowId)
+            toast.success("Coverage eligibility initiated successfully")
+            setQrCodeData(undefined)
+            setLoading(false)
+          }
+        } catch (error) {
+          // setLoading(false);
+          toast.error(_.get(error, 'response.data.error.message'));
+        }
+      };
+      sendCoverageEligibilityRequest()
+
+
+      // const patientSearch = async () => {
+      //   try {
+      //     setSearchLoading(true);
+      //     let registerResponse: any = await postRequest(
+      //       "search",
+      //       patientSearchPayload
+      //     );
+      //     const responseData = registerResponse.data;
+      //     seetPatientInfo(responseData);
+      //     setSearchLoading(false);
+      //     if (responseData.length === 0) {
+      //       toast.error("Patient not found!");
+      //       navigate("/add-patient", {state: { obj: obj, mobile: location.state }})
+      //     } else {
+      //       toast.success("Patient already exists!");
+      //     }
+      //   } catch (error: any) {
+      //     setSearchLoading(false);
+      //     toast.error("patient not found!", {
+      //       position: toast.POSITION.TOP_CENTER,
+      //     });
+      //   }
+      // };
+      // patientSearch();
+
+
+      if (_.isEmpty(patientInfo)) {
+        navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId } })
+      }
+      // else{
+      //   navigate("/add-patient", {state: { obj: obj, mobile: location.state }})
+      // }
+
+
+      // navigate("/add-patient", {
+      //   state: { obj: obj, mobile: location.state },
+      // });
+    }
+  }, [qrCodeData])
+
 
   const userSearchPayload = {
     entityType: ["Beneficiary"],
@@ -64,12 +179,12 @@ const Home = () => {
     participantInformation[0]?.participant_name
   );
 
-  const getListUsingMobile = { mobile: mobileNumber, app: "OPD" };
+  const getListUsingMobile = { mobile: mobileNumber, app: "ABSP" };
 
 
   let requestPayload: any = {
     sender_code: participantInformation[0]?.participant_code,
-    app: "OPD",
+    app: "ABSP",
   }
 
   const search = async () => {
@@ -87,7 +202,7 @@ const Home = () => {
 
       let requestPayload = {
         sender_code: response.data?.participants[0]?.participant_code,
-        app: "OPD",
+        app: "ABSP",
       };
 
       setTimeout(() => {

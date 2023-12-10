@@ -84,12 +84,15 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       {
         insurance_id:
           insuranceID ||
-          patientDataFromState?.payorName ||
-          patientInfo[0]?.payor_details[0]?.payorName,
-        payor:
-          payorName ||
           patientDataFromState?.insuranceId ||
           patientInfo[0]?.payor_details[0]?.insurance_id,
+        payor:
+          payorName ||
+          patientDataFromState?.payorName ||
+          patientInfo[0]?.payor_details[0]?.payorName,
+        recipientCode:
+          patientDataFromState?.hcxPayorCode ||
+          patientInfo[0]?.payor_details[0]?.hcxPayorCode
       },
     ],
   };
@@ -112,9 +115,13 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       value: patientDataFromState?.payorName,
     },
     {
+      key: "HCX Payor code :",
+      value: patientDataFromState?.hcxPayorCode,
+    },
+    {
       key: "Insurance ID :",
       value: patientDataFromState?.insuranceId,
-    },
+    }
   ];
 
   const userSearchPayload = {
@@ -187,7 +194,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       let registerResponse: any = await postRequest("invite", payload);
       setLoading(false);
       toast.success(
-        "Patient added successfully, initiating coverage eligibility",
+        "Patient added successfully",
         {
           position: toast.POSITION.TOP_CENTER,
         }
@@ -199,22 +206,22 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     }
   };
 
-  const updateMedicalhistory = {
-    medical_history: payload?.medical_history,
-  };
+  // const updateMedicalhistory = {
+  //   medical_history: payload?.medical_history,
+  // };
 
-  const updateMedicalHistory = async () => {
-    try {
-      let registerResponse: any = await updateRequest(
-        `${patientInfo[0]?.osid}`,
-        updateMedicalhistory
-      );
-    } catch (err) {
-      toast.error("Faild to update medical history!", {
-        position: toast.POSITION.TOP_CENTER,
-      });
-    }
-  };
+  // const updateMedicalHistory = async () => {
+  //   try {
+  //     let registerResponse: any = await updateRequest(
+  //       `${patientInfo[0]?.osid}`,
+  //       updateMedicalhistory
+  //     );
+  //   } catch (err) {
+  //     toast.error("Faild to update medical history!", {
+  //       position: toast.POSITION.TOP_CENTER,
+  //     });
+  //   }
+  // };
 
   const patientSearch = async () => {
     try {
@@ -562,15 +569,17 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       ) : (
         <div>
           <CustomButton
-            text="Add patient & intiate coverage eligibility"
+            text="Add patient"
             onClick={() => {
               if (isPatientExists === false) {
                 registerUser();
+                navigate("/coverage-eligibility", { state: { patientMobile: mobile} })
+
               }
               // if (payload.medical_history[0]?.allergies !== '' || payload.medical_history[0]?.bloodGroup !== '') {
               //   updateMedicalHistory();
               // }
-              sendCoverageEligibilityRequest();
+              // sendCoverageEligibilityRequest();
             }}
             disabled={false}
           />

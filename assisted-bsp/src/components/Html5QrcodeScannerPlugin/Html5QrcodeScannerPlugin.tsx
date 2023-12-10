@@ -1,5 +1,6 @@
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect } from 'react';
+import strings from '../../utils/strings';
 
 const qrcodeRegionId = "html5qr-code-full-region";
 
@@ -61,7 +62,7 @@ const Html5QrcodePlugin = (props: any) => {
   return (
     <>
       <div className='text-center'>
-        Scan provider QR code to capture patient details
+        {strings.SCAN_QRCODE}
       </div>
       <div id={qrcodeRegionId} />
     </>
