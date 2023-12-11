@@ -114,9 +114,11 @@ const Home = () => {
           toast.error(_.get(error, 'response.data.error.message'));
         }
       };
+      
       sendCoverageEligibilityRequest()
 
-
+      console.log(workflowId);
+      
       // const patientSearch = async () => {
       //   try {
       //     setSearchLoading(true);

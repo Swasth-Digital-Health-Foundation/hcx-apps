@@ -159,7 +159,7 @@ const ViewPatientDetails = () => {
   };
 
   const patientMobile = localStorage.getItem("patientMobile");
-  console.log(patientMobile);
+  console.log(location.state);
   
   const coverageEligibilityPayload = {
     mobile:
