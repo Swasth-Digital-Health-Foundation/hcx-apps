@@ -34,7 +34,7 @@ const App = () => {
         draggable
       />
       <Routes>
-        <Route path="/" element={<Login />} />
+        {/* <Route path="/" element={<Login />} /> */}
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<Navigate to="/opd-login" />} />
           <Route path="/opd-login" element={<Login />}></Route>
