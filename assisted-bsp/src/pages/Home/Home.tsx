@@ -270,13 +270,13 @@ const Home = () => {
         <div className="mt-2">
           <div className="qr-code p-1">
             <div id="reader" className="px-1 ">
-              <Html5QrcodePlugin
+              {/* <Html5QrcodePlugin
                 fps={60}
                 qrbox={250}
                 disableFlip={false}
                 qrCodeSuccessCallback={onNewScanResult}
               // setInitialized={initialized}
-              />
+              /> */}
             </div>
           </div>
           <p className="mt-3 text-center font-bold text-black dark:text-gray">
