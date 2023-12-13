@@ -29,7 +29,7 @@ const ActiveClaimCycleCard = (Props: any) => {
 
   const data: any = [
     {
-      key: "PatientName",
+      key: "Beneficiary name",
       value: Props.patientName,
     },
     {
@@ -70,7 +70,7 @@ const ActiveClaimCycleCard = (Props: any) => {
                   key={index}
                   className="font-small mt-1 block text-left text-black dark:text-white"
                 >
-                  <b className="inline-block w-30">{ele.key}</b>{" "}
+                  <b className="inline-block w-40">{ele.key}</b>{" "}
                 </h2>
                 <span>: {ele.value}</span>
               </div>

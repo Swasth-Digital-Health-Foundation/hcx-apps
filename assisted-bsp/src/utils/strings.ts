@@ -22,7 +22,7 @@ export default {
   ADD_ANOTHER: '+ Add another',
   SAVE_PROFILE_DETAILS: 'Save profile details',
   WELCOME_TEXT: 'Welcome,',
-  SCAN_QRCODE: 'Scan Beneficiary QR code to capture details',
+  SCAN_QRCODE: 'Scan Beneficiary QR code to capture Policy details',
   SUBMIT_NEW_CLAIM: 'Click here to submit a new claim',
   YOUR_ACTIVE_CYCLE: 'Your active requests',
   COVERAGE_ELIGIBILITY_REQUEST_HEADING: 'New coverage eligibility request',
@@ -54,8 +54,8 @@ export default {
   INITIATE_NEW_CLAIM_REQUEST: 'Initiate new claim request',
   PROCEED: 'Proceed',
   ADD_NEW_PATIENT:"+ Add new patient",
-  SEARCH_PATIENT:"Search patient :",
+  SEARCH_PATIENT:"Search Beneficiary :",
   PATIENT_MOBILE:"Patient mobile no. :",
   VIEW_MORE:"View More",
-  ACTIVE_LIST:"Recent active patients :"
+  ACTIVE_LIST:"Active Requests :"
 };

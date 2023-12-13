@@ -27,7 +27,7 @@ const Login = () => {
       setLoading(true);
       const loginResponse = await login(loginCredentials);
       if (loginResponse.status === 200) {
-        toast.success("Logged in successfully!");
+        toast.success("Signed in succcessfully!");
         navigate("/home");
       }
     } catch (err: any) {

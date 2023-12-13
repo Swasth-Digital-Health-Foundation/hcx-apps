@@ -67,31 +67,24 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   ];
 
   const patientDataFromState: any = location.state?.obj;
-  console.log(location.state?.obj)
 
   const payload = {
     name: patientDataFromState?.patientName || name || patientInfo[0]?.name,
     mobile: mobile || patientDataFromState?.mobile || patientInfo[0]?.mobile,
     address:
       address || patientDataFromState?.address || patientInfo[0]?.address,
-    medical_history: [
-      {
-        allergies: allergies,
-        bloodGroup: bloodGroup,
-      },
-    ],
     payor_details: [
       {
         insurance_id:
           insuranceID ||
           patientDataFromState?.insuranceId ||
           patientInfo[0]?.payor_details[0]?.insurance_id,
-        payor:
+        payorName:
           payorName ||
           patientDataFromState?.payorName ||
           patientInfo[0]?.payor_details[0]?.payorName,
         recipientCode:
-          patientDataFromState?.hcxPayorCode ||
+          payorParticipantCode || patientDataFromState?.hcxPayorCode ||
           patientInfo[0]?.payor_details[0]?.hcxPayorCode
       },
     ],
@@ -187,12 +180,10 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     },
   };
 
-  console.log("patientDataFromState?.mobile", patientDataFromState?.mobile)
-
   const registerUser = async () => {
     try {
       let registerResponse: any = await postRequest("invite", payload);
-      setLoading(false);
+      sendCoverageEligibilityRequest();
       toast.success(
         "Patient added successfully",
         {
@@ -200,7 +191,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
         }
       );
     } catch (error: any) {
-      toast.info("Patient already exists,  initiating coverage eligibility", {
+      toast.info("Beneficiary already exists,  initiating coverage eligibility", {
         position: toast.POSITION.TOP_CENTER,
       });
     }
@@ -235,16 +226,16 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       seetPatientInfo(responseData);
       setSearchLoading(false);
       if (responseData.length === 0) {
-        toast.error("Patient not found!");
+        toast.error("Beneficiary not found!");
         setIsEditable(false);
       } else {
-        toast.success("Patient already exists!");
+        toast.success("Beneficiary already exists!");
         setIsPatientExists(true);
       }
     } catch (error: any) {
       setIsEditable(false);
       setSearchLoading(false);
-      toast.error("patient not found!", {
+      toast.error("Beneficiary not found!", {
         position: toast.POSITION.TOP_CENTER,
       });
     }
@@ -272,7 +263,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     serviceType: "OPD",
     patientName:
       name || patientDataFromState?.patientName || patientInfo[0]?.name,
-    app: "OPD",
+    app: "ABSP",
     password: passowrd,
     recipientCode: payorParticipantCode || patientDataFromState?.hcxPayorCode
   };
@@ -287,9 +278,10 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       setLoading(false);
       if (response?.status === 202) {
         toast.success("Coverage eligibility initiated.");
+        localStorage.setItem("workflowId", response.data?.workflowId)
         navigate("/coverage-eligibility", {
           state: {
-            patientMobile: patientDataFromState?.mobile,
+            patientMobile: patientDataFromState?.mobile || mobile,
             workflowId: response.data?.workflowId,
             recipientCode: response.data?.recipientCode
           },
@@ -310,6 +302,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   };
 
   const [active, setActive] = useState<number | null>(null);
+
   const handleToggle = (index: number) => {
     if (active === index) {
       setActive(null);
@@ -377,7 +370,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   return (
     <div>
       <label className="mb-2.5 block text-left text-2xl font-bold text-black dark:text-white">
-        New patient details
+        New Beneficiary Details
       </label>
       {patientDataFromState ? (
         <div className='dark:bg-boxdark" rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark'>
@@ -569,17 +562,16 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       ) : (
         <div>
           <CustomButton
-            text="Add patient"
+            text="Proceed"
             onClick={() => {
               if (isPatientExists === false) {
                 registerUser();
-                navigate("/coverage-eligibility", { state: { patientMobile: mobile} })
-
+                setTimeout(() => {
+                  navigate("/coverage-eligibility", { state: { patientMobile: mobile } })
+                  setLoading(false)
+                }, 2000)
               }
-              // if (payload.medical_history[0]?.allergies !== '' || payload.medical_history[0]?.bloodGroup !== '') {
-              //   updateMedicalHistory();
-              // }
-              // sendCoverageEligibilityRequest();
+              sendCoverageEligibilityRequest();
             }}
             disabled={false}
           />

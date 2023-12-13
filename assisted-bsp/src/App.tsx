@@ -37,8 +37,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route element={<DefaultLayout />}>
-          <Route path="/" element={<Navigate to="/opd-login" />} />
-          <Route path="/opd-login" element={<Login />}></Route>
+          <Route path="/" element={<Navigate to="/assisted-bsp-login" />} />
+          <Route path="/assisted-bsp-login" element={<Login />}></Route>
           <Route path="/home" element={<Home />} />
           <Route
             path="/add-patient"

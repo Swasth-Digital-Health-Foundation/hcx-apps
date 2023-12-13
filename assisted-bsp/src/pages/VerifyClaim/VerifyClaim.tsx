@@ -18,6 +18,8 @@ const VerifyClaim = () => {
   const location = useLocation();
   const details = location.state;
   const navigate = useNavigate();
+  console.log(details);
+  
 
   const [token, setToken] = useState<string>('');
   const [providerName, setProviderName] = useState<string>('');
@@ -29,6 +31,7 @@ const VerifyClaim = () => {
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
   const [popup, setPopup] = useState(false);
+
 
   const participantCodePayload = {
     filters: {
@@ -133,6 +136,10 @@ const VerifyClaim = () => {
     type: 'otp_verification',
     request_id: details?.apiCallId,
   };
+
+  
+  console.log(location.state);
+  
 
   const getVerification = async () => {
     try {

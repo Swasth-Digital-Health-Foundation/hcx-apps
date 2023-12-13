@@ -29,7 +29,6 @@ const ViewPatientDetails = () => {
   const [coverageEligibilityStatus, setcoverageStatus] = useState<any>([]);
   const [apicallIdForClaim, setApicallID] = useState<any>();
   const [patientDetails, setPatientDetails] = useState<any>([]);
-  const [consultationDetail, setConsultationDetails] = useState<any>();
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
   const [initiated, setInitiated] = useState(false);
@@ -38,8 +37,10 @@ const ViewPatientDetails = () => {
     providerName: providerName,
     billAmount: location.state?.billAmount || preauthOrClaimList[0]?.billAmount,
     apiCallId: apicallIdForClaim,
-   
   };
+
+console.log(requestDetails);
+
 
   const [type, setType] = useState<string[]>([]);
 
@@ -53,13 +54,10 @@ const ViewPatientDetails = () => {
     },
   };
 
-  // console.log(localStorage.getItem("patientMobile"))
-
   const getPatientDetails = async () => {
     try {
       setLoading(true);
       let registerResponse: any = await postRequest("search", payload);
-      console.log(registerResponse)
       const patientDetails = registerResponse.data;
       setPatientDetails(patientDetails);
     } catch (error: any) {
@@ -74,12 +72,12 @@ const ViewPatientDetails = () => {
 
   const personalDeatails = [
     {
-      key: "Patient name",
+      key: "Beneficiary name",
       value: patientDetails[0]?.name,
     },
     {
       key: "Mobile no",
-      value: patientDetails[0]?.mobile,
+      value: patientDetails[0]?.mobile || location.state?.patientMobile,
     },
     {
       key: "Address",
@@ -159,11 +157,10 @@ const ViewPatientDetails = () => {
   };
 
   const patientMobile = localStorage.getItem("patientMobile");
-  console.log(location.state);
-  
+
   const coverageEligibilityPayload = {
     mobile:
-       patientMobile,
+      patientMobile,
     app: "ABSP",
   };
 
@@ -179,11 +176,9 @@ const ViewPatientDetails = () => {
         preauthOrClaimListPayload
       );
       let preAuthAndClaimList = response.data?.entries;
-      console.log(preAuthAndClaimList);
       setpreauthOrClaimList(preAuthAndClaimList);
       for (const entry of preAuthAndClaimList) {
         if (entry.type === "claim") {
-          console.log(" API call id" ,entry.apiCallId); 
           setApicallID(entry.apiCallId);
           break;
         }
@@ -219,20 +214,9 @@ const ViewPatientDetails = () => {
     tokenGeneration();
   }, [preauthOrClaimListPayload.workflow_id]);
 
-  useEffect(()=>{
+  useEffect(() => {
     getActivePlans();
-  },[patientMobile])
-
-  // const getConsultation = async () => {
-  //   try {
-  //     const response = await getConsultationDetails(location.state?.workflowId);
-  //     let data = response.data;
-  //     setConsultationDetails(data);
-  //   } catch (err: any) {
-  //     console.log(err);
-  //     // toast.error()
-  //   }
-  // };
+  }, [patientMobile])
 
   useEffect(() => {
     for (const entry of preauthOrClaimList) {
@@ -245,7 +229,7 @@ const ViewPatientDetails = () => {
   }, []);
 
 
-  const workflowId = location.state?.workflowId;
+  const workflowId = location.state?.workflowId || localStorage.getItem("workflowId");
   let coverageStatus = coverageDetails.find(
     (entryObj: any) => Object.keys(entryObj)[0] === workflowId
   );
@@ -268,7 +252,7 @@ const ViewPatientDetails = () => {
         "Object with type 'coverageeligibility' not found for the given ID."
       );
     }
-  }, [coverageStatus, patientMobile]);
+  }, [coverageStatus, patientMobile, localStorage.getItem("workflowId")]);
 
   useEffect(() => {
     getPatientDetails();
@@ -277,15 +261,10 @@ const ViewPatientDetails = () => {
   const hasClaimApproved = preauthOrClaimList.some(
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
   );
-  
+
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
-
-  // console.log(patientDetails[0]?.payor_details[0]?.insurance_id)
-  // console.log(patientInsuranceId)
-
   const patient_Insurance_Id = patientInsuranceId || (patientDetails[0]?.payor_details[0]?.insurance_id)
-  console.log(patient_Insurance_Id)
 
   const getVerificationPayload = {
     type: 'otp_verification',
@@ -325,7 +304,7 @@ const ViewPatientDetails = () => {
           </div>
           <div className="flex items-center justify-between">
             <label className="block text-left text-2xl font-bold text-black dark:text-white">
-              Patient details
+            Beneficiary Details
             </label>
             <h2 className="sm:text-title-xl1 text-end font-semibold text-success dark:text-success">
               {coverageEligibilityStatus === "Approved" ? (
@@ -403,7 +382,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}
+                    {location.state?.patientInsuranceId || (patientDetails[0]?.payor_details[0]?.insurance_id)}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -412,7 +391,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}
+                    {location.state?.patientPayorName || (patientDetails[0]?.payor_details[0]?.payorName)}
                   </span>
                 </div>
               </div>
@@ -525,7 +504,6 @@ const ViewPatientDetails = () => {
                             values.map((imageUrl, index) => {
                               const parts = imageUrl.split('/');
                               const fileName = parts[parts.length - 1];
-                              console.log(fileName)
                               return (
                                 <a href={imageUrl} download>
                                   <div className='text-center'>
@@ -550,7 +528,7 @@ const ViewPatientDetails = () => {
                 <div>
                   <button
                     onClick={() => navigate("/initiate-claim-request", {
-                      state: requestDetails,
+                      state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
                     })}
                     className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                   >
@@ -558,7 +536,7 @@ const ViewPatientDetails = () => {
                   </button>
                   <button
                     onClick={() => navigate("/initiate-preauth-request", {
-                      state: requestDetails,
+                      state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
                     })}
                     className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
                   >
@@ -575,7 +553,7 @@ const ViewPatientDetails = () => {
               <>
                 <button
                   onClick={() => navigate("/initiate-claim-request", {
-                    state: requestDetails,
+                    state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
                   })}
                   className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                 >

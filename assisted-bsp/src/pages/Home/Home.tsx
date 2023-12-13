@@ -10,7 +10,7 @@ import { generateToken, searchParticipant } from "../../services/hcxService";
 import CustomButton from "../../components/CustomButton";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, CurrencyBangladeshiIcon } from "@heroicons/react/24/outline";
 import { postRequest } from "../../services/registryService";
 
 const Home = () => {
@@ -43,6 +43,8 @@ const Home = () => {
   useEffect(() => {
     if (qrCodeData !== undefined) {
       let obj = JSON.parse(qrCodeData);
+      console.log(obj,"obj");
+      
       localStorage.setItem("patientInsuranceId", obj.insuranceId)
       const patientSearchPayload = {
         entityType: ["Beneficiary"],
@@ -59,7 +61,6 @@ const Home = () => {
             patientSearchPayload
           );
           const responseData = registerResponse.data;
-          console.log(responseData);
           seetPatientInfo(responseData);
           setSearchLoading(false);
           if (responseData.length === 0) {
@@ -79,7 +80,7 @@ const Home = () => {
       patientSearch();
 
       if (_.isEmpty(patientInfo)) {
-        navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId } })
+        navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId, patientInsuranceId: obj?.insuranceId, patientPayorName: obj?.payorName } })
       }
 
       let payload = {
@@ -104,7 +105,9 @@ const Home = () => {
             payload
           );
           if (response?.status === 202) {
-            setWorkflowId(response?.data?.workflowId)
+            // setWorkflowId(response?.data?.workflowId)
+            localStorage.setItem("workflowId", response?.data?.workflowId)
+            localStorage.setItem("recipientCode", response?.data?.recipientCode)
             toast.success("Coverage eligibility initiated successfully")
             setQrCodeData(undefined)
             setLoading(false)
@@ -114,11 +117,8 @@ const Home = () => {
           toast.error(_.get(error, 'response.data.error.message'));
         }
       };
-      
-      sendCoverageEligibilityRequest()
 
-      console.log(workflowId);
-      
+      sendCoverageEligibilityRequest()
       // const patientSearch = async () => {
       //   try {
       //     setSearchLoading(true);
@@ -146,7 +146,7 @@ const Home = () => {
 
 
       if (_.isEmpty(patientInfo)) {
-        navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId } })
+        navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId, patientInsuranceId: obj?.insuranceId, patientPayorName: obj?.payorName } })
       }
       // else{
       //   navigate("/add-patient", {state: { obj: obj, mobile: location.state }})
@@ -378,7 +378,8 @@ const Home = () => {
                     payorCode={ele.recipient_code}
                     date={ele.date}
                     insurance_id={ele.insurance_id}
-                    claimType={ele.claimType}
+                    // claimType={ele.claimType}
+                    claimType = "OPD"
                     apiCallId={ele.apiCallId}
                     status={latestStatusByEntry[ele.workflow_id]}
                     type={ele.type}

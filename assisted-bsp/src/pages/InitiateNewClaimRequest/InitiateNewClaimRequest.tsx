@@ -13,9 +13,6 @@ import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import useDebounce from '../../hooks/useDebounce';
 
-
-
-
 import * as _ from "lodash";
 
 const InitiateNewClaimRequest = () => {
@@ -32,7 +29,7 @@ const InitiateNewClaimRequest = () => {
   const [isSuccess, setIsSuccess]: any = useState(false);
 
   const [amount, setAmount] = useState<string>("");
-  const [serviceType, setServiceType] = useState<string>();
+  const [serviceType, setServiceType] = useState<string>("OPD");
   const [documentType, setDocumentType] = useState<string>("prescription");
 
   const [loading, setLoading] = useState(false);
@@ -49,6 +46,7 @@ const InitiateNewClaimRequest = () => {
 
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   const insuranceOptions = [
     { label: "Select", value: "" },
@@ -90,7 +88,7 @@ const InitiateNewClaimRequest = () => {
     FileLists = Array.from(selectedFile);
   }
 
-  const data = location.state;
+  const data = location.state?.requestDetails;
   const handleDelete = (name: any) => {
     if (selectedFile !== undefined) {
       const updatedFilesList = selectedFile.filter(
@@ -103,8 +101,6 @@ const InitiateNewClaimRequest = () => {
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
 
-  console.log(data?.recipientCode)
-
   let initiateClaimRequestBody: any = {
     insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
     insurancePlan: data?.insurancePlan || null,
@@ -114,10 +110,10 @@ const InitiateNewClaimRequest = () => {
     participantCode:
       data?.participantCode || localStorage.getItem("senderCode") || email,
     payor: data?.payor || payorName,
-    providerName: data?.providerName || localStorage.getItem("providerName"),
-    serviceType: data?.serviceType || displayedData[0]?.claimType,
+    providerName: _.isEmpty(searchResults) ? providerName : data?.providerName || localStorage.getItem("providerName"),
+    serviceType: serviceType || displayedData[0]?.claimType,
     billAmount: amount,
-    workflowId: data?.workflowId,
+    workflowId: data?.workflowId || localStorage.getItem("workflowId"),
     supportingDocuments: [
       {
         documentType: documentType,
@@ -126,11 +122,13 @@ const InitiateNewClaimRequest = () => {
         }),
       },
     ],
-    type: data?.serviceType || displayedData[0]?.claimType,
+    type: serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: data?.recipientCode,
-    app: "ABSP"
+    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode ||  data?.recipientCode,
+    app: "ABSP",
+    date: selectedDate
   };
+
 
   const filter = {
     entityType: ["Beneficiary"],
@@ -198,11 +196,11 @@ const InitiateNewClaimRequest = () => {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFile)) {
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
-        if (response?.status === 200) {
-          handlePreAuthRequest()
-          setSubmitLoading(false);
-          toast.success("Claim request initiated successfully!")
-        }
+        // if (response?.status === 200) {
+        handlePreAuthRequest()
+        setSubmitLoading(false);
+        toast.success("Claim request initiated successfully!")
+        // }
       }
       else {
         handlePreAuthRequest()
@@ -225,6 +223,9 @@ const InitiateNewClaimRequest = () => {
   const payload = {
     filters: {
       participant_name: { eq: providerName },
+      roles: {
+        "neq": "payor"
+      }
     },
   };
 
@@ -248,13 +249,12 @@ const InitiateNewClaimRequest = () => {
       // toast.error(_.get(error, 'response.data.error.message'))
     }
   };
-
+  
   const debounce = useDebounce(providerName, 500);
 
   useEffect(() => {
     search();
   }, [debounce]);
-
 
   return (
     <>
@@ -329,14 +329,15 @@ const InitiateNewClaimRequest = () => {
             </h2>
             <TextInputWithLabel
               label="Participant code:"
-              value={providerName ? participantCode : 'Search above for participant code'}
+              placeholder={providerName ? (_.isEmpty(participantCode) || _.isEmpty(searchResults)) ? 'Not applicable' : participantCode : 'Search above for participant code'}
+              value={_.isEmpty(searchResults) ? "" : participantCode}
               disabled={true}
               type="text"
             />
           </div>
           <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <TextInputWithLabel
-              label="Selected insurance: "
+              label="Insurance Id: "
               value={selectedInsurance || displayedData[0]?.insurance_id}
               disabled={true}
               type="text"
@@ -354,19 +355,24 @@ const InitiateNewClaimRequest = () => {
               options={services}
             />
             <SelectInput
-              label="Service/Treatment given : "
+              label="Service/Treatment category :"
               value={"consultation"}
-              // onChange={(e: any) => setServiceType(e.target.value)}
               options={treatmentOptions}
             />
             <h2 className="mt-3 text-1xl text-black bg-white dark:bg-form-input">
-              {"Select date:"}
+              {"Treatment Date :"}
             </h2>
             <div className="relative">
               <input
                 type="date"
+                onChange={(e: any) => setSelectedDate(e.target.value)}
                 className=" mt-3 custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
+              <div className="absolute right-5 top-7 flex items-center ps-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                </svg>
+              </div>
             </div>
             <TextInputWithLabel
               label="Bill amount : *"

@@ -107,22 +107,22 @@ const SendBankDetails = () => {
 
   return (
     <div>
-       <div className="relative flex pb-8">
-            <ArrowPathIcon
-              onClick={() => {
-                getVerificationForBank();
-              }}
-              className={
-                loading ? "animate-spin h-11 w-7 absolute right-0" : "h-20 w-8 absolute right-2"
-              }
-              aria-hidden="true"
-            />
+      <div className="relative flex pb-8">
+        <ArrowPathIcon
+          onClick={() => {
+            getVerificationForBank();
+          }}
+          className={
+            loading ? "animate-spin h-11 w-7 absolute right-0" : "h-20 w-8 absolute right-2"
+          }
+          aria-hidden="true"
+        />
         {/* {!refresh ? (
           <span className="cursor-pointer">Refresh</span>
         ) : (
           <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
         )} */}
-        </div>
+      </div>
 
       <div className="flex items-center justify-between">
         <h2 className="sm:text-title-xl1 mb-4 text-2xl font-semibold text-black dark:text-white">
@@ -161,6 +161,14 @@ const SendBankDetails = () => {
             );
           })}
         </div>
+      </div>
+      <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="flex items-center justify-between">
+          <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
+            Policy consent : <span className='text-success'>&#10004; Approved</span>
+          </h2>
+        </div>
+
       </div>
       {/* <button
         className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
@@ -236,7 +244,6 @@ const SendBankDetails = () => {
                   disabled={accountNumber === '' || ifscCode === ''}
                   onClick={(event: any) => {
                     event.preventDefault();
-                    //   navigate('/home');
                     //   verifyOTP();
                     submit();
                   }}
