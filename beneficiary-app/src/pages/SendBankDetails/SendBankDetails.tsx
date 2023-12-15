@@ -72,7 +72,7 @@ const SendBankDetails = () => {
       }
     } catch (err) {
       setRefresh(false);
-      toast.error('Communication is not initiated!');
+      toast.error('Bank details request is not initiated!');
       console.log(err);
     }
   };
@@ -143,6 +143,14 @@ const SendBankDetails = () => {
             );
           })}
         </div>
+      </div>
+      <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="flex items-center justify-between">
+          <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
+            Policy consent : <span className='text-success'>&#10004; Approved</span>
+          </h2>
+        </div>
+
       </div>
       <button
         className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
