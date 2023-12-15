@@ -115,7 +115,7 @@ const SendBankDetails = () => {
         <div>
           {_.map(claimRequestDetails, (ele: any, index: any) => {
             return (
-              <div key={index}>
+              <div key={index} className='mb-2'>
                 <h2 className="text-bold text-base font-bold text-black dark:text-white">
                   {ele.key}
                 </h2>

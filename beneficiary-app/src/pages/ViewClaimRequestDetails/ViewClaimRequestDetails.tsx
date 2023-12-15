@@ -18,7 +18,7 @@ const ViewClaimRequestDetails = () => {
 
   const [token, setToken] = useState<string>('');
   const [providerName, setProviderName] = useState<string>('');
-  const [payorName, setPayorName] = useState<string>('');
+  const [payorName, setPayorName] = useState<string>();
   const [initiated, setInitiated] = useState(false);
   const [OTP, setOTP] = useState<any>();
   const [docs, setSupportingDocs] = useState<any>({});
@@ -44,6 +44,8 @@ const ViewClaimRequestDetails = () => {
     payor: payorName,
     providerName: providerName,
   };
+
+
 
   useEffect(() => {
     // const search = async () => {
@@ -92,7 +94,7 @@ const ViewClaimRequestDetails = () => {
     } catch (err) {
       console.log(err);
     }
-  }, []);
+  }, [payorName]);
 
   const claimRequestDetails: any = [
     {
@@ -193,6 +195,18 @@ const ViewClaimRequestDetails = () => {
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
   );
 
+  // console.log("preAuthAndClaimList",preAuthAndClaimList)
+  const isVerificationSuccessfull = preAuthAndClaimList.some(
+    (entry: any) => entry.type === 'claim' && entry.otpStatus === 'successful'
+  );
+
+  useEffect(() => {
+    // console.log(isVerificationSuccessfull)
+    if (isVerificationSuccessfull && payorName !== undefined) {
+      navigate('/bank-details', { state: sendInfo })
+    }
+  }, [payorName])
+
   return (
     <>
       <div className="relative mb-4 items-center justify-between">
@@ -242,9 +256,9 @@ const ViewClaimRequestDetails = () => {
           </h2>
         </div>
         <div>
-          {_.map(treatmentDetails, (ele: any) => {
+          {_.map(treatmentDetails, (ele: any, index: any) => {
             return (
-              <div className="flex gap-2">
+              <div className="flex gap-2" key={index}>
                 <h2 className="text-bold text-base font-bold text-black dark:text-white">
                   {ele.key}
                 </h2>
@@ -339,8 +353,7 @@ const ViewClaimRequestDetails = () => {
             </div>
           </div>
         </>
-      ) : null}
-    </>
+      ) : null}</>
   );
 };
 

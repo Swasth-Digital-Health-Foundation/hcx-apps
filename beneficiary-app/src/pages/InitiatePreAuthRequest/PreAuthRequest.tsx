@@ -95,7 +95,8 @@ const PreAuthRequest = () => {
     type: 'OPD',
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: userInfo[0]?.payor_details[0]?.recipientCode
+    recipientCode: userInfo[0]?.payor_details[0]?.recipientCode,
+    app: "BSP"
   };
 
   const participantCodePayload = {

@@ -2,13 +2,11 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
-import { generateOutgoingRequest, isInitiated } from '../../services/hcxMockService';
+import { generateOutgoingRequest } from '../../services/hcxMockService';
 import TransparentLoader from '../../components/TransparentLoader';
 import * as _ from "lodash";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import thumbnail from "../../images/pngwing.com.png"
-import { toast } from 'react-toastify';
-import LoadingButton from '../../components/LoadingButton';
 
 const CoverageEligibility = () => {
   const navigate = useNavigate();
@@ -187,6 +185,8 @@ const CoverageEligibility = () => {
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
   );
 
+  console.log("preauthOrClaimList", preauthOrClaimList)
+
   return (
     <>
       {!loading ? (
@@ -241,6 +241,7 @@ const CoverageEligibility = () => {
             </div> : null}
           </div>
           {_.map(preauthOrClaimList, (ele: any) => {
+            const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -282,6 +283,17 @@ const CoverageEligibility = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
+                      {
+                        additionalInfo?.financial?.approved_amount &&
+                        <div className="flex gap-2">
+                          <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                            Approved amount :
+                          </h2>
+                          <span className="text-base font-medium">
+                            INR {additionalInfo?.financial?.approved_amount}
+                          </span>
+                        </div>
+                      }
                     </div>
                   </div>
                   {_.isEmpty(ele.supportingDocuments) ? null : <>

@@ -10,8 +10,7 @@ import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
-
-const Home = () => {
+const Home = () => {  
   const navigate = useNavigate();
   const location = useLocation();
   const [qrCodeData, setQrCodeData] = useState<any>();
@@ -139,7 +138,7 @@ const Home = () => {
                 qrbox={250}
                 disableFlip={false}
                 qrCodeSuccessCallback={onNewScanResult}
-                setInitialized={initialized}
+                // setInitialized={initialized}
               />
             </div>
           </div>
