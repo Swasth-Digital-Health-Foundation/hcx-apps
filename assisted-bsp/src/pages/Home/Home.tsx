@@ -270,13 +270,13 @@ const Home = () => {
         <div className="mt-2">
           <div className="qr-code p-1">
             <div id="reader" className="px-1 ">
-              {/* <Html5QrcodePlugin
+              <Html5QrcodePlugin
                 fps={60}
                 qrbox={250}
                 disableFlip={false}
                 qrCodeSuccessCallback={onNewScanResult}
               // setInitialized={initialized}
-              /> */}
+              />
             </div>
           </div>
           <p className="mt-3 text-center font-bold text-black dark:text-gray">
@@ -316,7 +316,7 @@ const Home = () => {
           <input
             onChange={handleMobileNumberChange}
             type="text"
-            placeholder="Enter beneficiary mobile to search"
+            placeholder="Enter beneficiary mobile no. to search"
             className={`border ${isValid ? "border-stroke" : "border-red"
               } w-full rounded-lg py-4 pl-6 pr-10 outline-none focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary`}
           />
