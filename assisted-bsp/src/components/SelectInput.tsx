@@ -3,7 +3,7 @@ import React from 'react';
 const SelectInput = ({ label, value, onChange, options, disabled }: any) => {
   return (
     <div>
-      <label className="mb-2.5 mt-3 block text-left font-medium text-black dark:text-white">
+      <label className="mb-2.5 text-black font-bold mt-3 block z-20 bg-white dark:bg-form-input">
         {label}
       </label>
       <div className="relative z-20 bg-white dark:bg-form-input">

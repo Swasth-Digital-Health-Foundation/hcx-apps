@@ -267,7 +267,7 @@ const InitiateNewClaimRequest = () => {
           </h2>
           <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Provider Details:"} </h2>
-            <h2 className="relative z-20 mb-4 bg-white dark:bg-form-input">
+            <h2 className="relative text-black font-bold z-20 mb-4 bg-white dark:bg-form-input">
               {strings.PROVIDER_NAME}{' '}
               <div className="relative">
                 <input
@@ -359,8 +359,8 @@ const InitiateNewClaimRequest = () => {
               value={"consultation"}
               options={treatmentOptions}
             />
-            <h2 className="mt-3 text-1xl text-black bg-white dark:bg-form-input">
-              {"Treatment Date :"}
+            <h2 className="mt-3 text-1xl text-black font-bold z-20 bg-white dark:bg-form-input">
+              {"Treatment date :"}
             </h2>
             <div className="relative">
               <input

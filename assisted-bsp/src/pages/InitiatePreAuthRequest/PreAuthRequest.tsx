@@ -257,9 +257,9 @@ const PreAuthRequest = () => {
           <h2 className="mb-4 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
             {strings.NEW_PREAUTH_REQUEST}
           </h2>
-          <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-lg border border-stroke bg-white mt-5 p-3 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Provider Details:"} </h2>
-            <h2 className="relative z-20 mb-4 bg-white dark:bg-form-input">
+            <h2 className="relative z-20 mb-4 text-black font-bold bg-white dark:bg-form-input">
               {strings.PROVIDER_NAME}{' '}
               <div className="relative">
                 <input
@@ -327,7 +327,7 @@ const PreAuthRequest = () => {
               type="text"
             />
           </div>
-          <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-lg border border-stroke bg-white mt-5 p-2.5 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <TextInputWithLabel
               label="Insurance Id: "
               value={selectedInsurance || displayedData[0]?.insurance_id}
@@ -346,7 +346,7 @@ const PreAuthRequest = () => {
               onChange={(e: any) => setTreatmentType(e.target.value)}
               options={treatmentOptions}
             />
-           <h2 className="mt-3 text-1xl text-black bg-white dark:bg-form-input">
+           <h2 className="mt-3 text-1xl text-black font-bold bg-white dark:bg-form-input">
               {"Planned Treatment Date :"}
             </h2>
             <div className="relative">

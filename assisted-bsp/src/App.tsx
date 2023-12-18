@@ -45,11 +45,6 @@ const App = () => {
             element={<AddPatientAndInitiateCoverageEligibility />}
           />
           <Route
-            path="/initiate-claim-request"
-            element={<InitiateNewClaimRequest />}
-          />
-          {/* <Route path="/add-consultation" element={<AddConsultation />} /> */}
-          <Route
             path="/coverage-eligibility"
             element={<ViewPatientDetails />}
           />

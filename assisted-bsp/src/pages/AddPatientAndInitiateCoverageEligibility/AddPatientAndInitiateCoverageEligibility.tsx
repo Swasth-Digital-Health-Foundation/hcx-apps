@@ -415,7 +415,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             label="Name :"
             value={name || patientInfo[0]?.name}
             onChange={(e: any) => setName(e.target.value)}
-            placeholder="Enter patient name"
+            placeholder="Enter beneficiary name"
             disabled={false || isEditable}
             type="text"
           />

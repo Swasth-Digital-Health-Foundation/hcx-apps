@@ -39,8 +39,6 @@ const ViewPatientDetails = () => {
     apiCallId: apicallIdForClaim,
   };
 
-console.log(requestDetails);
-
 
   const [type, setType] = useState<string[]>([]);
 
@@ -382,8 +380,7 @@ console.log(requestDetails);
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {location.state?.patientInsuranceId || (patientDetails[0]?.payor_details[0]?.insurance_id)}
-                  </span>
+                  {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}                  </span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
@@ -391,8 +388,7 @@ console.log(requestDetails);
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {location.state?.patientPayorName || (patientDetails[0]?.payor_details[0]?.payorName)}
-                  </span>
+                  {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}                  </span>
                 </div>
               </div>
             </div>
@@ -528,7 +524,7 @@ console.log(requestDetails);
                 <div>
                   <button
                     onClick={() => navigate("/initiate-claim-request", {
-                      state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
+                      state: { requestDetails: requestDetails },
                     })}
                     className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                   >
@@ -536,7 +532,7 @@ console.log(requestDetails);
                   </button>
                   <button
                     onClick={() => navigate("/initiate-preauth-request", {
-                      state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
+                      state: { requestDetails: requestDetails },
                     })}
                     className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
                   >
