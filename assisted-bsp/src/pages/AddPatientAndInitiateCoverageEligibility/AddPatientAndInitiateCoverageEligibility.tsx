@@ -197,22 +197,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     }
   };
 
-  // const updateMedicalhistory = {
-  //   medical_history: payload?.medical_history,
-  // };
-
-  // const updateMedicalHistory = async () => {
-  //   try {
-  //     let registerResponse: any = await updateRequest(
-  //       `${patientInfo[0]?.osid}`,
-  //       updateMedicalhistory
-  //     );
-  //   } catch (err) {
-  //     toast.error("Faild to update medical history!", {
-  //       position: toast.POSITION.TOP_CENTER,
-  //     });
-  //   }
-  // };
 
   const patientSearch = async () => {
     try {
@@ -316,7 +300,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   const searchPayload = {
     filters: {
-      participant_name: { eq: payorName },
       "roles": {
         "eq": "payor"
       },
@@ -329,10 +312,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
   let searchPayorForPatient = async () => {
     try {
-      if (payorName.trim() === '') {
-        setSearchResults([]);
-        return;
-      }
+      
       const tokenResponse = await generateToken();
       const token = tokenResponse.data.access_token;
       const response = await searchParticipant(searchPayload, {
@@ -340,7 +320,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setOpenDropdown(true);
       setSearchResults(response.data?.participants);
     } catch (error: any) {
       setOpenDropdown(false);
@@ -350,7 +329,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   useEffect(() => {
     searchPayorForPatient();
-  }, [debounce]);
+  }, []);
 
   useEffect(() => {
     if (mobile !== "") {
@@ -366,6 +345,10 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     setPayorParticipantCode(participantCode);
     setPayorName(result);
   };
+
+  const filteredResults = searchResults.filter((result: any) =>
+    result.participant_name.toLowerCase().includes(payorName.toLowerCase())
+  );
 
   return (
     <div>
@@ -484,7 +467,16 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                     type="text"
                     placeholder="Search..."
                     value={payorName}
-                    onChange={(e) => setPayorName(e.target.value)}
+                    onChange={(e) => {
+                      const inputText = e.target.value;
+                      setPayorName(inputText)
+                      const hasMatchingRecords = searchResults.some((result: any) =>
+                        result.participant_name.toLowerCase().includes(inputText.toLowerCase())
+                      );
+                      setOpenDropdown(hasMatchingRecords);
+                    }
+                    }
+                    // onChange={(e) => setPayorName(e.target.value)}
                     className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
                   <span
@@ -511,7 +503,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                       </g>
                     </svg>
                   </span>
-                  {openDropdown && searchResults.length !== 0 ? (
+                  {/* {openDropdown && searchResults.length !== 0 ? (
                     <div className="max-h-40 overflow-y-auto overflow-x-hidden">
                       <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
                         {_.map(searchResults, (result: any, index: any) => (
@@ -533,7 +525,33 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                     </div>
                   ) : (
                     <></>
+                  )} */}
+                  {filteredResults.length !== 0 && openDropdown ? (
+                    <div className="max-h-40 overflow-y-auto overflow-x-hidden">
+                      <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
+                        {_.map(filteredResults, (result: any, index: any) => (
+                          <li
+                            key={index}
+                            onClick={() => {
+                              setOpenDropdown(!openDropdown)
+                              handleSelect(
+                                result?.participant_name,
+                                result?.participant_code
+                              )
+                            }
+                            }
+                            className="hover:bg-gray-200 cursor-pointer p-2"
+                          >
+                            {result?.participant_name +
+                               `(${result?.participant_code})` || ''}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <></>
                   )}
+                  
                 </div>
               </h2>
               <div className='items-center'>

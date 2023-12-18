@@ -213,20 +213,13 @@ const PreAuthRequest = () => {
 
   const payload = {
     filters: {
-      participant_name: { eq: providerName },
-      roles: {
-        "neq": "payor"
-      }
+      roles: { startsWith: "provider" },
     },
   };
 
 
   let search = async () => {
     try {
-      if (providerName.trim() === '') {
-        setSearchResults([]);
-        return;
-      }
       const tokenResponse = await generateToken();
       const token = tokenResponse.data.access_token;
       const response = await searchParticipant(payload, {
@@ -234,7 +227,6 @@ const PreAuthRequest = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setOpenDropdown(true);
       setSearchResults(response.data?.participants);
     } catch (error: any) {
       setOpenDropdown(false);
@@ -242,11 +234,13 @@ const PreAuthRequest = () => {
     }
   };
 
-  const debounce = useDebounce(providerName, 500);
-
   useEffect(() => {
     search();
-  }, [debounce]);
+  }, []);
+
+  const filteredResults = searchResults.filter((result: any) =>
+    result.participant_name.toLowerCase().includes(providerName.toLowerCase())
+  );
 
   return (
     <>
@@ -266,7 +260,16 @@ const PreAuthRequest = () => {
                   type="text"
                   placeholder="Search..."
                   value={providerName}
-                  onChange={(e) => setProviderName(e.target.value)}
+                  // onChange={(e) => setProviderName(e.target.value)}
+                  onChange={(e) => {
+                    const inputText = e.target.value;
+                    setProviderName(inputText)
+                    const hasMatchingRecords = searchResults.some((result: any) =>
+                      result.participant_name.toLowerCase().includes(inputText.toLowerCase())
+                    );
+                    setOpenDropdown(hasMatchingRecords);
+                  }
+                  }
                   className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                 />
                 <span
@@ -293,30 +296,31 @@ const PreAuthRequest = () => {
                     </g>
                   </svg>
                 </span>
-                {openDropdown && searchResults.length !== 0 ? (
-                  <div className="max-h-40 overflow-y-auto overflow-x-hidden">
-                    <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                      {_.map(searchResults, (result: any, index: any) => (
-                        <li
-                          key={index}
-                          onClick={() =>
-                            handleSelect(
-                              result?.participant_name,
-                              result?.participant_code
-                            )
-                          }
-                          className="hover:bg-gray-200 cursor-pointer p-2"
-                        >
-                          {result?.participant_name +
-                            ` (${result?.participant_code})` || ''}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <>
-                  </>
-                )}
+                {filteredResults.length !== 0 && openDropdown ? (
+                <div className="max-h-40 overflow-y-auto overflow-x-hidden">
+                  <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
+                    {_.map(filteredResults, (result: any, index: any) => (
+                      <li
+                        key={index}
+                        onClick={() => {
+                          setOpenDropdown(!openDropdown)
+                          handleSelect(
+                            result?.participant_name,
+                            result?.participant_code
+                          )
+                        }
+                        }
+                        className="hover:bg-gray-200 cursor-pointer p-2"
+                      >
+                        {result?.participant_name +
+                           `(${result?.participant_code})` || ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <></>
+              )}
               </div>
             </h2>
             <TextInputWithLabel
@@ -327,7 +331,7 @@ const PreAuthRequest = () => {
               type="text"
             />
           </div>
-          <div className="rounded-lg border border-stroke bg-white mt-5 p-2.5 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-lg border border-stroke bg-white mt-3 pb-3 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <TextInputWithLabel
               label="Insurance Id: "
               value={selectedInsurance || displayedData[0]?.insurance_id}
@@ -371,7 +375,7 @@ const PreAuthRequest = () => {
               type="number"
             />
           </div>
-          <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="mt-4 rounded-lg border border-stroke bg-white pt-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="text-1xl mb-4 font-bold text-black dark:text-white sm:text-title-xl1">
               {strings.SUPPORTING_DOCS}
             </h2>
