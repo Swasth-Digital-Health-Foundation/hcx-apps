@@ -10,6 +10,7 @@ import {
 import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
+import thumbnail from '../../images/pngwing.com.png'
 
 const ViewClaimRequestDetails = () => {
   const location = useLocation();
@@ -21,7 +22,7 @@ const ViewClaimRequestDetails = () => {
   const [payorName, setPayorName] = useState<string>();
   const [initiated, setInitiated] = useState(false);
   const [OTP, setOTP] = useState<any>();
-  const [docs, setSupportingDocs] = useState<any>({});
+  const [docs, setSupportingDocs] = useState<any>([]);
   const [preAuthAndClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
@@ -48,28 +49,13 @@ const ViewClaimRequestDetails = () => {
 
 
   useEffect(() => {
-    // const search = async () => {
-    //   try {
-    //     const tokenResponse = await generateToken();
-    //     if (tokenResponse.statusText === 'OK') {
-    //       setToken(tokenResponse.data.access_token);
-    //     }
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // };
-    // search();
     getSupportingDocsFromList();
   }, []);
 
   useEffect(() => {
     try {
-      // if (token !== undefined) {
       const search = async () => {
         const tokenResponse = await generateToken();
-        // if (tokenResponse.statusText === 'OK') {
-        //   setToken(tokenResponse.data.access_token);
-        // }
         const response = await searchParticipant(
           participantCodePayload,
           {
@@ -124,6 +110,10 @@ const ViewClaimRequestDetails = () => {
       key: 'Bill amount :',
       value: `INR ${details?.billAmount || ''}`,
     },
+    // {
+    //   key: 'Approved amount :',
+    //   value: `INR ${details?.approvedAmount || ''}`,
+    // }
   ];
 
   const getVerificationPayload = {
@@ -184,24 +174,21 @@ const ViewClaimRequestDetails = () => {
     );
     const data = response.data?.entries;
     setpreauthOrClaimList(data);
-
-    const claimAndPreauthEntries = data.filter(
-      (entry: any) => entry.type === 'claim' || entry.type === 'preauth'
-    );
-    setSupportingDocs(claimAndPreauthEntries?.supportingDocuments);
   };
+
+  const claimAndPreauthEntries = preAuthAndClaimList.filter(
+    (entry: any) => entry.type === 'claim' || entry.type === 'preauth'
+  );
 
   const hasClaimApproved = preAuthAndClaimList.some(
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
   );
 
-  // console.log("preAuthAndClaimList",preAuthAndClaimList)
   const isVerificationSuccessfull = preAuthAndClaimList.some(
-    (entry: any) => entry.type === 'claim' && entry.otpStatus === 'successful'
+    (entry: any) => entry.type === 'claim' && entry.otpStatus === 'successful' && entry.status !== 'Approved'
   );
 
   useEffect(() => {
-    // console.log(isVerificationSuccessfull)
     if (isVerificationSuccessfull && payorName !== undefined) {
       navigate('/bank-details', { state: sendInfo })
     }
@@ -266,17 +253,44 @@ const ViewClaimRequestDetails = () => {
               </div>
             );
           })}
+          {details.approvedAmount && <div className="flex gap-2">
+            <h2 className="text-bold text-base font-bold text-black dark:text-white">
+              Approved amount :
+            </h2>
+            <span className="text-base font-medium">INR {details?.approvedAmount}</span>
+          </div>}
+          {claimAndPreauthEntries.map((ele: any) => {
+            return (
+              _.isEmpty(ele.supportingDocuments) ? null : <>
+                <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
+                  Supporting documents :
+                </h2>
+                {Object.entries(ele?.supportingDocuments).map(([key, values]) =>
+                  <div key={key}>
+                    <h3 className='text-base font-bold text-black dark:text-white'>Document type : <span className='text-base font-medium'>{key}</span></h3>
+                    <div className='flex'>
+                      {Array.isArray(values) &&
+                        values.map((imageUrl, index) => {
+                          const parts = imageUrl.split('/');
+                          const fileName = parts[parts.length - 1];
+                          return (
+                            <a href={imageUrl} download>
+                              <div className='text-center'>
+                                <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
+                                <span>{fileName}</span>
+                              </div>
+                            </a>
+                          )
+                        })}
+                    </div>
+                  </div>
+
+                )}
+              </>
+            )
+          })}
         </div>
       </div>
-      {_.isEmpty(docs) ? null : <>
-        <div className="mt-3 rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center justify-between">
-            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-2 font-semibold text-black dark:text-white">
-              {strings.SUPPORTING_DOCS}
-            </h2>
-          </div>
-        </div>
-      </>}
 
       {!hasClaimApproved ? (
         <div

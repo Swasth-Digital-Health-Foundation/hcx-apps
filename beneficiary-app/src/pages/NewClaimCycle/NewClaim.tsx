@@ -5,7 +5,6 @@ import LoadingButton from '../../components/LoadingButton';
 import * as _ from 'lodash';
 import strings from '../../utils/strings';
 import { postRequest } from '../../services/registryService';
-import useDebounce from '../../hooks/useDebounce';
 
 const NewClaim = () => {
   const navigate = useNavigate();
@@ -23,18 +22,12 @@ const NewClaim = () => {
 
   const payload = {
     filters: {
-      // participant_name: { eq: providerName },
       roles: { startsWith: "provider" },
-
     },
   };
 
   let search = async () => {
     try {
-      // if (providerName.trim() === '') {
-      //   setSearchResults([]);
-      //   return;
-      // }
       const tokenResponse = await generateToken();
       const token = tokenResponse.data.access_token;
       const response = await searchParticipant(payload, {
@@ -48,14 +41,6 @@ const NewClaim = () => {
       // toast.error(_.get(error, 'response.data.error.message'))
     }
   };
-
-  console.log(searchResults)
-
-  const debounce = useDebounce(providerName, 500);
-
-  // useEffect(() => {
-  //   search();
-  // }, [debounce]);
 
   useEffect(() => {
     search();
@@ -158,8 +143,12 @@ const NewClaim = () => {
                 placeholder="Search..."
                 value={providerName}
                 onChange={(e) => {
-                  setOpenDropdown(!openDropdown)
-                  setProviderName(e.target.value)
+                  const inputText = e.target.value;
+                  setProviderName(inputText)
+                  const hasMatchingRecords = searchResults.some((result: any) =>
+                    result.participant_name.toLowerCase().includes(inputText.toLowerCase())
+                  );
+                  setOpenDropdown(hasMatchingRecords);
                 }
                 }
                 className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"

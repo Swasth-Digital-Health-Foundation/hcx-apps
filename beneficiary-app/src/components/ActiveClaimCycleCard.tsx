@@ -22,6 +22,7 @@ const ActiveClaimCycleCard = (Props: any) => {
     billAmount: Props.billAmount,
     workflowId: Props.workflowId,
     patientName: Props.patientName,
+    approvedAmount: Props.approvedAmount
   };
 
   localStorage.setItem('recipientCode', information?.payorCode)

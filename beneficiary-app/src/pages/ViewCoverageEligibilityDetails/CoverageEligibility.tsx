@@ -185,8 +185,6 @@ const CoverageEligibility = () => {
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
   );
 
-  console.log("preauthOrClaimList", preauthOrClaimList)
-
   return (
     <>
       {!loading ? (
@@ -308,7 +306,6 @@ const CoverageEligibility = () => {
                             values.map((imageUrl, index) => {
                               const parts = imageUrl.split('/');
                               const fileName = parts[parts.length - 1];
-                              console.log(fileName)
                               return (
                                 <div className='text-center'>
                                   <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
