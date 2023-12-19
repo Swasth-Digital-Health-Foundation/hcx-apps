@@ -17,12 +17,10 @@ const ViewClaimRequestDetails = () => {
   const details = location.state;
   const navigate = useNavigate();
 
-  const [token, setToken] = useState<string>('');
   const [providerName, setProviderName] = useState<string>('');
-  const [payorName, setPayorName] = useState<string>();
+  const [payorName, setPayorName] = useState<string>('');
   const [initiated, setInitiated] = useState(false);
   const [OTP, setOTP] = useState<any>();
-  const [docs, setSupportingDocs] = useState<any>([]);
   const [preAuthAndClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
@@ -45,12 +43,6 @@ const ViewClaimRequestDetails = () => {
     payor: payorName,
     providerName: providerName,
   };
-
-
-
-  useEffect(() => {
-    getSupportingDocsFromList();
-  }, []);
 
   useEffect(() => {
     try {
@@ -80,7 +72,7 @@ const ViewClaimRequestDetails = () => {
     } catch (err) {
       console.log(err);
     }
-  }, [payorName]);
+  }, []);
 
   const claimRequestDetails: any = [
     {
@@ -132,7 +124,7 @@ const ViewClaimRequestDetails = () => {
     } catch (err) {
       setRefresh(false);
       console.log(err);
-      toast.error('Communication is not initiated.');
+      toast.error('Policy consent is not initiated.');
     }
   };
 
@@ -151,14 +143,14 @@ const ViewClaimRequestDetails = () => {
     try {
       setLoading(true);
       const res = await createCommunicationOnRequest(payload);
+      getSupportingDocsFromList();
       setLoading(false);
       setInitiated(false);
       toast.success(res.data?.message);
-      navigate('/bank-details', { state: sendInfo });
+      navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
     } catch (err) {
       setLoading(false);
       toast.error('Enter valid OTP!');
-      console.log(err);
     }
   };
 
@@ -184,13 +176,25 @@ const ViewClaimRequestDetails = () => {
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
   );
 
+  const bankDetails: any = preAuthAndClaimList.filter(
+    (entry: any) => {
+      if (entry.type === 'claim') {
+        return entry
+      }
+    }
+  )
+
   const isVerificationSuccessfull = preAuthAndClaimList.some(
     (entry: any) => entry.type === 'claim' && entry.otpStatus === 'successful' && entry.status !== 'Approved'
   );
 
   useEffect(() => {
+    getSupportingDocsFromList();
+  }, [details?.workflowId]);
+
+  useEffect(() => {
     if (isVerificationSuccessfull && payorName !== undefined) {
-      navigate('/bank-details', { state: sendInfo })
+      navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } })
     }
   }, [payorName])
 

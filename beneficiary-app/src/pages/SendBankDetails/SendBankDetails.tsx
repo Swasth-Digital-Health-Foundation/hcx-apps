@@ -11,8 +11,11 @@ import * as _ from "lodash";
 
 const SendBankDetails = () => {
   const location = useLocation();
-  const details = location.state;
+  const details = location.state?.sendInfo;
+  const beneficiaryBankDetails: any[] = location.state?.bankDetails;
+  // const [beneficiaryBankDetails, setbeneficiaryBankDetails] = useState<any>(location.state?.bankDetails)
   const navigate = useNavigate();
+  console.log(beneficiaryBankDetails)
 
   const [beneficiaryName, setbeneficiaryName] = useState<string>('');
   const [accountNumber, setAccountNumber] = useState<string>('');
@@ -51,6 +54,17 @@ const SendBankDetails = () => {
     {
       key: 'Bill amount :',
       value: details?.billAmount || '',
+    },
+  ];
+
+  const bankAccountDetails = [
+    {
+      key: 'Account number :',
+      value: beneficiaryBankDetails[0]?.accountNumber || '',
+    },
+    {
+      key: 'IFSC code :',
+      value: beneficiaryBankDetails[0]?.ifscCode || '',
     },
   ];
 
@@ -114,6 +128,7 @@ const SendBankDetails = () => {
       <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div>
           {_.map(claimRequestDetails, (ele: any, index: any) => {
+            ele.value !== '1234'
             return (
               <div key={index} className='mb-2'>
                 <h2 className="text-bold text-base font-bold text-black dark:text-white">
@@ -125,7 +140,7 @@ const SendBankDetails = () => {
           })}
         </div>
       </div>
-      <div className="mt-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-center justify-between">
           <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
             {strings.TREATMENT_AND_BILLING_DETAILS}
@@ -144,24 +159,59 @@ const SendBankDetails = () => {
           })}
         </div>
       </div>
-      <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex items-center justify-between">
-          <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
-            Policy consent : <span className='text-success'>&#10004; Approved</span>
-          </h2>
+      {beneficiaryBankDetails[0]?.otpStatus === 'successful' ?
+        <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
+              Policy consent : <span className='text-success'>&#10004; Approved</span>
+            </h2>
+          </div>
         </div>
+        : <></>
+      }
+      {
+        beneficiaryBankDetails[0]?.accountNumber === '1234' ? <></> : <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+              Beneficiary bank details :
+            </h2>
+          </div>
+          <div>
+            {_.map(bankAccountDetails, (ele: any) => {
+              return (
+                <div className="flex gap-2">
+                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                    {ele.key}
+                  </h2>
+                  <span className="text-base font-medium">{ele.value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      }
 
-      </div>
-      <button
-        className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-        onClick={() => getVerificationForBank()}
+      {beneficiaryBankDetails[0]?.bankStatus === 'successful' ? <button
+        onClick={(event: any) => {
+          event.preventDefault();
+          navigate('/home');
+        }}
+        type="submit"
+        className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
       >
-        {!refresh ? (
-          <span className="cursor-pointer">Refresh</span>
-        ) : (
-          <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-        )}
-      </button>
+        Home
+      </button> :
+        <button
+          className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+          onClick={() => getVerificationForBank()}
+        >
+          {!refresh ? (
+            <span className="cursor-pointer">Refresh</span>
+          ) : (
+            <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
+          )}
+        </button>
+      }
 
       {bankDetails ? (
         <>

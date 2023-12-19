@@ -33,7 +33,7 @@ const NewClaim = () => {
       const response = await searchParticipant(payload, {
         headers: {
           Authorization: `Bearer ${token}`,
-        },
+        },  
       });
       setSearchResults(response.data?.participants);
     } catch (error: any) {
