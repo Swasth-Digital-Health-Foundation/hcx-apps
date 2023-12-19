@@ -82,15 +82,11 @@ const SignUp = () => {
       setLoading(true);
       let registerResponse: any = await postRequest('/invite', payload);
       setLoading(false);
-      toast.success('User registered successfully!', {
-        position: toast.POSITION.TOP_CENTER,
-      });
+      toast.success('User registered successfully!');
       navigate('/home', { state: mobileNumber });
     } catch (error: any) {
       setLoading(false);
-      toast.error(error.response.data.params.errmsg, {
-        position: toast.POSITION.TOP_CENTER,
-      });
+      toast.error(error.response.data.params.errmsg);
     }
   };
 
