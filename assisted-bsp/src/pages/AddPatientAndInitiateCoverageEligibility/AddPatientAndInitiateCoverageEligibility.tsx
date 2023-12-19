@@ -407,7 +407,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             value={address || patientInfo[0]?.address}
             onChange={(e: any) => setAddress(e.target.value)}
             placeholder="Enter address"
-            disabled={false}
+            disabled={false || isEditable}
             type="text"
           />
         </div>

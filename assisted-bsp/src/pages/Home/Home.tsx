@@ -28,6 +28,7 @@ const Home = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [patientInfo, seetPatientInfo] = useState<any>([]);
   const [workflowId, setWorkflowId] = useState<any>("");
+  const [isPatientPresent,setIsPatientPresent] = useState(true);
 
   const getEmailFromLocalStorage = localStorage.getItem("email");
 
@@ -67,11 +68,12 @@ const Home = () => {
             // toast.error("Patient not found!");
             navigate("/add-patient", { state: { obj: obj, mobile: location.state } })
           } else {
-            toast.success("Patient already exists!");
+            toast.success("Beneficiary already exists!");
           }
         } catch (error: any) {
           setSearchLoading(false);
-          toast.error("patient not found!", {
+          setIsPatientPresent(false)
+          toast.error("Beneficiary not found!", {
             position: toast.POSITION.TOP_CENTER,
           });
         }
@@ -108,7 +110,7 @@ const Home = () => {
             // setWorkflowId(response?.data?.workflowId)
             localStorage.setItem("workflowId", response?.data?.workflowId)
             localStorage.setItem("recipientCode", response?.data?.recipientCode)
-            toast.success("Coverage eligibility initiated successfully")
+            // toast.success("Coverage eligibility initiated successfully")
             setQrCodeData(undefined)
             setLoading(false)
           }
@@ -118,32 +120,10 @@ const Home = () => {
         }
       };
 
-      sendCoverageEligibilityRequest()
-      // const patientSearch = async () => {
-      //   try {
-      //     setSearchLoading(true);
-      //     let registerResponse: any = await postRequest(
-      //       "search",
-      //       patientSearchPayload
-      //     );
-      //     const responseData = registerResponse.data;
-      //     seetPatientInfo(responseData);
-      //     setSearchLoading(false);
-      //     if (responseData.length === 0) {
-      //       toast.error("Patient not found!");
-      //       navigate("/add-patient", {state: { obj: obj, mobile: location.state }})
-      //     } else {
-      //       toast.success("Patient already exists!");
-      //     }
-      //   } catch (error: any) {
-      //     setSearchLoading(false);
-      //     toast.error("patient not found!", {
-      //       position: toast.POSITION.TOP_CENTER,
-      //     });
-      //   }
-      // };
-      // patientSearch();
-
+      if(isPatientPresent){
+        sendCoverageEligibilityRequest()
+      }
+    
 
       if (_.isEmpty(patientInfo)) {
         navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId, patientInsuranceId: obj?.insuranceId, patientPayorName: obj?.payorName } })

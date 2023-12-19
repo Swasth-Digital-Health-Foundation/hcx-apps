@@ -101,9 +101,10 @@ const PreAuthRequest = () => {
         }),
       },
     ],
-    type: "provider_app",
+    type: "OPD",
     password: password,
-    recipientCode: data?.recipientCode
+    recipientCode: data?.recipientCode,
+    app : "OPD",
   };
 
   const filter = {
