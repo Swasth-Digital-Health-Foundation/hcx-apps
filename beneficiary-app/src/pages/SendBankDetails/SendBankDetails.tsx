@@ -79,16 +79,21 @@ const SendBankDetails = () => {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayloadForBank);
       setRefresh(false);
-      if (res.status === 200) {
-        setBankDetails(true);
+      if (res.status === 200 && _.includes(["Pending"], res.data?.result?.bankStatus)) {
+
         // toast.success('succes');
+        toast.error('Bank details request is not initiated');
       }
-      if (res.data?.otpStatus === 'successful') {
+      else {
+        setBankDetails(true);
+        toast.success('Bank details request is initiated');
+      }
+      if (res.data?.result?.otpStatus === 'successful' && res.status === 200) {
         setIsConsentVerified(true)
       }
     } catch (err) {
       setRefresh(false);
-      toast.error('Bank details request is not initiated!');
+      toast.error('Bank details request is not initiated');
       console.log(err);
     }
   };
@@ -199,7 +204,7 @@ const SendBankDetails = () => {
           navigate('/home');
         }}
         type="submit"
-        className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+        className="align-center mt-3 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
       >
         Home
       </button> :

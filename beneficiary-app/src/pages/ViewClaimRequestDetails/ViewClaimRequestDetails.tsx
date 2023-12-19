@@ -118,10 +118,17 @@ const ViewClaimRequestDetails = () => {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayload);
       setRefresh(false);
-      if (res.status === 200) {
-        setInitiated(true);
+      // if (res.status === 200) {
+      //   setInitiated(true);
+      // }
+      if (res.status === 200 && res?.data?.result?.otpStatus === 'initiated') {
+        setInitiated(true)
+        toast.success('Policy consent is initiated.');
       }
-      
+      else {
+        setInitiated(false)
+        toast.error('Policy consent is not initiated.');
+      }
     } catch (err) {
       setRefresh(false);
       toast.error('Policy consent is not initiated.');
@@ -294,6 +301,26 @@ const ViewClaimRequestDetails = () => {
           })}
         </div>
       </div>
+
+      {/* <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+              Beneficiary bank details :
+            </h2>
+          </div>
+          <div>
+            {_.map(preAuthAndClaimList, (ele: any) => {
+              return (
+                <div className="flex gap-2">
+                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                    {ele.key}
+                  </h2>
+                  <span className="text-base font-medium">{ele.value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div> */}
 
       {!hasClaimApproved ? (
         <div

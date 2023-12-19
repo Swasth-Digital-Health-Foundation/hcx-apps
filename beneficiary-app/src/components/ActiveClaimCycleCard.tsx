@@ -80,7 +80,7 @@ const ActiveClaimCycleCard = (Props: any) => {
             className="cursor-pointer text-right"
             onClick={() =>
               navigate(
-                Props.type === 'claim'
+                Props.type === 'claim' && Props.status === "Approved"
                   ? '/view-active-request'
                   : Props.type === 'coverageeligibility'
                     ? '/coverage-eligibility'
