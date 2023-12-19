@@ -13,15 +13,14 @@ const SendBankDetails = () => {
   const location = useLocation();
   const details = location.state?.sendInfo;
   const beneficiaryBankDetails: any[] = location.state?.bankDetails;
-  // const [beneficiaryBankDetails, setbeneficiaryBankDetails] = useState<any>(location.state?.bankDetails)
   const navigate = useNavigate();
-  console.log(beneficiaryBankDetails)
 
   const [beneficiaryName, setbeneficiaryName] = useState<string>('');
   const [accountNumber, setAccountNumber] = useState<string>('');
   const [ifscCode, setIfsc] = useState<string>('');
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
+  const [isConsentVerified, setIsConsentVerified] = useState<boolean>()
 
   const claimRequestDetails: any = [
     {
@@ -83,6 +82,9 @@ const SendBankDetails = () => {
       if (res.status === 200) {
         setBankDetails(true);
         // toast.success('succes');
+      }
+      if (res.data?.otpStatus === 'successful') {
+        setIsConsentVerified(true)
       }
     } catch (err) {
       setRefresh(false);
@@ -159,7 +161,7 @@ const SendBankDetails = () => {
           })}
         </div>
       </div>
-      {beneficiaryBankDetails[0]?.otpStatus === 'successful' ?
+      {isConsentVerified || beneficiaryBankDetails[0]?.otpStatus === 'successful' ?
         <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">

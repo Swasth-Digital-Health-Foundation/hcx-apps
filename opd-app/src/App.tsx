@@ -23,15 +23,17 @@ const App = () => {
     <Loader />
   ) : (
     <>
-      <ToastContainer
+       <ToastContainer
         position="top-right"
-        autoClose={1500}
-        hideProgressBar
+        autoClose={2500}
+        hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
         rtl={false}
         pauseOnFocusLoss
         draggable
+        pauseOnHover
+        theme="colored"
       />
       <Routes>
         {/* <Route path="/" element={<Login />} /> */}

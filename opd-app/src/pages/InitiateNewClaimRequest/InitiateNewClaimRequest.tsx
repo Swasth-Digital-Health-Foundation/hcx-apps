@@ -117,7 +117,8 @@ const InitiateNewClaimRequest = () => {
     ],
     type: data?.serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: data?.recipientCode
+    recipientCode: data?.recipientCode,
+    app: "OPD"
   };
 
   const filter = {
@@ -186,6 +187,7 @@ const InitiateNewClaimRequest = () => {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFile)) {
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
+        console.log("response", response)
         if (response?.status === 200) {
           handlePreAuthRequest()
           setSubmitLoading(false);

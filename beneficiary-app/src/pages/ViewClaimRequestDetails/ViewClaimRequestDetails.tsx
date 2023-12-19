@@ -121,9 +121,9 @@ const ViewClaimRequestDetails = () => {
       if (res.status === 200) {
         setInitiated(true);
       }
+      
     } catch (err) {
       setRefresh(false);
-      console.log(err);
       toast.error('Policy consent is not initiated.');
     }
   };
@@ -143,7 +143,6 @@ const ViewClaimRequestDetails = () => {
     try {
       setLoading(true);
       const res = await createCommunicationOnRequest(payload);
-      getSupportingDocsFromList();
       setLoading(false);
       setInitiated(false);
       toast.success(res.data?.message);
