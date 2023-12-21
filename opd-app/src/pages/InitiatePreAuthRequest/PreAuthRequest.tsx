@@ -184,11 +184,11 @@ const PreAuthRequest = () => {
       }
       else {
         const preauthResponse = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
-        if(preauthResponse.status === 202){
+        if (preauthResponse.status === 202) {
           toast.success("Pre-auth request initiated successfully!")
           navigate("/home");
           setSubmitLoading(false);
-        } 
+        }
       }
     } catch (err) {
       setSubmitLoading(false);

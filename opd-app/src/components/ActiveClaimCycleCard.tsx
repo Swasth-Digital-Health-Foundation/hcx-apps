@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getConsultationDetails } from "../services/hcxMockService";
 
 const ActiveClaimCycleCard = (Props: any) => {
   const navigate = useNavigate();
@@ -26,6 +27,22 @@ const ActiveClaimCycleCard = (Props: any) => {
     patientName: Props.patientName,
     recipientCode: Props.recipient_code
   };
+
+  const getConsultation = async () => {
+    try {
+      const consultationResponse = await getConsultationDetails(Props.workflowId);
+      navigate("/coverage-eligibility", { state: information })
+    } catch (err: any) {
+      console.log(err);
+      // toast.error()
+
+      navigate("/add-consultation", { state: information })
+    }
+  };
+
+  // useEffect(() => {
+  //   getConsultation()
+  // }, [])
 
   const data: any = [
     {
@@ -79,7 +96,8 @@ const ActiveClaimCycleCard = (Props: any) => {
           <span
             className="cursor-pointer text-right"
             onClick={() =>
-              navigate("/coverage-eligibility", { state: information })
+              // navigate("/coverage-eligibility", { state: information })
+              getConsultation()
             }
           >
             <div className="flex items-center justify-end gap-2">

@@ -10,7 +10,6 @@ import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
-
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -139,7 +138,7 @@ const Home = () => {
                 qrbox={250}
                 disableFlip={false}
                 qrCodeSuccessCallback={onNewScanResult}
-                setInitialized={initialized}
+              // setInitialized={initialized}
               />
             </div>
           </div>
@@ -204,6 +203,10 @@ const Home = () => {
         {!loading ? (
           <div>
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
+              let approvedAmount: any = "";
+              if (ele?.type === 'claim') {
+                approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
+              }
               return (
                 <div className="mt-2" key={index}>
                   <ActiveClaimCycleCard
@@ -219,6 +222,7 @@ const Home = () => {
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
                     patientName={ele.patientName}
+                    approvedAmount={approvedAmount}
                   />
                 </div>
               );

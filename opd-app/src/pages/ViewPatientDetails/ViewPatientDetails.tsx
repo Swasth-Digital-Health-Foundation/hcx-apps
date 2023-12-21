@@ -48,8 +48,6 @@ const ViewPatientDetails = () => {
     },
   };
 
-  // console.log(localStorage.getItem("patientMobile"))
-
   const getPatientDetails = async () => {
     try {
       setisLoading(true);
@@ -268,12 +266,6 @@ const ViewPatientDetails = () => {
 
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
-
-  // console.log(patientDetails[0]?.payor_details[0]?.insurance_id)
-  // console.log(patientInsuranceId)
-
-  const patient_Insurance_Id = patientInsuranceId || (patientDetails[0]?.payor_details[0]?.insurance_id)
-  console.log(patient_Insurance_Id)
 
   return (
     <>
@@ -515,15 +507,7 @@ const ViewPatientDetails = () => {
           <div>
             {preauthOrClaimList.length === 0 && (
               <>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => navigate("/initiate-preauth-request", {
-                      state: requestDetails,
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded bg-lightBlue py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-                  >
-                    Initiate pre-auth request
-                  </button>
+                <div>
                   <button
                     onClick={() => navigate("/initiate-claim-request", {
                       state: requestDetails,
@@ -532,8 +516,15 @@ const ViewPatientDetails = () => {
                   >
                     Initiate new claim request
                   </button>
+                  <button
+                    onClick={() => navigate("/initiate-preauth-request", {
+                      state: requestDetails,
+                    })}
+                    className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
+                  >
+                    Initiate pre-auth request
+                  </button>
                 </div>
-
               </>
             )}
 

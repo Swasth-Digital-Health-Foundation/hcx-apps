@@ -2,13 +2,11 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
-import { generateOutgoingRequest, isInitiated } from '../../services/hcxMockService';
+import { generateOutgoingRequest } from '../../services/hcxMockService';
 import TransparentLoader from '../../components/TransparentLoader';
 import * as _ from "lodash";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import thumbnail from "../../images/pngwing.com.png"
-import { toast } from 'react-toastify';
-import LoadingButton from '../../components/LoadingButton';
 
 const CoverageEligibility = () => {
   const navigate = useNavigate();
@@ -241,6 +239,7 @@ const CoverageEligibility = () => {
             </div> : null}
           </div>
           {_.map(preauthOrClaimList, (ele: any) => {
+            const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -282,6 +281,17 @@ const CoverageEligibility = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
+                      {
+                        additionalInfo?.financial?.approved_amount &&
+                        <div className="flex gap-2">
+                          <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                            Approved amount :
+                          </h2>
+                          <span className="text-base font-medium">
+                            INR {additionalInfo?.financial?.approved_amount}
+                          </span>
+                        </div>
+                      }
                     </div>
                   </div>
                   {_.isEmpty(ele.supportingDocuments) ? null : <>
@@ -296,18 +306,44 @@ const CoverageEligibility = () => {
                             values.map((imageUrl, index) => {
                               const parts = imageUrl.split('/');
                               const fileName = parts[parts.length - 1];
-                              console.log(fileName)
                               return (
-                                <div className='text-center'>
-                                  <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                  <span>{fileName}</span>
-                                </div>
+                                <a href={imageUrl} download>
+                                  <div className='text-center'>
+                                    <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
+                                    <span>{fileName}</span>
+                                  </div>
+                                </a>
                               )
                             })}
                         </div>
                       </div>
                     ))}
                   </>}
+                  {
+                    ele?.accountNumber === '1234' ? <></> :
+                      <div className='mt-2'>
+                        <div className="flex items-center justify-between">
+                          <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-1 font-semibold text-black dark:text-white">
+                            Beneficiary bank details :
+                          </h2>
+                        </div>
+                        <div>
+                          <div>
+                            <div className='flex gap-2'>
+                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                                Account number :
+                              </h2>
+                              <span className="text-base font-medium">{ele.accountNumber}</span>
+                            </div>
+                            <div className='flex gap-2'>
+                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                                IFSC code :
+                              </h2>
+                              <span className="text-base font-medium">{ele.ifscCode}</span>                        </div>
+                          </div>
+                        </div>
+                      </div>
+                  }
                 </div>
               </>
             );

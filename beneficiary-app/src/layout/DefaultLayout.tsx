@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const location = useLocation();
-  console.log(location.pathname)
 
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">
