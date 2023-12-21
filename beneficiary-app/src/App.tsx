@@ -43,17 +43,17 @@ const App = () => {
         theme="colored"
       />
       <Routes>
+      <Route path="/beneficiary-otp" element={<OTP />}></Route>
+      <Route path="/verify-otp" element={<VerifyOTP />}></Route>
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<Navigate to="/beneficiary-otp" />} />
-          <Route path="/beneficiary-otp" element={<OTP />}></Route>
           <Route path="/signup" element={<SignUp />}></Route>
-          <Route path="/verify-otp" element={<VerifyOTP />}></Route>
           <Route path="/home" element={<Home />} />
           <Route path="/new-claim" element={<NewClaim />} />
           <Route
             path="/coverage-eligibility-request"
             element={<CoverageEligibilityRequest />}
-          />
+          />  
           <Route
             path="/coverage-eligibility"
             element={<CoverageEligibility />}
