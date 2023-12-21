@@ -10,7 +10,6 @@ import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
-
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,6 +25,7 @@ const Home = () => {
   const [coverageAndClaimData, setDisplayedData] = useState<any>(
     finalData.slice(0, 5)
   );
+  const latestStatusByEntry: Record<string, string | undefined> = {};
 
   const onNewScanResult = (decodedText: any, decodedResult: any) => {
     setQrCodeData(decodedText);
@@ -75,7 +75,6 @@ const Home = () => {
     }
   }, [qrCodeData]);
 
-
   const filter = {
     entityType: ['Beneficiary'],
     filters: {
@@ -92,14 +91,11 @@ const Home = () => {
     }
   };
 
-
   const loadMoreData = () => {
     const nextData = finalData.slice(currentIndex, currentIndex + 5);
     setDisplayedData([...coverageAndClaimData, ...nextData]);
     setCurrentIndex(currentIndex + 5);
   };
-
-  const latestStatusByEntry: Record<string, string | undefined> = {};
 
   activeRequests.forEach((entry: Record<string, any>) => {
     for (const [key, items] of Object.entries(entry)) {
@@ -142,7 +138,7 @@ const Home = () => {
                 qrbox={250}
                 disableFlip={false}
                 qrCodeSuccessCallback={onNewScanResult}
-                setInitialized={initialized}
+              // setInitialized={initialized}
               />
             </div>
           </div>
@@ -151,7 +147,7 @@ const Home = () => {
           </p>
           <div className="mt-2 text-center">
             <a
-              className="cursor-pointer underline"
+              className="cursor-pointer underline text-base"
               onClick={() => {
                 navigate('/new-claim', { state: location.state });
               }}
@@ -165,14 +161,27 @@ const Home = () => {
         {loading ? (
           <div className="flex items-center gap-4">
             <h1 className="px-1 text-2xl font-bold text-black dark:text-white">
-              Getting active requests
+              Getting Active Requests
             </h1>
             <TransparentLoader />
           </div>
         ) : coverageAndClaimData.length === 0 ? (
-          <h1 className="px-1 text-2xl font-bold text-black dark:text-white">
-            No active requests
-          </h1>
+          <div className="flex justify-between">
+            <h1 className="px-1 mb-1 text-2xl font-bold text-black dark:text-white">
+              No Active Requests
+            </h1>
+            <>
+              <ArrowPathIcon
+                onClick={() => {
+                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+                }}
+                className={
+                  loading ? "animate-spin h-7 w-7" : "h-7 w-7"
+                }
+                aria-hidden="true"
+              />
+            </>
+          </div>
         ) : (
           <div className="flex justify-between">
             <h1 className="px-1 mb-1 text-2xl font-bold text-black dark:text-white">
@@ -194,6 +203,10 @@ const Home = () => {
         {!loading ? (
           <div>
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
+              let approvedAmount: any = "";
+              if (ele?.type === 'claim') {
+                approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
+              }
               return (
                 <div className="mt-2" key={index}>
                   <ActiveClaimCycleCard
@@ -209,6 +222,7 @@ const Home = () => {
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
                     patientName={ele.patientName}
+                    approvedAmount={approvedAmount}
                   />
                 </div>
               );

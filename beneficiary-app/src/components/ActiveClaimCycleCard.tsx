@@ -22,8 +22,10 @@ const ActiveClaimCycleCard = (Props: any) => {
     billAmount: Props.billAmount,
     workflowId: Props.workflowId,
     patientName: Props.patientName,
+    approvedAmount: Props.approvedAmount
   };
 
+  localStorage.setItem('recipientCode', information?.payorCode)
   const data: any = [
     {
       key: 'Patient name :',
@@ -78,7 +80,7 @@ const ActiveClaimCycleCard = (Props: any) => {
             className="cursor-pointer text-right"
             onClick={() =>
               navigate(
-                Props.type === 'claim'
+                Props.type === 'claim' && Props.status === "Approved"
                   ? '/view-active-request'
                   : Props.type === 'coverageeligibility'
                     ? '/coverage-eligibility'

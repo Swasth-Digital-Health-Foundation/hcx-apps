@@ -89,6 +89,11 @@ const InitiateNewClaimRequest = () => {
     }
   };
 
+  const password = localStorage.getItem('password');
+  const email = localStorage.getItem('email');
+
+  console.log(data?.recipientCode)
+
   let initiateClaimRequestBody: any = {
     insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
     insurancePlan: data?.insurancePlan || null,
@@ -96,7 +101,7 @@ const InitiateNewClaimRequest = () => {
       localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
     patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
     participantCode:
-      data?.participantCode || localStorage.getItem("senderCode"),
+      data?.participantCode || localStorage.getItem("senderCode") || email,
     payor: data?.payor || payorName,
     providerName: data?.providerName || localStorage.getItem("providerName"),
     serviceType: data?.serviceType || displayedData[0]?.claimType,
@@ -110,7 +115,10 @@ const InitiateNewClaimRequest = () => {
         }),
       },
     ],
-    type: "provider_app",
+    type: data?.serviceType || displayedData[0]?.claimType,
+    password: password,
+    recipientCode: data?.recipientCode,
+    app: "OPD"
   };
 
   const filter = {
@@ -179,6 +187,7 @@ const InitiateNewClaimRequest = () => {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFile)) {
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
+        console.log("response", response)
         if (response?.status === 200) {
           handlePreAuthRequest()
           setSubmitLoading(false);
