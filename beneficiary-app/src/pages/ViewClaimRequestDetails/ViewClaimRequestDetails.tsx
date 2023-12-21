@@ -11,6 +11,8 @@ import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
 import thumbnail from '../../images/pngwing.com.png'
+import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+
 
 const ViewClaimRequestDetails = () => {
   const location = useLocation();
@@ -206,6 +208,33 @@ const ViewClaimRequestDetails = () => {
 
   return (
     <>
+      {!hasClaimApproved ? (
+            <div className="relative flex pb-8 cursor-pointer">
+            <ArrowPathIcon
+              onClick={() => {
+                getVerification();
+              }}
+              className={
+                loading ? "animate-spin h-11 w-7 absolute right-0" : "h-16 w-8 absolute right-2"
+              }
+              aria-hidden="true"
+            />
+            {loading ? "Please wait..." : ""}
+          </div>
+      )  : (
+        <>
+          {/* <button
+            onClick={(event: any) => {
+              event.preventDefault();
+              navigate('/home');
+            }}
+            type="submit"
+            className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+          >
+            Home
+          </button> */}
+        </>
+      )}
       <div className="relative mb-4 items-center justify-between">
         {hasClaimApproved ? (
           <span
@@ -322,7 +351,7 @@ const ViewClaimRequestDetails = () => {
           </div>
         </div> */}
 
-      {!hasClaimApproved ? (
+      {/* {!hasClaimApproved ? (
         <div
           onClick={() => getVerification()}
           className="align-center mt-4 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
@@ -346,7 +375,18 @@ const ViewClaimRequestDetails = () => {
             Home
           </button>
         </>
-      )}
+      )} */}
+
+{hasClaimApproved?<button
+        onClick={(event: any) => {
+          event.preventDefault();
+          navigate('/home');
+        }}
+        type="submit"
+        className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+      >
+        Home
+      </button>:<></>}
 
       {initiated ? (
         <>
@@ -398,6 +438,8 @@ const ViewClaimRequestDetails = () => {
           </div>
         </>
       ) : null}</>
+
+      
   );
 };
 
