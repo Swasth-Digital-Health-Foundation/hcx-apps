@@ -36,10 +36,11 @@ const App = () => {
         theme="colored"
       />
       <Routes>
+      <Route path="/opd-login" element={<Login />}></Route>
+
         {/* <Route path="/" element={<Login />} /> */}
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<Navigate to="/opd-login" />} />
-          <Route path="/opd-login" element={<Login />}></Route>
           <Route path="/home" element={<Home />} />
           <Route
             path="/add-patient"
