@@ -11,9 +11,15 @@ import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
+import useDebounce from '../../hooks/useDebounce';
+
 import * as _ from "lodash";
 
 const InitiateNewClaimRequest = () => {
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [providerName, setProviderName] = useState<string>('');
+  const [participantCode, setParticipantCode] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<any>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedFile, setSelectedFile]: any = useState<FileList | undefined>(
@@ -23,7 +29,7 @@ const InitiateNewClaimRequest = () => {
   const [isSuccess, setIsSuccess]: any = useState(false);
 
   const [amount, setAmount] = useState<string>("");
-  const [serviceType, setServiceType] = useState<string>();
+  const [serviceType, setServiceType] = useState<string>("OPD");
   const [documentType, setDocumentType] = useState<string>("prescription");
 
   const [loading, setLoading] = useState(false);
@@ -40,6 +46,7 @@ const InitiateNewClaimRequest = () => {
 
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   const insuranceOptions = [
     { label: "Select", value: "" },
@@ -74,12 +81,14 @@ const InitiateNewClaimRequest = () => {
 
   const treatmentOptions = [{ label: "Consultation", value: "Consultation" }];
 
+  const services = [{ label: "OPD", value: "OPD" }, { label: "IPD", value: "IPD" }];
+
   let FileLists: any;
   if (selectedFile !== undefined) {
     FileLists = Array.from(selectedFile);
   }
 
-  const data = location.state;
+  const data = location.state?.requestDetails;
   const handleDelete = (name: any) => {
     if (selectedFile !== undefined) {
       const updatedFilesList = selectedFile.filter(
@@ -92,8 +101,6 @@ const InitiateNewClaimRequest = () => {
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
 
-  console.log(data?.recipientCode)
-
   let initiateClaimRequestBody: any = {
     insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
     insurancePlan: data?.insurancePlan || null,
@@ -103,10 +110,10 @@ const InitiateNewClaimRequest = () => {
     participantCode:
       data?.participantCode || localStorage.getItem("senderCode") || email,
     payor: data?.payor || payorName,
-    providerName: data?.providerName || localStorage.getItem("providerName"),
-    serviceType: data?.serviceType || displayedData[0]?.claimType,
+    providerName: _.isEmpty(searchResults) ? providerName : data?.providerName || localStorage.getItem("providerName"),
+    serviceType: serviceType || displayedData[0]?.claimType,
     billAmount: amount,
-    workflowId: data?.workflowId,
+    workflowId: data?.workflowId || localStorage.getItem("workflowId"),
     supportingDocuments: [
       {
         documentType: documentType,
@@ -115,12 +122,13 @@ const InitiateNewClaimRequest = () => {
         }),
       },
     ],
-    type: data?.serviceType || displayedData[0]?.claimType,
-    app : "OPD",
+    type: serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: data?.recipientCode,
-    app: "OPD"
+    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode ||  data?.recipientCode,
+    app: "ABSP",
+    date: selectedDate
   };
+
 
   const filter = {
     entityType: ["Beneficiary"],
@@ -151,7 +159,7 @@ const InitiateNewClaimRequest = () => {
 
   const requestPayload = {
     sender_code: localStorage.getItem("senderCode"),
-    app: "OPD",
+    app: "ABSP",
   };
 
   useEffect(() => {
@@ -188,12 +196,11 @@ const InitiateNewClaimRequest = () => {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFile)) {
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
-        console.log("response", response)
-        if (response?.status === 200) {
-          handlePreAuthRequest()
-          setSubmitLoading(false);
-          toast.success("Claim request initiated successfully!")
-        }
+        // if (response?.status === 200) {
+        handlePreAuthRequest()
+        setSubmitLoading(false);
+        toast.success("Claim request initiated successfully!")
+        // }
       }
       else {
         handlePreAuthRequest()
@@ -207,7 +214,43 @@ const InitiateNewClaimRequest = () => {
     }
   };
 
+  const handleSelect = (result: any, participantCode: any) => {
+    setOpenDropdown(false);
+    setParticipantCode(participantCode);
+    setProviderName(result);
+  };
 
+  const payload = {
+    filters: {
+      roles: { startsWith: "provider" },
+    },
+  };
+
+  let search = async () => {
+    try {
+      const tokenResponse = await generateToken();
+      const token = tokenResponse.data.access_token;
+      const response = await searchParticipant(payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setSearchResults(response.data?.participants);
+    } catch (error: any) {
+      setOpenDropdown(false);
+      // toast.error(_.get(error, 'response.data.error.message'))
+    }
+  };
+  
+  const debounce = useDebounce(providerName, 500);
+
+  useEffect(() => {
+    search();
+  }, []);
+
+  const filteredResults = searchResults.filter((result: any) =>
+    result.participant_name.toLowerCase().includes(providerName.toLowerCase())
+  );
 
   return (
     <>
@@ -218,25 +261,149 @@ const InitiateNewClaimRequest = () => {
           <h2 className="mb-4 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
             {strings.NEW_CLAIM_REQUEST}
           </h2>
-          <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <h2 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Provider Details:"} </h2>
+            <h2 className="relative text-black font-bold z-20 mb-4 bg-white dark:bg-form-input">
+              {strings.PROVIDER_NAME}{' '}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={providerName}
+                  // onChange={(e) => setProviderName(e.target.value)}
+                  onChange={(e) => {
+                    const inputText = e.target.value;
+                    setProviderName(inputText)
+                    const hasMatchingRecords = searchResults.some((result: any) =>
+                      result.participant_name.toLowerCase().includes(inputText.toLowerCase())
+                    );
+                    setOpenDropdown(hasMatchingRecords);
+                  }
+                  }
+                  className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                />
+                <span
+                  className="absolute top-8 right-4 z-30 -translate-y-1/2"
+                  onClick={() => {
+                    setOpenDropdown(!openDropdown);
+                  }}
+                >
+                  <svg
+                    className="fill-current"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g opacity="0.8">
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
+                        fill=""
+                      ></path>
+                    </g>
+                  </svg>
+                </span>
+                {/* {openDropdown && searchResults.length !== 0 ? (
+                  <div className="max-h-40 overflow-y-auto overflow-x-hidden">
+                    <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
+                      {_.map(searchResults, (result: any, index: any) => (
+                        <li
+                          key={index}
+                          onClick={() =>
+                            handleSelect(
+                              result?.participant_name,
+                              result?.participant_code
+                            )
+                          }
+                          className="hover:bg-gray-200 cursor-pointer p-2"
+                        >
+                          {result?.participant_name +
+                            ` (${result?.participant_code})` || ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <>
+                  </>
+                )} */}
+                {filteredResults.length !== 0 && openDropdown ? (
+                <div className="max-h-40 overflow-y-auto overflow-x-hidden">
+                  <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
+                    {_.map(filteredResults, (result: any, index: any) => (
+                      <li
+                        key={index}
+                        onClick={() => {
+                          setOpenDropdown(!openDropdown)
+                          handleSelect(
+                            result?.participant_name,
+                            result?.participant_code
+                          )
+                        }
+                        }
+                        className="hover:bg-gray-200 cursor-pointer p-2"
+                      >
+                        {result?.participant_name +
+                           `(${result?.participant_code})` || ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <></>
+              )}
+              </div>
+            </h2>
             <TextInputWithLabel
-              label="Selected insurance : "
+              label="Participant code:"
+              placeholder={providerName ? (_.isEmpty(participantCode) || _.isEmpty(searchResults)) ? 'Not applicable' : participantCode : 'Search above for participant code'}
+              value={_.isEmpty(searchResults) ? "" : participantCode}
+              disabled={true}
+              type="text"
+            />
+          </div>
+          <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <TextInputWithLabel
+              label="Insurance Id: "
               value={selectedInsurance || displayedData[0]?.insurance_id}
               disabled={true}
               type="text"
             />
-            <TextInputWithLabel
+            {/* <TextInputWithLabel
               label="Service type : "
               value={displayedData[0]?.claimType || serviceType}
-              disabled={true}
+              disabled={false}
               type="text"
+            /> */}
+            <SelectInput
+              label="Service type : "
+              value={serviceType}
+              onChange={(e: any) => setServiceType(e.target.value)}
+              options={services}
             />
             <SelectInput
-              label="Service/Treatment given : "
+              label="Service/Treatment category :"
               value={"consultation"}
-              onChange={(e: any) => setServiceType(e.target.value)}
               options={treatmentOptions}
             />
+            <h2 className="mt-3 text-1xl text-black font-bold z-20 bg-white dark:bg-form-input">
+              {"Treatment date :"}
+            </h2>
+            <div className="relative">
+              <input
+                type="date"
+                onChange={(e: any) => setSelectedDate(e.target.value)}
+                className=" mt-3 custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              />
+              <div className="absolute right-5 top-7 flex items-center ps-3 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                </svg>
+              </div>
+            </div>
             <TextInputWithLabel
               label="Bill amount : *"
               value={amount}

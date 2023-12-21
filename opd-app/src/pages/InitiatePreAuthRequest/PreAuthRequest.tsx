@@ -101,10 +101,10 @@ const PreAuthRequest = () => {
         }),
       },
     ],
-    type: data?.serviceType || displayedData[0]?.claimType,
+    type: "OPD",
     password: password,
     recipientCode: data?.recipientCode,
-    app: "OPD"
+    app : "OPD",
   };
 
   const filter = {
