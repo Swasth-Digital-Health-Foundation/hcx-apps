@@ -23,20 +23,24 @@ const App = () => {
     <Loader />
   ) : (
     <>
-      <ToastContainer
+       <ToastContainer
         position="top-right"
-        autoClose={1500}
-        hideProgressBar
+        autoClose={2500}
+        hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
         rtl={false}
         pauseOnFocusLoss
         draggable
+        pauseOnHover
+        theme="colored"
       />
       <Routes>
+      <Route path="/opd-login" element={<Login />}></Route>
+
+        {/* <Route path="/" element={<Login />} /> */}
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<Navigate to="/opd-login" />} />
-          <Route path="/opd-login" element={<Login />}></Route>
           <Route path="/home" element={<Home />} />
           <Route
             path="/add-patient"
