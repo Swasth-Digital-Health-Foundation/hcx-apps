@@ -8,6 +8,7 @@ import {
 import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
+import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 
 const SendBankDetails = () => {
   const location = useLocation();
@@ -79,16 +80,21 @@ const SendBankDetails = () => {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayloadForBank);
       setRefresh(false);
-      if (res.status === 200) {
-        setBankDetails(true);
+      if (res.status === 200 && _.includes(["Pending"], res.data?.result?.bankStatus)) {
+
         // toast.success('succes');
+        toast.error('Bank details request is not initiated');
       }
-      if (res.data?.otpStatus === 'successful') {
+      else {
+        setBankDetails(true);
+        toast.success('Bank details request is initiated');
+      }
+      if (res.data?.result?.otpStatus === 'successful' && res.status === 200) {
         setIsConsentVerified(true)
       }
     } catch (err) {
       setRefresh(false);
-      toast.error('Bank details request is not initiated!');
+      toast.error('Bank details request is not initiated');
       console.log(err);
     }
   };
@@ -122,6 +128,22 @@ const SendBankDetails = () => {
 
   return (
     <div>
+      <div className="relative flex pb-8 cursor-pointer">
+        {beneficiaryBankDetails[0]?.bankStatus !== 'successful' ? <ArrowPathIcon
+          onClick={() => {
+            getVerificationForBank();
+          }}
+          className={
+            loading ? "animate-spin h-11 w-7 absolute right-0" : "h-20 w-8 absolute right-2"
+          }
+          aria-hidden="true"
+        />:<></>}
+        {/* {!refresh ? (
+          <span className="cursor-pointer">Refresh</span>
+        ) : (
+          <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
+        )} */}
+      </div>
       <div className="flex items-center justify-between">
         <h2 className="sm:text-title-xl1 mb-4 text-2xl font-semibold text-black dark:text-white">
           {strings.CLAIM_REQUEST_DETAILS}
@@ -193,31 +215,33 @@ const SendBankDetails = () => {
         </div>
       }
 
-      {beneficiaryBankDetails[0]?.bankStatus === 'successful' ? <button
+      {beneficiaryBankDetails[0]?.bankStatus === 'successful' ? 
+      <button
         onClick={(event: any) => {
           event.preventDefault();
           navigate('/home');
         }}
         type="submit"
-        className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+        className="align-center mt-3 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
       >
         Home
       </button> :
-        <button
-          className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-          onClick={() => getVerificationForBank()}
-        >
-          {!refresh ? (
-            <span className="cursor-pointer">Refresh</span>
-          ) : (
-            <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-          )}
-        </button>
+        // <button
+        //   className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+        //   onClick={() => getVerificationForBank()}
+        // >
+        //   {!refresh ? (
+        //     <span className="cursor-pointer">Refresh</span>
+        //   ) : (
+        //     <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
+        //   )}
+        // </button>
+        <></>
       }
 
       {bankDetails ? (
         <>
-          <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-lg border border-stroke bg-white p-2 px-3 mt-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="text-bold text-base font-bold text-black dark:text-white">
               Beneficiary account details :
             </h2>

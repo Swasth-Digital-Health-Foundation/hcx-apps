@@ -11,6 +11,8 @@ import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
 import thumbnail from '../../images/pngwing.com.png'
+import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+
 
 const ViewClaimRequestDetails = () => {
   const location = useLocation();
@@ -118,10 +120,17 @@ const ViewClaimRequestDetails = () => {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayload);
       setRefresh(false);
-      if (res.status === 200) {
-        setInitiated(true);
+      // if (res.status === 200) {
+      //   setInitiated(true);
+      // }
+      if (res.status === 200 && res?.data?.result?.otpStatus === 'initiated') {
+        setInitiated(true)
+        toast.success('Policy consent is initiated.');
       }
-      
+      else {
+        setInitiated(false)
+        toast.error('Policy consent is not initiated.');
+      }
     } catch (err) {
       setRefresh(false);
       toast.error('Policy consent is not initiated.');
@@ -199,6 +208,33 @@ const ViewClaimRequestDetails = () => {
 
   return (
     <>
+      {!hasClaimApproved ? (
+            <div className="relative flex pb-8 cursor-pointer">
+            <ArrowPathIcon
+              onClick={() => {
+                getVerification();
+              }}
+              className={
+                loading ? "animate-spin h-11 w-7 absolute right-0" : "h-16 w-8 absolute right-2"
+              }
+              aria-hidden="true"
+            />
+            {loading ? "Please wait..." : ""}
+          </div>
+      )  : (
+        <>
+          {/* <button
+            onClick={(event: any) => {
+              event.preventDefault();
+              navigate('/home');
+            }}
+            type="submit"
+            className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+          >
+            Home
+          </button> */}
+        </>
+      )}
       <div className="relative mb-4 items-center justify-between">
         {hasClaimApproved ? (
           <span
@@ -295,7 +331,27 @@ const ViewClaimRequestDetails = () => {
         </div>
       </div>
 
-      {!hasClaimApproved ? (
+      {/* <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+              Beneficiary bank details :
+            </h2>
+          </div>
+          <div>
+            {_.map(preAuthAndClaimList, (ele: any) => {
+              return (
+                <div className="flex gap-2">
+                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                    {ele.key}
+                  </h2>
+                  <span className="text-base font-medium">{ele.value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div> */}
+
+      {/* {!hasClaimApproved ? (
         <div
           onClick={() => getVerification()}
           className="align-center mt-4 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
@@ -319,7 +375,18 @@ const ViewClaimRequestDetails = () => {
             Home
           </button>
         </>
-      )}
+      )} */}
+
+{hasClaimApproved?<button
+        onClick={(event: any) => {
+          event.preventDefault();
+          navigate('/home');
+        }}
+        type="submit"
+        className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+      >
+        Home
+      </button>:<></>}
 
       {initiated ? (
         <>
@@ -371,6 +438,8 @@ const ViewClaimRequestDetails = () => {
           </div>
         </>
       ) : null}</>
+
+      
   );
 };
 

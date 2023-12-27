@@ -307,16 +307,43 @@ const CoverageEligibility = () => {
                               const parts = imageUrl.split('/');
                               const fileName = parts[parts.length - 1];
                               return (
-                                <div className='text-center'>
-                                  <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                  <span>{fileName}</span>
-                                </div>
+                                <a href={imageUrl} download>
+                                  <div className='text-center'>
+                                    <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
+                                    <span>{fileName}</span>
+                                  </div>
+                                </a>
                               )
                             })}
                         </div>
                       </div>
                     ))}
                   </>}
+                  {
+                    ele?.accountNumber === '1234' ? <></> :
+                      <div className='mt-2'>
+                        <div className="flex items-center justify-between">
+                          <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-1 font-semibold text-black dark:text-white">
+                            Beneficiary bank details :
+                          </h2>
+                        </div>
+                        <div>
+                          <div>
+                            <div className='flex gap-2'>
+                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                                Account number :
+                              </h2>
+                              <span className="text-base font-medium">{ele.accountNumber}</span>
+                            </div>
+                            <div className='flex gap-2'>
+                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                                IFSC code :
+                              </h2>
+                              <span className="text-base font-medium">{ele.ifscCode}</span>                        </div>
+                          </div>
+                        </div>
+                      </div>
+                  }
                 </div>
               </>
             );

@@ -116,6 +116,7 @@ const InitiateNewClaimRequest = () => {
       },
     ],
     type: data?.serviceType || displayedData[0]?.claimType,
+    app : "OPD",
     password: password,
     recipientCode: data?.recipientCode,
     app: "OPD"
