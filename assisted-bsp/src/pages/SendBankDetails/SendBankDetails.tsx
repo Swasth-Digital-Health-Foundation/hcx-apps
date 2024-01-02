@@ -10,6 +10,7 @@ import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
+
 const SendBankDetails = () => {
   const location = useLocation();
   const details = location.state;
@@ -20,6 +21,8 @@ const SendBankDetails = () => {
   const [ifscCode, setIfsc] = useState<string>('');
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
+  const [isConsentVerified, setIsConsentVerified] = useState<boolean>()
+
 
   const claimRequestDetails: any = [
     {
@@ -67,13 +70,21 @@ const SendBankDetails = () => {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayloadForBank);
       setRefresh(false);
-      if (res.status === 200) {
-        setBankDetails(true);
+      if (res.status === 200 && _.includes(["Pending"], res.data?.result?.bankStatus)) {
+
         // toast.success('succes');
+        toast.error('Bank details request is not initiated');
+      }
+      else {
+        setBankDetails(true);
+        toast.success('Bank details request is initiated');
+      }
+      if (res.data?.result?.otpStatus === 'successful' && res.status === 200) {
+        setIsConsentVerified(true)
       }
     } catch (err) {
       setRefresh(false);
-      toast.error('Bank details request is not initiated!');
+      toast.error('Bank details request is not initiated');
       console.log(err);
     }
   };
