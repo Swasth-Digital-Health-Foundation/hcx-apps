@@ -143,18 +143,23 @@ const VerifyClaim = () => {
 
   const getVerification = async () => {
     try {
-      console.log(getVerificationPayload)
       setRefresh(true);
-      
       let res = await isInitiated(getVerificationPayload);
       setRefresh(false);
-      if (res.status === 200) {
-        setInitiated(true);
+      // if (res.status === 200) {
+      //   setInitiated(true);
+      // }
+      if (res.status === 200 && res?.data?.result?.otpStatus === 'initiated') {
+        setInitiated(true)
+        toast.success('Policy consent is initiated.');
+      }
+      else {
+        setInitiated(false)
+        toast.error('Policy consent is not initiated.');
       }
     } catch (err) {
       setRefresh(false);
-      console.log(err);
-      toast.error('Policy Consent is not initiated.');
+      toast.error('Policy consent is not initiated.');
     }
   };
 
