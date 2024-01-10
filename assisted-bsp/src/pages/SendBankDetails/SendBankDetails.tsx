@@ -22,39 +22,52 @@ const SendBankDetails = () => {
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
   const [isConsentVerified, setIsConsentVerified] = useState<boolean>()
+  const beneficiaryBankDetails: any[] = location.state?.bankDetails;
 
+  console.log(location.state);
 
   const claimRequestDetails: any = [
     {
       key: 'Provider name :',
-      value: details?.providerName || '',
+      value: details?.sendInfo?.providerName || '',
     },
     {
       key: 'Participant code :',
-      value: details?.participantCode || '',
+      value: details?.sendInfo?.participantCode || '',
     },
     {
       key: 'Treatment/Service type :',
-      value: details?.serviceType || '',
+      value: details?.sendInfo?.serviceType || '',
     },
     {
       key: 'Payor name :',
-      value: details?.payor || '',
+      value: details?.sendInfo?.payor || '',
     },
     {
       key: 'Insurance ID :',
-      value: details?.insuranceId || '',
+      value: details?.sendInfo?.insuranceId || '',
     },
   ];
 
   const treatmentDetails = [
     {
       key: 'Service type :',
-      value: details?.serviceType || '',
+      value: details?.sendInfo?.serviceType || '',
     },
     {
       key: 'Claimed amount :',
-      value: details?.billAmount || '',
+      value: details?.sendInfo?.billAmount || '',
+    },
+  ];
+
+  const bankAccountDetails = [
+    {
+      key: 'Account number :',
+      value: beneficiaryBankDetails[0]?.accountNumber,
+    },
+    {
+      key: 'IFSC code :',
+      value: beneficiaryBankDetails[0]?.ifscCode,
     },
   ];
 
@@ -62,8 +75,9 @@ const SendBankDetails = () => {
 
   const getVerificationPayloadForBank = {
     type: 'bank_details',
-    request_id: details?.apiCallId,
+    request_id: details?.sendInfo?.apiCallId,
   };
+
 
   const getVerificationForBank = async () => {
     try {
@@ -89,9 +103,9 @@ const SendBankDetails = () => {
     }
   };
 
-  const recipientCode = location.state.recipientCode;
+  const recipientCode = details?.sendInfo?.recipientCode;
   const bankDetailsPayload = {
-    request_id: details?.apiCallId,
+    request_id: details?.sendInfo?.apiCallId,
     type: 'bank_details',
     account_number: accountNumber,
     ifsc_code: ifscCode,
@@ -115,25 +129,23 @@ const SendBankDetails = () => {
       console.log(err);
     }
   };
+  console.log(beneficiaryBankDetails[0]?.bankStatus);
 
   return (
-    <div>
-      <div className="relative flex pb-8">
-        <ArrowPathIcon
-          onClick={() => {
-            getVerificationForBank();
-          }}
-          className={
-            loading ? "animate-spin h-11 w-7 absolute right-0" : "h-20 w-8 absolute right-2"
-          }
-          aria-hidden="true"
-        />
-        {/* {!refresh ? (
-          <span className="cursor-pointer">Refresh</span>
-        ) : (
-          <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-        )} */}
-      </div>
+    <div>   
+      {beneficiaryBankDetails[0]?.bankStatus != 'successful' ?
+        <div className="relative flex pb-8">
+          <ArrowPathIcon
+            onClick={() => {
+              getVerificationForBank();
+            }}
+            className={
+              loading ? "animate-spin h-11 w-7 absolute right-0" : "h-20 w-8 absolute right-2"
+            }
+            aria-hidden="true"
+          />
+        </div> : <></>
+      }
 
       <div className="flex items-center justify-between">
         <h2 className="sm:text-title-xl1 mb-4 text-2xl font-semibold text-black dark:text-white">
@@ -173,14 +185,57 @@ const SendBankDetails = () => {
           })}
         </div>
       </div>
-      <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      {isConsentVerified || beneficiaryBankDetails[0]?.otpStatus === 'successful' ?
+        <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
+              Policy consent : <span className='text-success'>&#10004; Approved</span>
+            </h2>
+          </div>
+        </div>
+        : <></>
+      }
+      {
+        beneficiaryBankDetails[0]?.accountNumber === '1234' ? <></> : <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center justify-between">
+            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+              Beneficiary bank details :
+            </h2>
+          </div>
+          <div>
+            {_.map(bankAccountDetails, (ele: any) => {
+              return (
+                <div className="flex gap-2">
+                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                    {ele.key}
+                  </h2>
+                  <span className="text-base font-medium">{ele.value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      }
+      {beneficiaryBankDetails[0]?.bankStatus === 'successful' ? <button
+        onClick={(event: any) => {
+          event.preventDefault();
+          navigate('/home');
+        }}
+        type="submit"
+        className="align-center mt-3 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+      >
+        Home
+      </button> :
+        <></>
+      }
+      {/* <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-center justify-between">
           <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
             Policy consent : <span className='text-success'>&#10004; Approved</span>
           </h2>
         </div>
 
-      </div>
+      </div> */}
       {/* <button
         className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
         onClick={() => getVerificationForBank()}
