@@ -18,7 +18,6 @@ const VerifyClaim = () => {
   const location = useLocation();
   const details = location.state;
   const navigate = useNavigate();
-  console.log(details);
   
 
   const [token, setToken] = useState<string>('');
@@ -51,20 +50,7 @@ const VerifyClaim = () => {
     providerName: providerName,
   };
 
-  console.log(sendInfo)
-
   useEffect(() => {
-    // const search = async () => {
-    //   try {
-    //     const tokenResponse = await generateToken();
-    //     if (tokenResponse.statusText === 'OK') {
-    //       setToken(tokenResponse.data.access_token);
-    //     }
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // };
-    // search();
     getSupportingDocsFromList();
   }, []);
 
@@ -235,8 +221,6 @@ const VerifyClaim = () => {
       navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } })
     }
   }, [payorName])
-
-console.log(isVerificationSuccessful,payorName);
 
   
 
