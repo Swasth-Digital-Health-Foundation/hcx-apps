@@ -104,13 +104,16 @@ const SendBankDetails = () => {
   };
 
   const recipientCode = details?.sendInfo?.recipientCode;
+
+  console.log("List of the location storage")
+console.log(localStorage)
   const bankDetailsPayload = {
     request_id: details?.sendInfo?.apiCallId,
     type: 'bank_details',
     account_number: accountNumber,
     ifsc_code: ifscCode,
-    participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
-    password: process.env.SEARCH_PARTICIPANT_PASSWORD,
+    participantCode: localStorage.getItem('senderCode') ,
+    password: localStorage.getItem('password'),
     recipientCode: recipientCode
   };
 

@@ -157,14 +157,14 @@ const VerifyClaim = () => {
       }
     }
   )
- 
-  const payload = {
+
+   const payload = {
     request_id: details?.apiCallId,
     mobile: localStorage.getItem('patientMobile'),
     otp_code: OTP,
     type: 'otp',
-    participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
-    password: process.env.SEARCH_PARTICIPANT_PASSWORD,
+    participantCode: localStorage.getItem('senderCode') ,
+    password: localStorage.getItem('password'),
     recipientCode: recipientCode
   };
 
