@@ -113,6 +113,7 @@ const PreAuthRequest = () => {
     password: password,
     recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode ||  data?.recipientCode,
     app: "ABSP",
+    date: selectedDate
   };
 
   const filter = {
@@ -236,7 +237,8 @@ const PreAuthRequest = () => {
 
   useEffect(() => {
     search();
-  }, []);
+    const currentDate = new Date().toISOString().split('T')[0];
+    setSelectedDate(currentDate);  }, []);
 
   const filteredResults = searchResults.filter((result: any) =>
     result.participant_name.toLowerCase().includes(providerName.toLowerCase())
@@ -356,7 +358,9 @@ const PreAuthRequest = () => {
             <div className="relative">
               <input
                 type="date"
-                onChange={(e: any) => setSelectedDate(e.target.value)}
+                value={selectedDate}
+                onChange={(e: any) => 
+                  setSelectedDate(e.target.value)}
                 className=" mt-3 custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
               <div className="absolute right-5 top-7 flex items-center ps-3 pointer-events-none">

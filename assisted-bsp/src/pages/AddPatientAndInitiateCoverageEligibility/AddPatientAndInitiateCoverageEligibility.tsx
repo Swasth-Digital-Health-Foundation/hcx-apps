@@ -468,7 +468,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                     value={
                       patientInfo[0]?.payor_details[0]?.payorName || ""
                     }
-                    onChange={() => setPayorName(patientInfo[0]?.payor_details[0]?.payorName)}
                     disabled={false || isEditable}
                     type="text"
                   />
@@ -477,7 +476,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                     value={
                       patientInfo[0]?.payor_details[0]?.recipientCode || ""
                     }
-                    onChange={() => setPayorParticipantCode(patientInfo[0]?.payor_details[0]?.recipientCode)}
                     disabled={false || isEditable}
                     type="text"
                   />
