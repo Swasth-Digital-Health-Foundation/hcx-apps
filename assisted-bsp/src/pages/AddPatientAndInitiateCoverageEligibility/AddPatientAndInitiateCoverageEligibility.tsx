@@ -466,7 +466,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   <TextInputWithLabel
                     label="Payor Name :"
                     value={
-                      patientInfo[0]?.payor_details[0]?.payorName || ""
+                      payorName || patientInfo[0]?.payor_details[0]?.payorName || ""
                     }
                     disabled={false || isEditable}
                     type="text"
@@ -474,7 +474,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   <TextInputWithLabel
                     label="Participant Code :"
                     value={
-                      patientInfo[0]?.payor_details[0]?.recipientCode || ""
+                      payorParticipantCode || patientInfo[0]?.payor_details[0]?.recipientCode || ""
                     }
                     disabled={false || isEditable}
                     type="text"
@@ -611,8 +611,9 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   navigate("/coverage-eligibility", { state: { patientMobile: mobile } })
                   setLoading(false)
                 }, 2000)
+              } else {
+                sendCoverageEligibilityRequest();
               }
-              sendCoverageEligibilityRequest();
             }}
             disabled={false}
           />
