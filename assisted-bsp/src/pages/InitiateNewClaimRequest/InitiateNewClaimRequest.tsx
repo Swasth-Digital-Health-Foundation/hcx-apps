@@ -129,7 +129,6 @@ const InitiateNewClaimRequest = () => {
     date: selectedDate
   };
 
-
   const filter = {
     entityType: ["Beneficiary"],
     filters: {
@@ -246,6 +245,8 @@ const InitiateNewClaimRequest = () => {
 
   useEffect(() => {
     search();
+    const currentDate = new Date().toISOString().split('T')[0];
+    setSelectedDate(currentDate);
   }, []);
 
   const filteredResults = searchResults.filter((result: any) =>
@@ -395,6 +396,8 @@ const InitiateNewClaimRequest = () => {
             <div className="relative">
               <input
                 type="date"
+                value={selectedDate}
+                max={selectedDate}
                 onChange={(e: any) => setSelectedDate(e.target.value)}
                 className=" mt-3 custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />

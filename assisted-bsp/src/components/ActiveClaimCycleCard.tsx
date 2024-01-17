@@ -79,7 +79,14 @@ const ActiveClaimCycleCard = (Props: any) => {
           <span
             className="cursor-pointer text-right"
             onClick={() =>
-              navigate("/coverage-eligibility", { state: information })
+              navigate(
+                Props.type === 'claim' && Props.status === "Approved"
+                  ? '/view-active-request'
+                  : Props.type === 'coverageeligibility'
+                    ? '/coverage-eligibility'
+                    : '/view-active-request',
+                { state: information }
+              )
             }
           >
             <div className="flex items-center justify-end gap-2">

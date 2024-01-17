@@ -18,7 +18,6 @@ const VerifyClaim = () => {
   const location = useLocation();
   const details = location.state;
   const navigate = useNavigate();
-  console.log(details);
   
 
   const [token, setToken] = useState<string>('');
@@ -51,20 +50,7 @@ const VerifyClaim = () => {
     providerName: providerName,
   };
 
-  console.log(sendInfo)
-
   useEffect(() => {
-    // const search = async () => {
-    //   try {
-    //     const tokenResponse = await generateToken();
-    //     if (tokenResponse.statusText === 'OK') {
-    //       setToken(tokenResponse.data.access_token);
-    //     }
-    //   } catch (err) {
-    //     console.log(err);
-    //   }
-    // };
-    // search();
     getSupportingDocsFromList();
   }, []);
 
@@ -137,37 +123,48 @@ const VerifyClaim = () => {
     request_id: details?.apiCallId,
   };
 
-  
-  console.log(location.state);
-  
+    
 
   const getVerification = async () => {
     try {
-      console.log(getVerificationPayload)
       setRefresh(true);
-      
       let res = await isInitiated(getVerificationPayload);
       setRefresh(false);
       if (res.status === 200) {
         setInitiated(true);
       }
+      if (res.status === 200 && res?.data?.result?.otpStatus === 'initiated') {
+        setInitiated(true)
+        toast.success('Policy consent is initiated.');
+      }
+      else {
+        setInitiated(false)
+        toast.error('Policy consent is not initiated.');
+      }
     } catch (err) {
       setRefresh(false);
-      console.log(err);
-      toast.error('Policy Consent is not initiated.');
+      toast.error('Policy consent is not initiated.');
     }
   };
 
   const recipientCode =  location.state.recipientCode;  
   // const recipientCode = localStorage.getItem('recipientCode');
- 
-  const payload = {
+
+  const bankDetails: any = preAuthAndClaimList.filter(
+    (entry: any) => {
+      if (entry.type === 'claim') {
+        return entry
+      }
+    }
+  )
+
+   const payload = {
     request_id: details?.apiCallId,
     mobile: localStorage.getItem('patientMobile'),
     otp_code: OTP,
     type: 'otp',
-    participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
-    password: process.env.SEARCH_PARTICIPANT_PASSWORD,
+    participantCode: localStorage.getItem('senderCode') ,
+    password: localStorage.getItem('password'),
     recipientCode: recipientCode
   };
 
@@ -178,7 +175,8 @@ const VerifyClaim = () => {
       setLoading(false);
       setInitiated(false);
       toast.success(res.data?.message);
-      navigate('/bank-details', { state: sendInfo });
+      console.log(location.state);
+      navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
     } catch (err) {
       setLoading(false);
       toast.error('Enter valid OTP!');
@@ -188,7 +186,7 @@ const VerifyClaim = () => {
 
   const preauthOrClaimListPayload = {
     workflow_id: details?.workflowId || '',
-    app: "BSP"
+    app: "ABSP"
   };
 
   const getSupportingDocsFromList = async () => {
@@ -209,7 +207,21 @@ const VerifyClaim = () => {
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
   );
 
-  console.log(location.state);
+  const isVerificationSuccessful = preAuthAndClaimList.some(
+    (entry: any) => entry.type === 'claim' && entry.otpStatus === 'successful' && entry.status !== 'Approved'
+  );
+
+
+  useEffect(() => {
+    getSupportingDocsFromList();
+  }, [details?.workflowId]);
+
+  useEffect(() => {
+    if (isVerificationSuccessful && payorName !== undefined) {
+      navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } })
+    }
+  }, [payorName])
+
   
 
   return (

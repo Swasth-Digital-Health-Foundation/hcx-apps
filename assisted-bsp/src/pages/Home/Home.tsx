@@ -359,7 +359,7 @@ const Home = () => {
                     date={ele.date}
                     insurance_id={ele.insurance_id}
                     // claimType={ele.claimType}
-                    claimType = "OPD"
+                    claimType = {ele.claimType}
                     apiCallId={ele.apiCallId}
                     status={latestStatusByEntry[ele.workflow_id]}
                     type={ele.type}
