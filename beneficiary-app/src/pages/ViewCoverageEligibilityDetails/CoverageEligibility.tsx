@@ -6,7 +6,9 @@ import { generateOutgoingRequest } from '../../services/hcxMockService';
 import TransparentLoader from '../../components/TransparentLoader';
 import * as _ from "lodash";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import thumbnail from "../../images/pngwing.com.png"
+import PreauthAndCliamDetails from './PreauthAndCliamDetails';
+import RequestDetails from './RequestDetails';
+import Info from './Info';
 
 const CoverageEligibility = () => {
   const navigate = useNavigate();
@@ -19,7 +21,8 @@ const CoverageEligibility = () => {
   const [coverageDetails, setCoverageDetails] = useState<any>([]);
   const [coverageEligibilityStatus, setcoverageStatus] = useState<any>([]);
   const [apicallIdForClaim, setApicallID] = useState<any>();
-  const [popup, setPopup] = useState(false)
+  const [popup, setPopup] = useState(false);
+  const [isRejected, setIsRejected] = useState<boolean>(false)
 
   const requestDetails = {
     ...location.state,
@@ -131,6 +134,8 @@ const CoverageEligibility = () => {
       }
       setType(
         response.data?.entries.map((ele: any) => {
+          if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
+          else setIsRejected(false);
           return ele.type;
         })
       );
@@ -214,162 +219,38 @@ const CoverageEligibility = () => {
             </h2>
           </div>
           <div className="relative mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="items-center justify-between"></div>
-            <div>
-              {_.map(claimRequestDetails, (ele: any) => {
-                return (
-                  <div className="mb-2">
-                    <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                      {ele.key}
-                    </h2>
-                    <span className="text-base font-medium">{ele.value}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className='absolute top-2 right-2' onClick={() => setPopup(!popup)}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-              </svg>
-            </div>
-            {popup ? <div className='absolute top-8 right-2 bg-black text-white p-4'>
-              Api call Id : {location.state?.apiCallId} <br />
-              BSP_hcx_code : {requestDetails?.participantCode} <br />
-              workflowId : {requestDetails.workflowId || ''}
-            </div> : null}
+            <RequestDetails claimRequestDetails={claimRequestDetails} />
+            <Info setPopup={setPopup} popup={popup} requestDetails={requestDetails} location={location} />
           </div>
-          {_.map(preauthOrClaimList, (ele: any) => {
-            const additionalInfo = JSON.parse(ele?.additionalInfo)
-            return (
-              <>
-                <div className=" flex items-center justify-between">
-                  <h2 className="sm:text-title-xl1 mt-3 text-2xl font-semibold text-black dark:text-white">
-                    {ele?.type.charAt(0).toUpperCase() + ele?.type.slice(1)}{' '}
-                    details :
-                  </h2>
-                  {ele?.status === 'Approved' ? (
-                    <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
-                      &#10004; Approved
-                    </div>
-                  ) : (
-                    <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-warning dark:text-warning">
-                      Pending
-                    </div>
-                  )}
-                </div>
-                <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-                  <div className="flex items-center justify-between">
-                    <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
-                      {strings.TREATMENT_AND_BILLING_DETAILS}
-                    </h2>
-                  </div>
-                  <div>
-                    <div className="mb-2 ">
-                      <div className="flex gap-2">
-                        <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                          Service type :
-                        </h2>
-                        <span className="text-base font-medium">
-                          {ele.claimType}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                          Bill amount :
-                        </h2>
-                        <span className="text-base font-medium">
-                          INR {ele.billAmount}
-                        </span>
-                      </div>
-                      {
-                        additionalInfo?.financial?.approved_amount &&
-                        <div className="flex gap-2">
-                          <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                            Approved amount :
-                          </h2>
-                          <span className="text-base font-medium">
-                            INR {additionalInfo?.financial?.approved_amount}
-                          </span>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                  {_.isEmpty(ele.supportingDocuments) ? null : <>
-                    <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
-                      Supporting documents :
-                    </h2>
-                    {Object.entries(ele.supportingDocuments).map(([key, values]) => (
-                      <div key={key}>
-                        <h3 className='text-base font-bold text-black dark:text-white'>Document type : <span className='text-base font-medium'>{key}</span></h3>
-                        <div className='flex'>
-                          {Array.isArray(values) &&
-                            values.map((imageUrl, index) => {
-                              const parts = imageUrl.split('/');
-                              const fileName = parts[parts.length - 1];
-                              return (
-                                <a href={imageUrl} download>
-                                  <div className='text-center'>
-                                    <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{fileName}</span>
-                                  </div>
-                                </a>
-                              )
-                            })}
-                        </div>
-                      </div>
-                    ))}
-                  </>}
-                  {
-                    ele?.accountNumber === '1234' ? <></> :
-                      <div className='mt-2'>
-                        <div className="flex items-center justify-between">
-                          <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-1 font-semibold text-black dark:text-white">
-                            Beneficiary bank details :
-                          </h2>
-                        </div>
-                        <div>
-                          <div>
-                            <div className='flex gap-2'>
-                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                                Account number :
-                              </h2>
-                              <span className="text-base font-medium">{ele.accountNumber}</span>
-                            </div>
-                            <div className='flex gap-2'>
-                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                                IFSC code :
-                              </h2>
-                              <span className="text-base font-medium">{ele.ifscCode}</span>                        </div>
-                          </div>
-                        </div>
-                      </div>
-                  }
-                </div>
-              </>
-            );
-          })}
-
+          <PreauthAndCliamDetails preauthOrClaimList={preauthOrClaimList} />
           <div>
             {preauthOrClaimList.length === 0 && (
               <>
-                <div>
-                  <button
-                    onClick={() => navigate("/initiate-claim-request", {
-                      state: requestDetails,
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-                  >
-                    Initiate new claim request
-                  </button>
-                  <button
-                    onClick={() => navigate("/initiate-preauth-request", {
-                      state: requestDetails,
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
-                  >
-                    Initiate pre-auth request
-                  </button>
-                </div>
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> :
+                  <div>
+                    <button
+                      onClick={() => navigate("/initiate-claim-request", {
+                        state: requestDetails,
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                    >
+                      Initiate new claim request
+                    </button>
+                    <button
+                      onClick={() => navigate("/initiate-preauth-request", {
+                        state: requestDetails,
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
+                    >
+                      Initiate pre-auth request
+                    </button>
+                  </div>
+                }
               </>
             )}
 
@@ -377,16 +258,19 @@ const CoverageEligibility = () => {
               <></>
             ) : type.includes('preauth') ? (
               <>
-                <div className="mt-2 mb-2 flex items-center">
-                  <button
-                    onClick={() => navigate("/initiate-claim-request", {
-                      state: requestDetails,
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-                  >
-                    Initiate new claim request
-                  </button>
-                </div>
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> : <button
+                  onClick={() => navigate("/initiate-claim-request", {
+                    state: requestDetails
+                  })}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Initiate new claim request
+                </button>}
               </>
             ) : null}
           </div>

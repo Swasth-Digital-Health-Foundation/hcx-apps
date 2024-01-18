@@ -10,7 +10,6 @@ import SignUp from './pages/Authentication/SignUp';
 import CoverageEligibility from './pages/ViewCoverageEligibilityDetails/CoverageEligibility';
 import InitiateNewClaimRequest from './pages/InitiateNewClaimRequest/InitiateNewClaimRequest';
 import ViewClaimRequestDetails from './pages/ViewClaimRequestDetails/ViewClaimRequestDetails';
-import CoverageEligibilityRequest from './pages/CoverageEligibilityRequest/CoverageEligibilityRequest';
 import PreAuthRequest from './pages/InitiatePreAuthRequest/PreAuthRequest';
 import RequestSuccess from './components/RequestSuccess';
 import { ToastContainer } from 'react-toastify';
@@ -18,6 +17,7 @@ import Profile from './pages/Profile/Profile';
 import SendBankDetails from './pages/SendBankDetails/SendBankDetails';
 import Success from './pages/SendBankDetails/Success';
 import CoverageEligibilitySuccessPage from './components/CoverageEligibilitySuccessPage';
+import Notification from './pages/Notification/Notification';
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -43,17 +43,17 @@ const App = () => {
         theme="colored"
       />
       <Routes>
-      <Route path="/beneficiary-otp" element={<OTP />}></Route>
-      <Route path="/verify-otp" element={<VerifyOTP />}></Route>
+        <Route path="/beneficiary-otp" element={<OTP />}></Route>
+        <Route path="/verify-otp" element={<VerifyOTP />}></Route>
         <Route element={<DefaultLayout />}>
           <Route path="/" element={<Navigate to="/beneficiary-otp" />} />
           <Route path="/signup" element={<SignUp />}></Route>
           <Route path="/home" element={<Home />} />
           <Route path="/new-claim" element={<NewClaim />} />
-          <Route
+          {/* <Route
             path="/coverage-eligibility-request"
             element={<CoverageEligibilityRequest />}
-          />  
+          />   */}
           <Route
             path="/coverage-eligibility"
             element={<CoverageEligibility />}
@@ -73,6 +73,10 @@ const App = () => {
           <Route
             path="/coverage-eligibility-success-page"
             element={<CoverageEligibilitySuccessPage />}
+          />
+          <Route
+            path="/notification"
+            element={<Notification />}
           />
           <Route path="/request-success" element={<RequestSuccess />} />
           <Route path="/profile" element={<Profile />} />

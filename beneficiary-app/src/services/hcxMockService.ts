@@ -117,6 +117,22 @@ const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any,
   }
 };
 
+const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }: any) => {
+  try {
+    setLoading(true);
+    let response = await generateOutgoingRequest(
+      'bsp/request/list',
+      preauthOrClaimListPayload
+    );
+    let preAuthAndClaimList = response.data?.entries;
+    setpreauthOrClaimList(preAuthAndClaimList);
+    setLoading(false);
+  } catch (err) {
+    setLoading(false);
+    console.log(err);
+  }
+};
+
 export {
   generateOutgoingRequest,
   sendOTP,
@@ -124,5 +140,6 @@ export {
   isInitiated,
   createCommunicationOnRequest,
   getCoverageEligibilityRequestList,
-  handleUpload
+  handleUpload,
+  getActivePlans
 };

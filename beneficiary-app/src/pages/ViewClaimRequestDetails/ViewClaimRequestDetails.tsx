@@ -12,11 +12,13 @@ import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
 import thumbnail from '../../images/pngwing.com.png'
 import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import Info from '../ViewCoverageEligibilityDetails/Info';
+import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
 
 
 const ViewClaimRequestDetails = () => {
   const location = useLocation();
-  const details = location.state;
+  const [details, setDetails] = useState<any>(location.state);
   const navigate = useNavigate();
 
   const [providerName, setProviderName] = useState<string>('');
@@ -208,33 +210,20 @@ const ViewClaimRequestDetails = () => {
 
   return (
     <>
-      {!hasClaimApproved ? (
-            <div className="relative flex pb-8 cursor-pointer">
-            <ArrowPathIcon
-              onClick={() => {
-                getVerification();
-              }}
-              className={
-                loading ? "animate-spin h-11 w-7 absolute right-0" : "h-16 w-8 absolute right-2"
-              }
-              aria-hidden="true"
-            />
-            {loading ? "Please wait..." : ""}
-          </div>
-      )  : (
-        <>
-          {/* <button
-            onClick={(event: any) => {
-              event.preventDefault();
-              navigate('/home');
+      {!hasClaimApproved ?
+        <div className="relative flex pb-8 cursor-pointer">
+          <ArrowPathIcon
+            onClick={() => {
+              getVerification();
             }}
-            type="submit"
-            className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
-          >
-            Home
-          </button> */}
-        </>
-      )}
+            className={
+              loading ? "animate-spin h-11 w-7 absolute right-0" : "h-16 w-8 absolute right-2"
+            }
+            aria-hidden="true"
+          />
+          {loading ? "Please wait..." : ""}
+        </div>
+        : <></>}
       <div className="relative mb-4 items-center justify-between">
         {hasClaimApproved ? (
           <span
@@ -252,28 +241,8 @@ const ViewClaimRequestDetails = () => {
         </h2>
       </div>
       <div className="relative rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div>
-          {_.map(claimRequestDetails, (ele: any, index: any) => {
-            return (
-              <div key={index} className="mb-2">
-                <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                  {ele.key}
-                </h2>
-                <span className="text-base font-medium">{ele.value}</span>
-              </div>
-            );
-          })}
-        </div>
-        <div className='absolute top-2 right-2' onClick={() => setPopup(!popup)}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-          </svg>
-        </div>
-        {popup ? <div className='absolute top-8 right-2 bg-black text-white p-4'>
-          Api call Id : {location.state?.apiCallId} <br />
-          BSP_hcx_code : {details?.participantCode} <br />
-          workflowId : {details?.workflowId}
-        </div> : null}
+        <RequestDetails claimRequestDetails={claimRequestDetails} />
+        <Info setPopup={setPopup} popup={popup} requestDetails={details} location={location} />
       </div>
       <div className="mt-3 rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-center justify-between">
@@ -292,7 +261,7 @@ const ViewClaimRequestDetails = () => {
               </div>
             );
           })}
-          {details.approvedAmount && <div className="flex gap-2">
+          {details?.approvedAmount && <div className="flex gap-2">
             <h2 className="text-bold text-base font-bold text-black dark:text-white">
               Approved amount :
             </h2>
@@ -331,53 +300,7 @@ const ViewClaimRequestDetails = () => {
         </div>
       </div>
 
-      {/* <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center justify-between">
-            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
-              Beneficiary bank details :
-            </h2>
-          </div>
-          <div>
-            {_.map(preAuthAndClaimList, (ele: any) => {
-              return (
-                <div className="flex gap-2">
-                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                    {ele.key}
-                  </h2>
-                  <span className="text-base font-medium">{ele.value}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div> */}
-
-      {/* {!hasClaimApproved ? (
-        <div
-          onClick={() => getVerification()}
-          className="align-center mt-4 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-        >
-          {!refresh ? (
-            <span className="cursor-pointer">Refresh</span>
-          ) : (
-            <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-          )}
-        </div>
-      ) : (
-        <>
-          <button
-            onClick={(event: any) => {
-              event.preventDefault();
-              navigate('/home');
-            }}
-            type="submit"
-            className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
-          >
-            Home
-          </button>
-        </>
-      )} */}
-
-{hasClaimApproved?<button
+      {hasClaimApproved ? <button
         onClick={(event: any) => {
           event.preventDefault();
           navigate('/home');
@@ -386,7 +309,7 @@ const ViewClaimRequestDetails = () => {
         className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
       >
         Home
-      </button>:<></>}
+      </button> : <></>}
 
       {initiated ? (
         <>
@@ -439,7 +362,7 @@ const ViewClaimRequestDetails = () => {
         </>
       ) : null}</>
 
-      
+
   );
 };
 
