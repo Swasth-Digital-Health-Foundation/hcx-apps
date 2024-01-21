@@ -1,48 +1,43 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as _ from "lodash";
 
 const DropdownNotification = () => {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [notifying, setNotifying] = useState(true);
+    const [notifying, setNotifying] = useState(false);
     const navigate = useNavigate();
-    
-    const notificationData = [
-        {
-            "topic_code": "notif-new-network-feature-added",
-            "message": "Swasth-HCX now supports v0.9 on its platform. All participants can now initiate transactions relating to v0.9.",
-            "sent By ": "hcxgateway.swasth@swasth-hcx-dev"
-        },
-        {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sent By ": "hcxgateway.swasth@swasth-hcx-dev"
-        },
-        {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sent By ": "hcxgateway.swasth@swasth-hcx-dev"
-        }, {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sent By ": "hcxgateway.swasth@swasth-hcx-dev"
-        }, {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sent By ": "hcxgateway.swasth@swasth-hcx-dev"
-        }, {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sent By ": "hcxgateway.swasth@swasth-hcx-dev"
-        }
-    ]
+
+    // const [notificationData, setNotificationData] = useState<any>([]);
+
+    // const notificationPayload = {
+    //     "participant_role": "bsp"
+    // }
+
+    // const getNotificationsData = () => {
+    //     getNotifications(notificationPayload)
+    //         .then((response: any) => setNotificationData(_.get(response, 'data.result', [])))
+    //         .catch((err: any) => console.error(err));
+    // };
+
+    // useEffect(() => {
+    //     getNotificationsData();
+    //     console.log({notificationData})
+    //     const intervalId = setInterval(() => {
+    //         getNotifications(notificationPayload)
+    //             .then((response: any) => {
+    //                 console.log(_.get(response, 'data.result', []).length)
+    //                 console.log(notificationData.length)
+    //                 setNotifying(_.get(response, 'data.result', []).length > notificationData.length)
+    //             })
+    //             .catch((err: any) => console.error(err));
+    //     }, 5000);
+    //     return () => clearInterval(intervalId);
+    // }, []);
 
     return (
         <li className="relative">
             <div
                 onClick={() => {
                     setNotifying(false);
-                    // setDropdownOpen(!dropdownOpen);
                     navigate("/notification")
                 }}
                 className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full border-[0.5px] border-stroke bg-gray hover:text-primary dark:border-strokedark dark:bg-meta-4 dark:text-white"
@@ -68,29 +63,6 @@ const DropdownNotification = () => {
                     />
                 </svg>
             </div>
-
-            {dropdownOpen ? <div
-                className={`absolute -right-15 mt-2.5 flex h-90 w-75 flex-col rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark sm:right-0 sm:w-auto ${dropdownOpen === true ? 'block' : 'hidden'
-                    }`}
-            >
-                <ul className="flex h-auto flex-col overflow-y-auto">
-                    {_.map(notificationData, (notification: any) => {
-                        return <li>
-                            <div
-                                className="flex flex-col gap-2.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                            >
-                                <p className="text-md">
-                                    <span className="text-black font-medium dark:text-white">
-                                        {notification?.topic_code}
-                                    </span>{' '}
-                                </p>
-
-                                <p className="text-xs">12 May, 2025</p>
-                            </div>
-                        </li>
-                    })}
-                </ul>
-            </div> : <></>}
         </li>
     );
 };

@@ -2,6 +2,6 @@ export type FAQ = {
   header: string;
   id: number;
   text: string;
-  sentBy: any;
+  sender_code: any;
   date: any;
 };

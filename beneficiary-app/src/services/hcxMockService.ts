@@ -47,6 +47,14 @@ async function verifyOTP(payload: any) {
   return response;
 }
 
+async function getNotifications(payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/notification/list`,
+    payload
+  );
+  return response;
+}
+
 const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload: any, setActiveRequests: any, setFinalData: any, setDisplayedData: any) => {
   try {
     setLoading(true);
@@ -141,5 +149,6 @@ export {
   createCommunicationOnRequest,
   getCoverageEligibilityRequestList,
   handleUpload,
-  getActivePlans
+  getActivePlans,
+  getNotifications
 };

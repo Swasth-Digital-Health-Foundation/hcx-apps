@@ -1,50 +1,23 @@
 import * as _ from "lodash"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AccordionItemOne from "../../components/AccordionItemOne";
 import { useNavigate } from "react-router-dom";
+import { getNotifications } from "../../services/hcxMockService";
+import { toast } from "react-toastify";
 
 const Notification = () => {
     const navigate = useNavigate()
-    const notificationData = [
-        {
-            "topic_code": "notif-new-network-feature-added",
-            "message": "Swasth-HCX now supports v0.9 on its platform. All participants can now initiate transactions relating to v0.9.",
-            "sentBy": "hcxgateway.swasth@swasth-hcx-dev",
-            "timestamp": 1705565618414
-        },
-        {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sentBy": "hcxgateway.swasth@swasth-hcx-dev",
-            "timestamp": 1705565618414
-        },
-        {
-            "topic_code": "notif-new-network-feature-added",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sentBy": "hcxgateway.swasth@swasth-hcx-dev",
-            "timestamp": 1705565618414
-        },
-        {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sentBy": "hcxgateway.swasth@swasth-hcx-dev",
-            "timestamp": 1705565618414
-        },
-        {
-            "topic_code": "notif-new-network-feature-added",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sentBy": "hcxgateway.swasth@swasth-hcx-dev",
-            "timestamp": 1705565618414
-        },
-        {
-            "topic_code": "notif-gateway-downtime",
-            "message": "HCX will be facing downtime from 09/01/2023 to 10/01/2023 due to planned maintenance. Sorry for inconvenience and please plan your operations accordingly.",
-            "sentBy": "hcxgateway.swasth@swasth-hcx-dev",
-            "timestamp": 1705565618414
-        }
-    ]
-
+    const [notificationData, setNotificationData] = useState<any>([]);
     const [active, setActive] = useState<number | null>(null);
+
+    const notificationPayload = {
+        "participant_role": "bsp"
+    }
+
+    useEffect(() => {
+        getNotifications(notificationPayload).then((response: any) => setNotificationData(_.get(response, 'data.result', []))).catch((err: any) =>
+            toast.error("Faild to get notifications"))
+    }, [])
 
     const handleToggle = (index: number) => {
         if (active === index) {
@@ -59,7 +32,7 @@ const Notification = () => {
             id: index,
             header: notification?.topic_code,
             text: notification?.message,
-            sentBy: notification?.sentBy,
+            sender_code: notification?.sender_code,
             date: new Date(notification?.timestamp).toLocaleString()
         }
     })
