@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { handleFileChange } from "../../utils/attachmentSizeValidation";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
+import { generateOutgoingRequest, getActivePlans, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import axios from "axios";
 import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import useDebounce from '../../hooks/useDebounce';
+import thumbnail from "../../images/pngwing.com.png"
 
 import * as _ from "lodash";
+import DocumentsList from "../../components/DocumentsList";
 
 const InitiateNewClaimRequest = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -47,6 +48,8 @@ const InitiateNewClaimRequest = () => {
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
+
+  const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
 
   const insuranceOptions = [
     { label: "Select", value: "" },
@@ -124,7 +127,7 @@ const InitiateNewClaimRequest = () => {
     ],
     type: serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode ||  data?.recipientCode,
+    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode || data?.recipientCode,
     app: "ABSP",
     date: selectedDate
   };
@@ -240,7 +243,7 @@ const InitiateNewClaimRequest = () => {
       // toast.error(_.get(error, 'response.data.error.message'))
     }
   };
-  
+
   const debounce = useDebounce(providerName, 500);
 
   useEffect(() => {
@@ -252,6 +255,15 @@ const InitiateNewClaimRequest = () => {
   const filteredResults = searchResults.filter((result: any) =>
     result.participant_name.toLowerCase().includes(providerName.toLowerCase())
   );
+
+  const preauthOrClaimListPayload = {
+    workflow_id: data?.workflowId || '',
+    app: 'ABSP',
+  };
+
+  useEffect(() => {
+    getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
+  }, [])
 
   return (
     <>
@@ -332,30 +344,30 @@ const InitiateNewClaimRequest = () => {
                   </>
                 )} */}
                 {filteredResults.length !== 0 && openDropdown ? (
-                <div className="max-h-40 overflow-y-auto overflow-x-hidden">
-                  <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                    {_.map(filteredResults, (result: any, index: any) => (
-                      <li
-                        key={index}
-                        onClick={() => {
-                          setOpenDropdown(!openDropdown)
-                          handleSelect(
-                            result?.participant_name,
-                            result?.participant_code
-                          )
-                        }
-                        }
-                        className="hover:bg-gray-200 cursor-pointer p-2"
-                      >
-                        {result?.participant_name +
-                           `(${result?.participant_code})` || ''}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <></>
-              )}
+                  <div className="max-h-40 overflow-y-auto overflow-x-hidden">
+                    <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
+                      {_.map(filteredResults, (result: any, index: any) => (
+                        <li
+                          key={index}
+                          onClick={() => {
+                            setOpenDropdown(!openDropdown)
+                            handleSelect(
+                              result?.participant_name,
+                              result?.participant_code
+                            )
+                          }
+                          }
+                          className="hover:bg-gray-200 cursor-pointer p-2"
+                        >
+                          {result?.participant_name +
+                            `(${result?.participant_code})` || ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <></>
+                )}
               </div>
             </h2>
             <TextInputWithLabel
@@ -373,12 +385,6 @@ const InitiateNewClaimRequest = () => {
               disabled={true}
               type="text"
             />
-            {/* <TextInputWithLabel
-              label="Service type : "
-              value={displayedData[0]?.claimType || serviceType}
-              disabled={false}
-              type="text"
-            /> */}
             <SelectInput
               label="Service type : "
               value={serviceType}
@@ -518,6 +524,10 @@ const InitiateNewClaimRequest = () => {
                 {fileErrorMessage}
               </div>
             )}
+          </div>
+          <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
+            <DocumentsList preauthOrClaimList={preauthOrClaimList} />
           </div>
           <div className="mb-5 mt-4">
             {!submitLoading ? (

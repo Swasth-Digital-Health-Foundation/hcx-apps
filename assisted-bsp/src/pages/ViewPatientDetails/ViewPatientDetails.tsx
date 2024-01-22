@@ -4,22 +4,17 @@ import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
 import {
   generateOutgoingRequest,
-  getConsultationDetails,
-  isInitiated,
 } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
-import LoadingButton from '../../components/LoadingButton';
 import { toast } from "react-toastify";
 import { postRequest } from "../../services/registryService";
-import { isEmpty } from "lodash";
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
 
 const ViewPatientDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const details = location.state;
   const [token, setToken] = useState<string>();
   const [providerName, setProviderName] = useState<string>();
   const [payorName, setPayorName] = useState<string>("");
@@ -29,17 +24,14 @@ const ViewPatientDetails = () => {
   const [coverageEligibilityStatus, setcoverageStatus] = useState<any>([]);
   const [apicallIdForClaim, setApicallID] = useState<any>();
   const [patientDetails, setPatientDetails] = useState<any>([]);
-  const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
-  const [initiated, setInitiated] = useState(false);
   const requestDetails = {
     ...location.state,
     providerName: providerName,
     billAmount: location.state?.billAmount || preauthOrClaimList[0]?.billAmount,
     apiCallId: apicallIdForClaim,
   };
-
-  
+  const [isRejected, setIsRejected] = useState<boolean>(false)
 
   const [type, setType] = useState<string[]>([]);
 
@@ -184,6 +176,8 @@ const ViewPatientDetails = () => {
       }
       setType(
         response.data?.entries.map((ele: any) => {
+          if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
+          else setIsRejected(false);
           return ele.type;
         })
       );
@@ -224,7 +218,6 @@ const ViewPatientDetails = () => {
         break;
       }
     }
-    // getConsultation();
   }, []);
 
 
@@ -263,29 +256,6 @@ const ViewPatientDetails = () => {
 
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
-  const patient_Insurance_Id = patientInsuranceId || (patientDetails[0]?.payor_details[0]?.insurance_id)
-
-  const getVerificationPayload = {
-    type: 'otp_verification',
-    request_id: details?.apiCallId,
-  };
-
-  const getVerification = async () => {
-    try {
-      setRefresh(true);
-      let res = await isInitiated(getVerificationPayload);
-      setRefresh(false);
-      if (res.status === 200) {
-        setInitiated(true);
-      }
-    } catch (err) {
-      setRefresh(false);
-      console.log(err);
-      toast.error('Communication is not initiated.');
-    }
-  };
-
-
 
   return (
     <>
@@ -305,7 +275,7 @@ const ViewPatientDetails = () => {
           </div>
           <div className="flex items-center justify-between">
             <label className="block text-left text-2xl font-bold text-black dark:text-white">
-            Beneficiary Details
+              Beneficiary Details
             </label>
             <h2 className="sm:text-title-xl1 text-end font-semibold text-success dark:text-success">
               {coverageEligibilityStatus === "Approved" ? (
@@ -333,42 +303,6 @@ const ViewPatientDetails = () => {
                 );
               })}
             </div>
-            {/* {patientDetails[0]?.medical_history && (
-              <>
-                <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
-                  Medical history
-                </label>
-                <div className="items-center justify-between"></div>
-                <div>
-                  {_.map(patientDetails[0]?.medical_history,
-                    (ele: any, index: any) => {
-                      return (
-                        <div key={index} className="mb-2">
-                          <div className="mb-2 flex gap-2">
-                            <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Allergies
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.allergies}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <h2 className=" text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Blood group
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.bloodGroup}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
-                </div>
-              </>
-            )} */}
             <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
               Insurance details
             </label>
@@ -383,7 +317,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                  {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}                  </span>
+                    {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}                  </span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
@@ -391,13 +325,13 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                  {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}                  </span>
+                    {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}                  </span>
                 </div>
               </div>
             </div>
           </div>
           {_.map(preauthOrClaimList, (ele: any, index: any) => {
-             const additionalInfo = JSON.parse(ele?.additionalInfo)
+            const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -408,6 +342,10 @@ const ViewPatientDetails = () => {
                   {ele?.status === "Approved" ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
                       &#10004; Approved
+                    </div>
+                  ) : ele?.status === "Rejected" ? (
+                    <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-danger dark:text-danger">
+                      Rejected
                     </div>
                   ) : (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-warning dark:text-success">
@@ -441,7 +379,7 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      { additionalInfo?.financial?.approved_amount &&
+                      {additionalInfo?.financial?.approved_amount &&
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount
@@ -468,8 +406,8 @@ const ViewPatientDetails = () => {
                               return (
                                 <a href={imageUrl} download>
                                   <div className='text-center'>
-                                    <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{fileName}</span>
+                                    <img key={index} height={100} width={100} src={thumbnail} alt={`${key} ${index + 1}`} />
+                                    <span>{decodeURIComponent(fileName)}</span>
                                   </div>
                                 </a>
                               )
@@ -512,25 +450,31 @@ const ViewPatientDetails = () => {
           <div>
             {preauthOrClaimList.length === 0 && (
               <>
-                <div>
-                  <button
-                    onClick={() => navigate("/initiate-claim-request", {
-                      state: { requestDetails: requestDetails },
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-                  >
-                    Initiate claim
-                  </button>
-                  <button
-                    onClick={() => navigate("/initiate-preauth-request", {
-                      state: { requestDetails: requestDetails },
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
-                  >
-                    Initiate pre-auth
-                  </button>
-                </div>
-
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> :
+                  <div>
+                    <button
+                      onClick={() => navigate("/initiate-claim-request", {
+                        state: { requestDetails: requestDetails },
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                    >
+                      Initiate claim
+                    </button>
+                    <button
+                      onClick={() => navigate("/initiate-preauth-request", {
+                        state: { requestDetails: requestDetails },
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
+                    >
+                      Initiate pre-auth
+                    </button>
+                  </div>
+                }
               </>
             )}
 
@@ -538,14 +482,19 @@ const ViewPatientDetails = () => {
               <></>
             ) : type.includes("preauth") ? (
               <>
-                <button
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> : <button
                   onClick={() => navigate("/initiate-claim-request", {
                     state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
                   })}
                   className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                 >
                   Initiate new claim request
-                </button>
+                </button>}
               </>
             ) : null}
           </div>

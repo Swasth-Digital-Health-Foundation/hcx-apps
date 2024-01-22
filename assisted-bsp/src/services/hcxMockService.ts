@@ -54,6 +54,14 @@ async function getConsultationDetails(workflow_id: any) {
   return response;
 }
 
+async function getNotifications(payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/notification/list`,
+    payload
+  );
+  return response;
+}
+
 const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload: any, setActiveRequests: any, setFinalData: any, setDisplayedData: any) => {
   try {
     setLoading(true);
@@ -125,6 +133,22 @@ const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any,
   }
 };
 
+const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }: any) => {
+  try {
+    setLoading(true);
+    let response = await generateOutgoingRequest(
+      'bsp/request/list',
+      preauthOrClaimListPayload
+    );
+    let preAuthAndClaimList = response.data?.entries;
+    setpreauthOrClaimList(preAuthAndClaimList);
+    setLoading(false);
+  } catch (err) {
+    setLoading(false);
+    console.log(err);
+  }
+};
+
 export {
   generateOutgoingRequest,
   sendOTP,
@@ -133,5 +157,7 @@ export {
   createCommunicationOnRequest,
   getConsultationDetails,
   getCoverageEligibilityRequestList,
-  handleUpload
+  handleUpload,
+  getActivePlans,
+  getNotifications
 };
