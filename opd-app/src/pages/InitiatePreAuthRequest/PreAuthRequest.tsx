@@ -49,7 +49,8 @@ const PreAuthRequest = () => {
     FileLists = Array.from(selectedFile);
   }
 
-  const data = location.state;
+  const [data, setData] = useState(location.state);
+
   const handleDelete = (name: any) => {
     if (selectedFile !== undefined) {
       const updatedFilesList = selectedFile.filter(
@@ -83,18 +84,18 @@ const PreAuthRequest = () => {
   const password = localStorage.getItem('password')
 
   let initiateClaimRequestBody: any = {
-    insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
-    insurancePlan: data?.insurancePlan || null,
+    insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
+    insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
     mobile:
       localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
     patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
     participantCode:
-      data?.participantCode || localStorage.getItem("senderCode") || email,
-    payor: data?.payor || payorName,
-    providerName: data?.providerName || localStorage.getItem("providerName"),
-    serviceType: data?.serviceType || displayedData[0]?.claimType,
+      _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
+    payor: _.get(data, 'requestDetails.payor', '') || payorName,
+    providerName: _.get(data, 'requestDetails.providerName', '') || localStorage.getItem("providerName"),
+    serviceType: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
     billAmount: amount,
-    workflowId: data?.workflowId,
+    workflowId: _.get(data, 'requestDetails.workflowId', ''),
     supportingDocuments: [
       {
         documentType: documentType,
@@ -105,10 +106,11 @@ const PreAuthRequest = () => {
     ],
     type: "OPD",
     password: password,
-    recipientCode: data?.recipientCode,
+    recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
     app: "OPD",
   };
 
+  console.log({ data })
   const filter = {
     entityType: ["Beneficiary"],
     filters: {
@@ -196,7 +198,7 @@ const PreAuthRequest = () => {
 
   const getConsultation = async () => {
     try {
-      const response = await getConsultationDetails(data?.workflowId);
+      const response = await getConsultationDetails(_.get(data, 'requestDetails.workflowId', ''));
       let consultationDetails = response.data;
       setConsultationDetails(consultationDetails);
     } catch (err: any) {

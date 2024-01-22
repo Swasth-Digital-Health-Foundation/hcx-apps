@@ -412,7 +412,7 @@ const ViewPatientDetails = () => {
                       <a href={ele} download>
                         <div className='text-center'>
                           <img key={index} height={150} width={150} src={thumbnail} alt='image' />
-                          <span>{fileName}</span>
+                          <span>{decodeURIComponent(fileName)}</span>
                         </div>
                       </a>
                     );
@@ -497,7 +497,7 @@ const ViewPatientDetails = () => {
                                 <a href={imageUrl} download>
                                   <div className='text-center'>
                                     <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{fileName}</span>
+                                    <span>{decodeURIComponent(fileName)}</span>
                                   </div>
                                 </a>
                               )

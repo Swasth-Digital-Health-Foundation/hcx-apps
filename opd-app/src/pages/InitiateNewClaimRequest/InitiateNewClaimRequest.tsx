@@ -12,6 +12,7 @@ import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
+import DocumentsList from "../../components/DocumentsList";
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -51,14 +52,6 @@ const InitiateNewClaimRequest = () => {
     },
   ];
 
-  const serviceTypeOptions = [
-    { label: "Select", value: "" },
-    {
-      label: displayedData[0]?.claimType,
-      value: displayedData[0]?.claimType,
-    },
-  ];
-
   const documentTypeOptions = [
     {
       label: "Prescription",
@@ -81,7 +74,7 @@ const InitiateNewClaimRequest = () => {
     FileLists = Array.from(selectedFile);
   }
 
-  const data = location.state;
+  const [data, setData] = useState(location.state);
   const handleDelete = (name: any) => {
     if (selectedFile !== undefined) {
       const updatedFilesList = selectedFile.filter(
@@ -94,21 +87,21 @@ const InitiateNewClaimRequest = () => {
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
 
-  console.log(data?.recipientCode)
+  console.log({ data })
 
   let initiateClaimRequestBody: any = {
-    insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
-    insurancePlan: data?.insurancePlan || null,
+    insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
+    insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
     mobile:
       localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
     patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
     participantCode:
-      data?.participantCode || localStorage.getItem("senderCode") || email,
-    payor: data?.payor || payorName,
-    providerName: data?.providerName || localStorage.getItem("providerName"),
-    serviceType: data?.serviceType || displayedData[0]?.claimType,
+      _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
+    payor: _.get(data, 'requestDetails.payor', '') || payorName,
+    providerName: _.get(data, 'requestDetails.providerName', '') || localStorage.getItem("providerName"),
+    serviceType: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
     billAmount: amount,
-    workflowId: data?.workflowId,
+    workflowId: _.get(data, 'requestDetails.workflowId', ''),
     supportingDocuments: [
       {
         documentType: documentType,
@@ -117,10 +110,10 @@ const InitiateNewClaimRequest = () => {
         }),
       },
     ],
-    type: data?.serviceType || displayedData[0]?.claimType,
+    type: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
     app: "OPD",
     password: password,
-    recipientCode: data?.recipientCode,
+    recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
 
   const filter = {
@@ -210,17 +203,16 @@ const InitiateNewClaimRequest = () => {
 
   const getConsultation = async () => {
     try {
-      const response = await getConsultationDetails(data?.workflowId);
+      const response = await getConsultationDetails(_.get(data, "requestDetails.workflowId", ""));
       let consultationDetails = response.data;
       setConsultationDetails(consultationDetails);
     } catch (err: any) {
       console.log(err);
-      // toast.error()
     }
   };
 
   const preauthOrClaimListPayload = {
-    workflow_id: data?.workflowId || '',
+    workflow_id: _.get(data, "requestDetails.workflowId", ""),
     app: 'OPD',
   };
 
@@ -349,7 +341,7 @@ const InitiateNewClaimRequest = () => {
                 />
               </div>
             </div>
-            <h3 className='text-base text-black dark:text-white pt-4'>Documents added :</h3>
+            {/* <h3 className='text-base text-black dark:text-white pt-4'>Documents added :</h3>
             <div className="section flex items-center gap-2">
               <div>
                 {!_.isEmpty(urls) ? <>
@@ -397,7 +389,7 @@ const InitiateNewClaimRequest = () => {
                   );
                 })}
               </div>
-            </div>
+            </div> */}
             {isSuccess ? (
               <div>
                 {_.map(FileLists, (file: any) => {
@@ -421,6 +413,10 @@ const InitiateNewClaimRequest = () => {
                 {fileErrorMessage}
               </div>
             )}
+          </div>
+          <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
+            <DocumentsList preauthOrClaimList={preauthOrClaimList} />
           </div>
           <div className="mb-5 mt-4">
             {!submitLoading ? (
