@@ -81,8 +81,8 @@ const PreauthAndCliamDetails = (props: any) => {
                                                     return (
                                                         <a href={imageUrl} download>
                                                             <div className='text-center'>
-                                                                <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                                                <span>{fileName}</span>
+                                                                <img key={index} height={100} width={100} src={thumbnail} alt={`${key} ${index + 1}`} />
+                                                                <span>{decodeURIComponent(fileName)}</span>
                                                             </div>
                                                         </a>
                                                     )

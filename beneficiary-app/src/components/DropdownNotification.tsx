@@ -1,37 +1,33 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import * as _ from "lodash";
+import { getNotifications } from '../services/hcxMockService';
 
 const DropdownNotification = () => {
     const [notifying, setNotifying] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const [showMessageCount, setShowMessageCount] = useState<boolean>(true);
 
-    // const [notificationData, setNotificationData] = useState<any>([]);
+    const [notificationData, setNotificationData] = useState<any>([]);
 
-    // const notificationPayload = {
-    //     "participant_role": "bsp"
-    // }
+    const notificationPayload = {
+        "participant_role": "bsp"
+    }
 
-    // const getNotificationsData = () => {
-    //     getNotifications(notificationPayload)
-    //         .then((response: any) => setNotificationData(_.get(response, 'data.result', [])))
-    //         .catch((err: any) => console.error(err));
-    // };
+    const getNotificationsData = () => {
+        getNotifications(notificationPayload)
+            .then((response: any) => setNotificationData(_.get(response, 'data.result', [])))
+            .catch((err: any) => console.error(err));
+    };
 
-    // useEffect(() => {
-    //     getNotificationsData();
-    //     console.log({notificationData})
-    //     const intervalId = setInterval(() => {
-    //         getNotifications(notificationPayload)
-    //             .then((response: any) => {
-    //                 console.log(_.get(response, 'data.result', []).length)
-    //                 console.log(notificationData.length)
-    //                 setNotifying(_.get(response, 'data.result', []).length > notificationData.length)
-    //             })
-    //             .catch((err: any) => console.error(err));
-    //     }, 5000);
-    //     return () => clearInterval(intervalId);
-    // }, []);
+    useEffect(() => {
+        getNotificationsData();
+    }, []);
+
+    useEffect(() => {
+        location.pathname.includes("/notification") ? setShowMessageCount(true) : setShowMessageCount(false)
+    }, [location.pathname])
 
     return (
         <li className="relative">
@@ -42,6 +38,7 @@ const DropdownNotification = () => {
                 }}
                 className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full border-[0.5px] border-stroke bg-gray hover:text-primary dark:border-strokedark dark:bg-meta-4 dark:text-white"
             >
+                {!showMessageCount && <div className="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red ml-6 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">{notificationData.length - 1 || 0}</div>}
                 <span
                     className={`absolute -top-0.5 right-0 z-1 h-2 w-2 rounded-full bg-meta-1 ${notifying === false ? 'hidden' : 'inline'
                         }`}

@@ -1,14 +1,15 @@
 import React, { useRef } from 'react'
 import { FaqItem } from '../types/faqItem';
+import * as _ from "lodash"
 
-const AccordionItemOne: React.FC<FaqItem> = ({ active, handleToggle, faq }) => {
+const NotificationSection: React.FC<FaqItem> = ({ active, handleToggle, faq }) => {
   const contentEl = useRef<HTMLDivElement>(null);
 
   const { header, id, text, sender_code, date } = faq;
 
   return (
     <div className="px-3 border-stroke border-b-2 dark:border-strokedark dark:shadow-none">
-      <div>
+      {_.isEmpty(faq) ? <></> : <div>
         <button
           className={`flex w-full items-center justify-between gap-1.5 sm:gap-3 xl:gap-6 ${active === id ? 'active' : ''
             }`}
@@ -44,9 +45,9 @@ const AccordionItemOne: React.FC<FaqItem> = ({ active, handleToggle, faq }) => {
           <p className="font-sm font-medium text-black mt-4 dark:text-white">Sent by : {sender_code}</p>
         </div>
         <p className="py-2 text-xs text-black dark:text-white">{date}</p>
-      </div>
+      </div>}
     </div>
   );
 };
 
-export default AccordionItemOne
+export default NotificationSection

@@ -10,6 +10,7 @@ import * as _ from "lodash";
 import SupportingDocuments from '../../components/SupportingDocuments';
 import thumbnail from "../../images/pngwing.com.png"
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
+import DocumentsList from '../../components/DocumentsList';
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -245,34 +246,8 @@ const InitiateNewClaimRequest = () => {
         selectedFile={selectedFile} />
 
       <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3>
-        {_.map(preauthOrClaimList, (ele: any) => {
-          return (
-            <>
-              {_.isEmpty(ele.supportingDocuments) ? null : <>
-                {Object.entries(ele.supportingDocuments).map(([key, values]) => (
-                  <div key={key}>
-                    <div className='flex'>
-                      {Array.isArray(values) &&
-                        values.map((imageUrl, index) => {
-                          const parts = imageUrl.split('/');
-                          const fileName = parts[parts.length - 1];
-                          return (
-                            <a href={imageUrl} download>
-                              <div className='text-center'>
-                                <img key={index} height={100} width={100} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                <span>{fileName}</span>
-                              </div>
-                            </a>
-                          )
-                        })}
-                    </div>
-                  </div>
-                ))}
-              </>}
-            </>
-          );
-        })}
+        {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
+        <DocumentsList preauthOrClaimList={preauthOrClaimList} />
       </div>
       <div className="mb-5 mt-4">
         {!loading ? (
