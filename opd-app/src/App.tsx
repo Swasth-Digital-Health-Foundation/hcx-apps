@@ -11,6 +11,7 @@ import AddPatientAndInitiateCoverageEligibility from "./pages/AddPatientAndIniti
 import Login from "./pages/Authentication/Login";
 import AddConsultation from "./pages/AddConsultation/AddConsultation";
 import ViewPatientDetails from "./pages/ViewPatientDetails/ViewPatientDetails";
+import Notification from "./pages/Notification/Notification";
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -23,7 +24,7 @@ const App = () => {
     <Loader />
   ) : (
     <>
-       <ToastContainer
+      <ToastContainer
         position="top-right"
         autoClose={2500}
         hideProgressBar={false}
@@ -36,7 +37,7 @@ const App = () => {
         theme="colored"
       />
       <Routes>
-      <Route path="/opd-login" element={<Login />}></Route>
+        <Route path="/opd-login" element={<Login />}></Route>
 
         {/* <Route path="/" element={<Login />} /> */}
         <Route element={<DefaultLayout />}>
@@ -64,6 +65,7 @@ const App = () => {
             element={<PreAuthRequest />}
           />
           <Route path="/request-success" element={<RequestSuccess />} />
+          <Route path="/notification" element={<Notification />} />
         </Route>
       </Routes>
     </>

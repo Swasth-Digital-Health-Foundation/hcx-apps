@@ -35,7 +35,6 @@ const ActiveClaimCycleCard = (Props: any) => {
     } catch (err: any) {
       console.log(err);
       // toast.error()
-
       navigate("/add-consultation", { state: information })
     }
   };
@@ -67,7 +66,9 @@ const ActiveClaimCycleCard = (Props: any) => {
         <span
           className={`${Props.status === "Pending"
             ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
-            : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
+            : Props.status === "Rejected"
+              ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
+              : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
             }`}
         >
           {Props.status}

@@ -125,6 +125,30 @@ const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any,
   }
 };
 
+const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList}: any) => {
+  try {
+    setLoading(true);
+    let response = await generateOutgoingRequest(
+      'bsp/request/list',
+      preauthOrClaimListPayload
+    );
+    let preAuthAndClaimList = response.data?.entries;
+    setpreauthOrClaimList(preAuthAndClaimList);
+    setLoading(false);
+  } catch (err) {
+    setLoading(false);
+    console.log(err);
+  }
+};
+
+async function getNotifications(payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/notification/list`,
+    payload
+  );
+  return response;
+}
+
 export {
   generateOutgoingRequest,
   sendOTP,
@@ -133,5 +157,7 @@ export {
   createCommunicationOnRequest,
   getConsultationDetails,
   getCoverageEligibilityRequestList,
-  handleUpload
+  handleUpload,
+  getActivePlans,
+  getNotifications
 };

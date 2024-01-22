@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { handleFileChange } from "../../utils/attachmentSizeValidation";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
+import { generateOutgoingRequest, getActivePlans, getConsultationDetails, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import axios from "axios";
 import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
+import thumbnail from "../../images/pngwing.com.png"
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -40,6 +40,8 @@ const InitiateNewClaimRequest = () => {
 
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [consultationDetail, setConsultationDetails] = useState<any>();
+  const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
 
   const insuranceOptions = [
     { label: "Select", value: "" },
@@ -116,10 +118,9 @@ const InitiateNewClaimRequest = () => {
       },
     ],
     type: data?.serviceType || displayedData[0]?.claimType,
-    app : "OPD",
+    app: "OPD",
     password: password,
     recipientCode: data?.recipientCode,
-    app: "OPD"
   };
 
   const filter = {
@@ -207,7 +208,30 @@ const InitiateNewClaimRequest = () => {
     }
   };
 
+  const getConsultation = async () => {
+    try {
+      const response = await getConsultationDetails(data?.workflowId);
+      let consultationDetails = response.data;
+      setConsultationDetails(consultationDetails);
+    } catch (err: any) {
+      console.log(err);
+      // toast.error()
+    }
+  };
 
+  const preauthOrClaimListPayload = {
+    workflow_id: data?.workflowId || '',
+    app: 'OPD',
+  };
+
+  useEffect(() => {
+    getConsultation()
+    getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
+  }, [])
+
+  let urls: string = consultationDetail?.supporting_documents_url;
+  const trimmedString: string = urls?.slice(1, -1);
+  const urlArray: any[] = trimmedString?.split(",");
 
   return (
     <>
@@ -323,6 +347,55 @@ const InitiateNewClaimRequest = () => {
                   }}
                   className="w-full rounded-md border border-stroke p-3 outline-none transition file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm file:font-medium focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
                 />
+              </div>
+            </div>
+            <h3 className='text-base text-black dark:text-white pt-4'>Documents added :</h3>
+            <div className="section flex items-center gap-2">
+              <div>
+                {!_.isEmpty(urls) ? <>
+                  <div className="flex flex-wrap gap-2">
+                    {_.map(urlArray, (ele: string, index: number) => {
+                      const parts = ele.split('/');
+                      const fileName = parts[parts.length - 1];
+                      return (
+                        <a href={ele} download>
+                          <div className='text-center'>
+                            <img key={index} height={100} width={100} src={thumbnail} alt='image' />
+                            <span>{fileName}</span>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div></> : null}
+              </div>
+              <div>
+                {_.map(preauthOrClaimList, (ele: any) => {
+                  return (
+                    <>
+                      {_.isEmpty(ele.supportingDocuments) ? null : <>
+                        {Object.entries(ele.supportingDocuments).map(([key, values]) => (
+                          <div key={key}>
+                            <div className='flex'>
+                              {Array.isArray(values) &&
+                                values.map((imageUrl, index) => {
+                                  const parts = imageUrl.split('/');
+                                  const fileName = parts[parts.length - 1];
+                                  return (
+                                    <a href={imageUrl} download>
+                                      <div className='text-center'>
+                                        <img key={index} height={100} width={100} src={thumbnail} alt={`${key} ${index + 1}`} />
+                                        <span>{fileName}</span>
+                                      </div>
+                                    </a>
+                                  )
+                                })}
+                            </div>
+                          </div>
+                        ))}
+                      </>}
+                    </>
+                  );
+                })}
               </div>
             </div>
             {isSuccess ? (
