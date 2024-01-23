@@ -71,24 +71,30 @@ const Notification = () => {
                             ></path>
                         </svg>
                     </div>
-                    <h2 className="text-left p-3 text-2xl font-medium text-black dark:text-white">
+                    <h2 className="text-left p-3 text-1xl font-medium text-black dark:text-white">
                         Notifications
                     </h2>
                 </div>
-                <div className="grid grid-cols-1 gap-x-4">
-                    <div className="flex flex-col">
-                        {faqs.map((faq: any) => {
-                            return (
-                                <NotificationSection
-                                    key={faq.id}
-                                    active={active}
-                                    handleToggle={handleToggle}
-                                    faq={faq}
-                                />
-                            );
-                        })}
+                {_.isEmpty(notificationData) ? <>
+                    <h2 className="text-center p-3 text-2xl font-medium text-black dark:text-white">
+                        No notifications available
+                    </h2>
+                </> :
+                    <div className="grid grid-cols-1 gap-x-4">
+                        <div className="flex flex-col">
+                            {faqs.map((faq: any) => {
+                                return (
+                                    <NotificationSection
+                                        key={faq.id}
+                                        active={active}
+                                        handleToggle={handleToggle}
+                                        faq={faq}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                }
             </div> : <TransparentLoader />}
         </div>
     )
