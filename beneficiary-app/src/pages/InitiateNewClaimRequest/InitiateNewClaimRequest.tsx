@@ -8,7 +8,6 @@ import { generateToken, searchParticipant } from '../../services/hcxService';
 import { postRequest } from '../../services/registryService';
 import * as _ from "lodash";
 import SupportingDocuments from '../../components/SupportingDocuments';
-import thumbnail from "../../images/pngwing.com.png"
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
 import DocumentsList from '../../components/DocumentsList';
 
@@ -167,6 +166,8 @@ const InitiateNewClaimRequest = () => {
     getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
   }, [])
 
+  // console.log({ preauthOrClaimList })
+
   return (
     <div className="w-full">
       <h2 className="mb-4 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
@@ -245,10 +246,10 @@ const InitiateNewClaimRequest = () => {
         fileErrorMessage={fileErrorMessage}
         selectedFile={selectedFile} />
 
-      <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      {_.isEmpty(preauthOrClaimList) ? <></> : <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
         <DocumentsList preauthOrClaimList={preauthOrClaimList} />
-      </div>
+      </div>}
       <div className="mb-5 mt-4">
         {!loading ? (
           <button
