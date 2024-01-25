@@ -12,6 +12,7 @@ import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import useDebounce from '../../hooks/useDebounce';
 
+
 import * as _ from "lodash";
 
 const InitiateNewClaimRequest = () => {
@@ -59,6 +60,9 @@ const InitiateNewClaimRequest = () => {
   const [itemQuantity, setItemQuantity] = useState<String>('')
   const [itemPricing, setItemPricing] = useState<String>('')
   const [serviceLocation, setServiceLocation] = useState<String>('')
+  const [isCardOpen, setIsCardOpen] = useState(false);
+  const [isAddMoreItemOpen, setAddMoreItemOpen] = useState(false);
+  const [isAccountCardOpen, setIsAccountCardOpen] = useState(false);
 
 
   const documentTypeOptions = [{ label: "Prescription", value: "Prescription", }, { label: "Payment Receipt", value: "Payment Receipt", }, { label: "Medical Bill/invoice", value: "Medical Bill/invoice", },];
@@ -71,6 +75,7 @@ const InitiateNewClaimRequest = () => {
   const specialistConsultationOptions = [{ label: "Cardiologist", value: "Cardiologist" }, { label: "Paediatrician", value: "Paediatrician" }]
   const itemTypeOptions = [{ label: "Test", value: "Test" }, { label: "Medicine", value: "Medicine" }]
   const serviceLocationOptions = [{ label: "In-network", value: "In-network" }, { label: "Outside Network", value: "Outside Network" }]
+  const paymentTypeOptions = [{ label: "Bank Account Details", value: "bank" }, { label: "UPI", value: "upi" }]
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -248,6 +253,14 @@ const InitiateNewClaimRequest = () => {
     if (paymentType === 'account') {
       return (
         <>
+          <div className="relative">
+            <SelectInput
+              label="Select Payment Type :"
+              value={paymentType}
+              onChange={(e: any) => setPaymentType(e.target.value)}
+              options={paymentTypeOptions}
+            />
+          </div>
           <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
             Beneficiary Name
           </label>
@@ -289,7 +302,7 @@ const InitiateNewClaimRequest = () => {
     } else {
       return (
         <>
-          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+          <label className="text-bold mt-3 p-1 text-base font-bold text-black dark:text-white">
             UPI ID
           </label>
           <div className="relative">
@@ -298,7 +311,7 @@ const InitiateNewClaimRequest = () => {
               onChange={(e) => setUpiId(e.target.value)}
               type="text"
               placeholder="Enter UPI ID"
-              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+              className="w-full rounded-lg mt-2 border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
             />
           </div>
         </>
@@ -322,7 +335,7 @@ const InitiateNewClaimRequest = () => {
             placeholder="Enter item name"
             className={
               'className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
-              }
+            }
           />
         </div>
         <SelectInput
@@ -359,6 +372,18 @@ const InitiateNewClaimRequest = () => {
     )
   }
 
+  const toggleCard = () => {
+    setIsCardOpen(!isCardOpen);
+  };
+
+  const toggleAddMoreItemCard = () => {
+    setAddMoreItemOpen(!isAddMoreItemOpen)
+  }
+
+  const toggleAccountCard = () => {
+    setIsAccountCardOpen(!isAccountCardOpen);
+  }
+
   const selectSubCategoryBasedOnTreatement = (treatmentCategory: String) => {
     switch (treatmentCategory) {
       case "Consultation":
@@ -388,7 +413,7 @@ const InitiateNewClaimRequest = () => {
             {strings.NEW_CLAIM_REQUEST}
           </h2>
           <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <h2 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Provider Details:"} </h2>
+            <h3 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Provider Details:"} </h3>
             <h2 className="relative text-black font-bold z-20 mb-4 bg-white dark:bg-form-input">
               {strings.PROVIDER_NAME}{' '}
               <div className="relative">
@@ -396,7 +421,6 @@ const InitiateNewClaimRequest = () => {
                   type="text"
                   placeholder="Search..."
                   value={providerName}
-                  // onChange={(e) => setProviderName(e.target.value)}
                   onChange={(e) => {
                     const inputText = e.target.value;
                     setProviderName(inputText)
@@ -467,8 +491,8 @@ const InitiateNewClaimRequest = () => {
               type="text"
             />
           </div>
-          <div className="rounded-lg border border-stroke bg-white mt-3 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h2 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Claim Details :"} </h2>
+          <div className="rounded-lg border border-stroke bg-white mt-3 p-4 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <h2 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Claim Details :"} </h2>
             <TextInputWithLabel
               label="Insurance id: "
               value={selectedInsurance || displayedData[0]?.insurance_id}
@@ -534,31 +558,72 @@ const InitiateNewClaimRequest = () => {
               disabled={false}
               type="number"
             />
-             <h2 className="mt-3 text-bold text-base font-bold text-black dark:text-white">
-              Item Details :
-              {itemDetailsCard()}
-            </h2>
+            <div>
+              <h2 className="mt-3 text-bold text-base font-bold text-black dark:text-white">
+                Item Details :
+              </h2>
+              <div className="flex items-center justify-between gap-2 ">
+                <p className="mt-2">
+                  Please add the item details.
+                </p>
+                <button onClick={toggleCard} className="text-blue-500 underline cursor-pointer">
+                  {isCardOpen ? (
+                    <span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <span>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </span>
+                  )}
+                </button>
+              </div>
+              {isCardOpen && itemDetailsCard()}
+            </div> {
+              isCardOpen ? (
+                <div className="flex items-center justify-between gap-2 ">
+                  <p></p>
+                  <button onClick={toggleAddMoreItemCard} className="mt-3 text-blue-500 underline cursor-pointer">
+                    {isAddMoreItemOpen ? "Remove Item" : "Add Another Item"}</button>
+                </div>
+              ) : (<></>)}
+            {
+              isAddMoreItemOpen ? (
+                itemDetailsCard()
+              ) : (<></>)
+            }
+
           </div>
+
           <div className="rounded-lg border border-stroke bg-white mt-3 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="text-bold text-base font-bold text-black dark:text-white">
-              Account details / UPI ID:
+              Account details / UPI id:
             </h2>
-            <p className="mt-2">
-              Please select the payment type and enter the required information.
-            </p>
-            <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
-              Select Payment Type
-            </label>
-            <div className="relative">
-              <select
-                onChange={(e) => setPaymentType(e.target.value)}
-                value={paymentType}
-                className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
-                <option value="account">Bank Account Details</option>
-                <option value="upi">UPI ID</option>
-              </select>
+            <div className="flex items-center justify-between gap-2 ">
+              <p className="mt-3 mb-3">
+                Please select the payment type and enter the required information.
+              </p>
+              <button onClick={toggleAccountCard} className="text-blue-500 underline cursor-pointer">
+                {isAccountCardOpen ? (
+                  <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </span>
+                ) : (
+                  <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </span>
+                )}
+              </button>
             </div>
-            {renderDetailsForm()}
+            {isAccountCardOpen && renderDetailsForm()}
           </div>
 
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
