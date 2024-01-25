@@ -6,7 +6,6 @@ import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import axios from "axios";
 import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
@@ -47,41 +46,31 @@ const InitiateNewClaimRequest = () => {
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [paymentType, setPaymentType] = useState('account'); // 'account' or 'upi'
+  const [beneficiaryName, setBeneficiaryName] = useState<string>('');
+  const [accountNumber, setAccountNumber] = useState<string>('');
+  const [ifscCode, setIfsc] = useState<string>('');
+  const [upiId, setUpiId] = useState<String>('');
+  const [treatmentCategory, setTreatmentCategory] = useState<String>('Test')
+  const [subCategory, setSubCategory] = useState<String>('');
+  const [specialistConsultation, setSpecialistConsultation] = useState<String>('')
+  const [itemName, setItemName] = useState<String>('')
+  const [itemType, setItemType] = useState<String>('')
+  const [itemQuantity, setItemQuantity] = useState<String>('')
+  const [itemPricing, setItemPricing] = useState<String>('')
+  const [serviceLocation, setServiceLocation] = useState<String>('')
 
-  const insuranceOptions = [
-    { label: "Select", value: "" },
-    {
-      label: displayedData[0]?.insurance_id,
-      value: displayedData[0]?.insurance_id,
-    },
-  ];
 
-  const serviceTypeOptions = [
-    { label: "Select", value: "" },
-    {
-      label: displayedData[0]?.claimType,
-      value: displayedData[0]?.claimType,
-    },
-  ];
-
-  const documentTypeOptions = [
-    {
-      label: "Prescription",
-      value: "Prescription",
-    },
-    {
-      label: "Payment Receipt",
-      value: "Payment Receipt",
-    },
-    {
-      label: "Medical Bill/invoice",
-      value: "Medical Bill/invoice",
-    },
-  ];
-
-  const treatmentOptions = [{ label: "Consultation", value: "Consultation" }];
-
+  const documentTypeOptions = [{ label: "Prescription", value: "Prescription", }, { label: "Payment Receipt", value: "Payment Receipt", }, { label: "Medical Bill/invoice", value: "Medical Bill/invoice", },];
+  const treatmentOptions = [{ label: "Consultation", value: "Consultation" }, { label: "Test", value: "Test" }, { label: "Medicine", value: "Medicine" }, { label: "Wellness", value: "Wellness" }, {}];
   const services = [{ label: "OPD", value: "OPD" }, { label: "IPD", value: "IPD" }];
+  const consultationOptions = [{ label: "General consultation", value: "General consultation" }, { label: "Specialist Consultation", value: "Specialist Consultation" }];
+  const testOptions = [{ label: "Blood test", value: "Blood test" }, { label: "Urine", value: "Urine" }];
+  const wellnessOptions = [{ label: "Therapy", value: "Therapy" }, { label: "Gym", value: "Gym" }]
+  const medicineOptions = [{ label: "NA", value: "NA" }]
+  const specialistConsultationOptions = [{ label: "Cardiologist", value: "Cardiologist" }, { label: "Paediatrician", value: "Paediatrician" }]
+  const itemTypeOptions = [{ label: "Test", value: "Test" }, { label: "Medicine", value: "Medicine" }]
+  const serviceLocationOptions = [{ label: "In-network", value: "In-network" }, { label: "Outside Network", value: "Outside Network" }]
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -124,7 +113,7 @@ const InitiateNewClaimRequest = () => {
     ],
     type: serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode ||  data?.recipientCode,
+    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode || data?.recipientCode,
     app: "ABSP",
     date: selectedDate
   };
@@ -219,6 +208,8 @@ const InitiateNewClaimRequest = () => {
     setProviderName(result);
   };
 
+
+
   const payload = {
     filters: {
       roles: { startsWith: "provider" },
@@ -240,7 +231,7 @@ const InitiateNewClaimRequest = () => {
       // toast.error(_.get(error, 'response.data.error.message'))
     }
   };
-  
+
   const debounce = useDebounce(providerName, 500);
 
   useEffect(() => {
@@ -252,6 +243,140 @@ const InitiateNewClaimRequest = () => {
   const filteredResults = searchResults.filter((result: any) =>
     result.participant_name.toLowerCase().includes(providerName.toLowerCase())
   );
+
+  const renderDetailsForm = () => {
+    if (paymentType === 'account') {
+      return (
+        <>
+          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+            Beneficiary Name
+          </label>
+          <div className="relative">
+            <input
+              required
+              onChange={(e) => setBeneficiaryName(e.target.value)}
+              type="text"
+              placeholder="Enter beneficiary name"
+              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            />
+          </div>
+          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+            Bank account no.
+          </label>
+          <div className="relative">
+            <input
+              required
+              onChange={(e) => setAccountNumber(e.target.value)}
+              type="text"
+              placeholder="Enter account no."
+              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            />
+          </div>
+          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+            IFSC code
+          </label>
+          <div className="relative">
+            <input
+              required
+              onChange={(e) => setIfsc(e.target.value)}
+              type="text"
+              placeholder="Enter IFSC code"
+              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            />
+          </div>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+            UPI ID
+          </label>
+          <div className="relative">
+            <input
+              required
+              onChange={(e) => setUpiId(e.target.value)}
+              type="text"
+              placeholder="Enter UPI ID"
+              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            />
+          </div>
+        </>
+      );
+    }
+  };
+
+  const itemDetailsCard = () => {
+    return (
+      <div >
+        <label className="text-bold text-base font-bold  mt-3 mb-2.5 block text-left text-black dark:text-white">
+          Name :
+        </label>
+        <div className="relative">
+          <input
+            required
+            onChange={(e: any) => {
+              setItemName(e.target.value);
+            }}
+            type="text"
+            placeholder="Enter item name"
+            className={
+              'className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+              }
+          />
+        </div>
+        <SelectInput
+          label="Type :"
+          value={itemType}
+          onChange={(e: any) => setItemType(e.target.value)}
+          options={itemTypeOptions}
+        />
+        <label className="text-bold text-base font-bold  mt-3 mb-2.5 block text-left text-black dark:text-white">
+          Quantity :
+        </label>
+        <div className="relative">
+          <input
+            required
+            onChange={(e: any) => {
+              setItemQuantity(e.target.value);
+            }}
+            type="text"
+            placeholder="Enter item quantity."
+            className={
+              'mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+            }
+          />
+        </div>
+        <TextInputWithLabel
+          label="Pricing (MRP) :"
+          value={itemPricing}
+          onChange={(e: any) => setItemPricing(e.target.value)}
+          placeholder="Enter item pricing"
+          disabled={false}
+          type="number"
+        />
+      </div>
+    )
+  }
+
+  const selectSubCategoryBasedOnTreatement = (treatmentCategory: String) => {
+    switch (treatmentCategory) {
+      case "Consultation":
+        return consultationOptions;
+      case "Test":
+        return testOptions;
+      case "Wellness":
+        return wellnessOptions;
+      case "Medicine":
+        return medicineOptions;
+      default:
+        return null;
+    }
+  };
+  useEffect(() => {
+    setSubCategory("")
+  }, [treatmentCategory])
+
 
   return (
     <>
@@ -307,55 +432,31 @@ const InitiateNewClaimRequest = () => {
                     </g>
                   </svg>
                 </span>
-                {/* {openDropdown && searchResults.length !== 0 ? (
+                {filteredResults.length !== 0 && openDropdown ? (
                   <div className="max-h-40 overflow-y-auto overflow-x-hidden">
                     <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                      {_.map(searchResults, (result: any, index: any) => (
+                      {_.map(filteredResults, (result: any, index: any) => (
                         <li
                           key={index}
-                          onClick={() =>
+                          onClick={() => {
+                            setOpenDropdown(!openDropdown)
                             handleSelect(
                               result?.participant_name,
                               result?.participant_code
                             )
                           }
+                          }
                           className="hover:bg-gray-200 cursor-pointer p-2"
                         >
                           {result?.participant_name +
-                            ` (${result?.participant_code})` || ''}
+                            `(${result?.participant_code})` || ''}
                         </li>
                       ))}
                     </ul>
                   </div>
                 ) : (
-                  <>
-                  </>
-                )} */}
-                {filteredResults.length !== 0 && openDropdown ? (
-                <div className="max-h-40 overflow-y-auto overflow-x-hidden">
-                  <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                    {_.map(filteredResults, (result: any, index: any) => (
-                      <li
-                        key={index}
-                        onClick={() => {
-                          setOpenDropdown(!openDropdown)
-                          handleSelect(
-                            result?.participant_name,
-                            result?.participant_code
-                          )
-                        }
-                        }
-                        className="hover:bg-gray-200 cursor-pointer p-2"
-                      >
-                        {result?.participant_name +
-                           `(${result?.participant_code})` || ''}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <></>
-              )}
+                  <></>
+                )}
               </div>
             </h2>
             <TextInputWithLabel
@@ -366,19 +467,14 @@ const InitiateNewClaimRequest = () => {
               type="text"
             />
           </div>
-          <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-lg border border-stroke bg-white mt-3 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <h2 className="mb-3 text-bold text-base font-bold text-black dark:text-white"> {"Claim Details :"} </h2>
             <TextInputWithLabel
-              label="Insurance Id: "
+              label="Insurance id: "
               value={selectedInsurance || displayedData[0]?.insurance_id}
               disabled={true}
               type="text"
             />
-            {/* <TextInputWithLabel
-              label="Service type : "
-              value={displayedData[0]?.claimType || serviceType}
-              disabled={false}
-              type="text"
-            /> */}
             <SelectInput
               label="Service type : "
               value={serviceType}
@@ -387,8 +483,31 @@ const InitiateNewClaimRequest = () => {
             />
             <SelectInput
               label="Service/Treatment category :"
-              value={"consultation"}
+              value={treatmentCategory}
+              onChange={(e: any) => setTreatmentCategory(e.target.value)}
               options={treatmentOptions}
+            />
+            <SelectInput
+              label="Service/Treatment sub-category :"
+              value={subCategory}
+              onChange={(e: any) => setSubCategory(e.target.value)}
+              options={selectSubCategoryBasedOnTreatement(treatmentCategory)}
+            />
+            {
+              subCategory === "Specialist Consultation" ? (
+                <SelectInput
+                  label="Speciality Type :"
+                  value={specialistConsultation}
+                  onChange={(e: any) => setSpecialistConsultation(e.target.value)}
+                  options={specialistConsultationOptions}
+                />
+              ) : <></>
+            }
+            <SelectInput
+              label="Service location :"
+              value={serviceLocation}
+              onChange={(e: any) => setServiceLocation(e.target.value)}
+              options={serviceLocationOptions}
             />
             <h2 className="mt-3 text-1xl text-black font-bold z-20 bg-white dark:bg-form-input">
               {"Treatment date :"}
@@ -399,7 +518,7 @@ const InitiateNewClaimRequest = () => {
                 value={selectedDate}
                 max={selectedDate}
                 onChange={(e: any) => setSelectedDate(e.target.value)}
-                className=" mt-3 custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                className=" mt-3 custom-input-date custom-input-date-1 w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
               <div className="absolute right-5 top-7 flex items-center ps-3 pointer-events-none">
                 <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -415,7 +534,33 @@ const InitiateNewClaimRequest = () => {
               disabled={false}
               type="number"
             />
+             <h2 className="mt-3 text-bold text-base font-bold text-black dark:text-white">
+              Item Details :
+              {itemDetailsCard()}
+            </h2>
           </div>
+          <div className="rounded-lg border border-stroke bg-white mt-3 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <h2 className="text-bold text-base font-bold text-black dark:text-white">
+              Account details / UPI ID:
+            </h2>
+            <p className="mt-2">
+              Please select the payment type and enter the required information.
+            </p>
+            <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+              Select Payment Type
+            </label>
+            <div className="relative">
+              <select
+                onChange={(e) => setPaymentType(e.target.value)}
+                value={paymentType}
+                className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+                <option value="account">Bank Account Details</option>
+                <option value="upi">UPI ID</option>
+              </select>
+            </div>
+            {renderDetailsForm()}
+          </div>
+
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="text-1xl mb-4 font-bold text-black dark:text-white sm:text-title-xl1">
               {strings.SUPPORTING_DOCS}

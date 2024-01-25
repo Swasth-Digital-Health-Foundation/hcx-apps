@@ -126,33 +126,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     },
   };
 
-  const medicalHistoryComponent = () => {
-    return (<div className="rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-      <SelectInput
-        label="Blood group :"
-        value={bloodGroup || patientInfo[0]?.medical_history?.blood_group}
-        onChange={(e: any) => setBloodGroup(e.target.value)}
-        disabled={false}
-        options={bloodGroupOptions}
-      />
-      <SelectInput
-        label="Allergies :"
-        value={allergies || patientInfo[0]?.medical_history?.allergies}
-        onChange={(e: any) => setAllergies(e.target.value)}
-        disabled={false}
-        options={allergiesOptions}
-      />
-    </div>)
-  }
-
-  const medicalHistory: any = [
-    {
-      id: 1,
-      header: `Medical history`,
-      text: medicalHistoryComponent(),
-    }
-  ];
-
   const search = async () => {
     try {
       const loginResponse = await generateToken();

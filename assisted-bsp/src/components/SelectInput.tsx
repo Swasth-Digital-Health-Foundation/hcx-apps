@@ -3,14 +3,14 @@ import React from 'react';
 const SelectInput = ({ label, value, onChange, options, disabled }: any) => {
   return (
     <div>
-      <label className="mb-2.5 text-black font-bold mt-3 block z-20 bg-white dark:bg-form-input">
+      <label className=" text-black font-bold mt-3 block z-20 bg-white dark:bg-form-input">
         {label}
       </label>
       <div className="relative z-20 bg-white dark:bg-form-input">
         <select
           onChange={onChange}
           value={value}
-          className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent bg-transparent py-3 px-6 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
+          className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           disabled={disabled}
         >
           {options &&
