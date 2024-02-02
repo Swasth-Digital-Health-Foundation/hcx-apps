@@ -36,9 +36,8 @@
     "save-dev": "^0.0.1-security",
     "simple-datatables": "^7.2.0",
     "sort-by": "^0.0.2",
-    "swiper": "^9.2.0",
-    "hcx-core":"file:hcx-core-1.0.0.tgz"
-  },
+    "swiper": "^9.2.0"
+    },
   "devDependencies": {
     "@types/lodash": "^4.14.198",
     "@types/react": "^18.0.27",
