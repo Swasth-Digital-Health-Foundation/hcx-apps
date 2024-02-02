@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "mkdir build/beneficiary-otp && mv build/assets build/beneficiary-otp/assets",
     "preview": "vite preview"
   },
   "author": {
@@ -35,7 +36,8 @@
     "save-dev": "^0.0.1-security",
     "simple-datatables": "^7.2.0",
     "sort-by": "^0.0.2",
-    "swiper": "^9.2.0"
+    "swiper": "^9.2.0",
+    "hcx-core":"file:hcx-core-1.0.0.tgz"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.198",
