@@ -47,13 +47,6 @@ async function verifyOTP(payload: any) {
   return response;
 }
 
-async function getConsultationDetails(workflow_id: any) {
-  const response = await axios.get(
-    `${process.env.hcx_mock_service}/consultation/${workflow_id}`
-  );
-  return response;
-}
-
 const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload: any, setActiveRequests: any, setFinalData: any, setDisplayedData: any) => {
   try {
     setLoading(true);
@@ -131,7 +124,6 @@ export {
   verifyOTP,
   isInitiated,
   createCommunicationOnRequest,
-  getConsultationDetails,
   getCoverageEligibilityRequestList,
   handleUpload
 };

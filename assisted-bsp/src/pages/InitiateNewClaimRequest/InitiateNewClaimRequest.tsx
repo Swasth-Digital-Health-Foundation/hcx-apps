@@ -11,9 +11,8 @@ import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import useDebounce from '../../hooks/useDebounce';
-
-
 import * as _ from "lodash";
+
 
 const InitiateNewClaimRequest = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -47,22 +46,20 @@ const InitiateNewClaimRequest = () => {
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [paymentType, setPaymentType] = useState('account'); // 'account' or 'upi'
-  const [beneficiaryName, setBeneficiaryName] = useState<string>('');
-  const [accountNumber, setAccountNumber] = useState<string>('');
-  const [ifscCode, setIfsc] = useState<string>('');
-  const [upiId, setUpiId] = useState<String>('');
   const [treatmentCategory, setTreatmentCategory] = useState<String>('Test')
-  const [subCategory, setSubCategory] = useState<String>('');
-  const [specialistConsultation, setSpecialistConsultation] = useState<String>('')
+  const [subCategory, setSubCategory] = useState<String>('Blood test');
+  const [specialistConsultation, setSpecialistConsultation] = useState<String>('Cardiologist')
   const [itemName, setItemName] = useState<String>('')
-  const [itemType, setItemType] = useState<String>('')
-  const [itemQuantity, setItemQuantity] = useState<String>('')
-  const [itemPricing, setItemPricing] = useState<String>('')
-  const [serviceLocation, setServiceLocation] = useState<String>('')
+  const [itemType, setItemType] = useState<String>('Test')
+  const [itemQuantity, setItemQuantity] = useState<number>()
+  const [itemPricing, setItemPricing] = useState<number>()
+  const [itemName1, setItemName1] = useState<String>('')
+  const [itemType1, setItemType1] = useState<String>('Test')
+  const [itemQuantity1, setItemQuantity1] = useState<number>()
+  const [itemPricing1, setItemPricing1] = useState<number>()
+  const [serviceLocation, setServiceLocation] = useState<String>('In-network')
   const [isCardOpen, setIsCardOpen] = useState(false);
   const [isAddMoreItemOpen, setAddMoreItemOpen] = useState(false);
-  const [isAccountCardOpen, setIsAccountCardOpen] = useState(false);
 
 
   const documentTypeOptions = [{ label: "Prescription", value: "Prescription", }, { label: "Payment Receipt", value: "Payment Receipt", }, { label: "Medical Bill/invoice", value: "Medical Bill/invoice", },];
@@ -75,7 +72,6 @@ const InitiateNewClaimRequest = () => {
   const specialistConsultationOptions = [{ label: "Cardiologist", value: "Cardiologist" }, { label: "Paediatrician", value: "Paediatrician" }]
   const itemTypeOptions = [{ label: "Test", value: "Test" }, { label: "Medicine", value: "Medicine" }]
   const serviceLocationOptions = [{ label: "In-network", value: "In-network" }, { label: "Outside Network", value: "Outside Network" }]
-  const paymentTypeOptions = [{ label: "Bank Account Details", value: "bank" }, { label: "UPI", value: "upi" }]
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -95,6 +91,26 @@ const InitiateNewClaimRequest = () => {
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
 
+  const itemDetails = {
+    "name": itemName,
+    "quantity": itemQuantity,
+    "pricing": itemPricing,
+    "type": itemType
+  }
+
+  const itemDetails1 = {
+    "name": itemName1,
+    "quantity": itemQuantity1,
+    "pricing": itemPricing1,
+    "type": itemType1
+  }
+
+  const itemDetailsArray = [itemDetails]
+
+  if (isAddMoreItemOpen && !_.isEmpty(itemDetails1)) {
+    itemDetailsArray.push(itemDetails1)
+  }
+  
   let initiateClaimRequestBody: any = {
     insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
     insurancePlan: data?.insurancePlan || null,
@@ -120,8 +136,15 @@ const InitiateNewClaimRequest = () => {
     password: password,
     recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode || data?.recipientCode,
     app: "ABSP",
-    date: selectedDate
+    date: selectedDate,
+    treatmentCategory: treatmentCategory,
+    treatmentSubCategory: subCategory,
+    serviceLocation: serviceLocation,
+    specialityType: specialistConsultation,
+    items: itemDetailsArray
   };
+
+  console.log(initiateClaimRequestBody)
 
   const filter = {
     entityType: ["Beneficiary"],
@@ -180,7 +203,7 @@ const InitiateNewClaimRequest = () => {
     search();
   }, [displayedData]);
 
-  const handlePreAuthRequest = async () => {
+  const handleClaimRequest = async () => {
     const response = await generateOutgoingRequest("create/claim/submit", initiateClaimRequestBody);
   };
 
@@ -190,13 +213,14 @@ const InitiateNewClaimRequest = () => {
       if (!_.isEmpty(selectedFile)) {
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
         // if (response?.status === 200) {
-        handlePreAuthRequest()
-        setSubmitLoading(false);
+        handleClaimRequest()
+        if (response)
+          setSubmitLoading(false);
         toast.success("Claim request initiated successfully!")
         // }
       }
       else {
-        handlePreAuthRequest()
+        handleClaimRequest()
         toast.success("Claim request initiated successfully!")
       }
       setSubmitLoading(false);
@@ -249,75 +273,85 @@ const InitiateNewClaimRequest = () => {
     result.participant_name.toLowerCase().includes(providerName.toLowerCase())
   );
 
-  const renderDetailsForm = () => {
-    if (paymentType === 'account') {
-      return (
-        <>
-          <div className="relative">
-            <SelectInput
-              label="Select Payment Type :"
-              value={paymentType}
-              onChange={(e: any) => setPaymentType(e.target.value)}
-              options={paymentTypeOptions}
-            />
-          </div>
-          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
-            Beneficiary Name
-          </label>
-          <div className="relative">
-            <input
-              required
-              onChange={(e) => setBeneficiaryName(e.target.value)}
-              type="text"
-              placeholder="Enter beneficiary name"
-              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
-          </div>
-          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
-            Bank account no.
-          </label>
-          <div className="relative">
-            <input
-              required
-              onChange={(e) => setAccountNumber(e.target.value)}
-              type="text"
-              placeholder="Enter account no."
-              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
-          </div>
-          <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
-            IFSC code
-          </label>
-          <div className="relative">
-            <input
-              required
-              onChange={(e) => setIfsc(e.target.value)}
-              type="text"
-              placeholder="Enter IFSC code"
-              className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
-          </div>
-        </>
-      );
-    } else {
-      return (
-        <>
-          <label className="text-bold mt-3 p-1 text-base font-bold text-black dark:text-white">
-            UPI ID
-          </label>
-          <div className="relative">
-            <input
-              required
-              onChange={(e) => setUpiId(e.target.value)}
-              type="text"
-              placeholder="Enter UPI ID"
-              className="w-full rounded-lg mt-2 border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-            />
-          </div>
-        </>
-      );
-    }
-  };
+  // const renderDetailsForm = () => {
+  //   if (paymentType === 'account') {
+  //     return (
+  //       <>
+  //         <div className="relative">
+  //           <SelectInput
+  //             label="Select Payment Type :"
+  //             value={paymentType}
+  //             onChange={(e: any) => setPaymentType(e.target.value)}
+  //             options={paymentTypeOptions}
+  //           />
+  //         </div>
+  //         <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+  //           Beneficiary Name
+  //         </label>
+  //         <div className="relative">
+  //           <input
+  //             required
+  //             onChange={(e) => setBeneficiaryName(e.target.value)}
+  //             type="text"
+  //             placeholder="Enter beneficiary name"
+  //             className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+  //           />
+  //         </div>
+  //         <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+  //           Bank account no.
+  //         </label>
+  //         <div className="relative">
+  //           <input
+  //             required
+  //             onChange={(e) => setAccountNumber(e.target.value)}
+  //             type="text"
+  //             placeholder="Enter account no."
+  //             className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+  //           />
+  //         </div>
+  //         <label className="font-small mt-3 mb-2.5 block text-left text-black dark:text-white">
+  //           IFSC code
+  //         </label>
+  //         <div className="relative">
+  //           <input
+  //             required
+  //             onChange={(e) => setIfsc(e.target.value)}
+  //             type="text"
+  //             placeholder="Enter IFSC code"
+  //             className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+  //           />
+  //         </div>
+  //       </>
+  //     );
+  //   } else{
+  //     return (
+  //       <>
+  //         <div className="relative">
+  //           <SelectInput
+  //             label="Select Payment Type :"
+  //             value={paymentType}
+  //             onChange={(e: any) => setPaymentType(e.target.value)}
+  //             options={paymentTypeOptions}
+  //           />
+  //         </div>
+  //         <label className="text-bold mt-3 p-1 text-base font-bold text-black dark:text-white">
+  //           UPI ID
+  //         </label>
+  //         <div className="relative">
+  //           <input
+  //             required
+  //             onChange={(e) => setUpiId(e.target.value)}
+  //             type="text"
+  //             placeholder="Enter UPI ID"
+  //             className="w-full rounded-lg mt-2 border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+  //           />
+  //         </div>
+  //       </>
+  //     );
+  //   }
+  // };
+
+
 
   const itemDetailsCard = () => {
     return (
@@ -344,26 +378,63 @@ const InitiateNewClaimRequest = () => {
           onChange={(e: any) => setItemType(e.target.value)}
           options={itemTypeOptions}
         />
+        <TextInputWithLabel
+          label="Quantity :"
+          value={itemQuantity}
+          onChange={(e: any) => setItemQuantity(e.target.value)}
+          placeholder="Enter item quantity."
+          disabled={false}
+          type="number"
+        />
+        <TextInputWithLabel
+          label="Pricing (MRP) :"
+          value={itemPricing}
+          onChange={(e: any) => setItemPricing(e.target.value)}
+          placeholder="Enter item pricing"
+          disabled={false}
+          type="number"
+        />
+      </div>
+    )
+  }
+
+  const itemDetailsCard2 = () => {
+    return (
+      <div >
         <label className="text-bold text-base font-bold  mt-3 mb-2.5 block text-left text-black dark:text-white">
-          Quantity :
+          Name :
         </label>
         <div className="relative">
           <input
             required
             onChange={(e: any) => {
-              setItemQuantity(e.target.value);
+              setItemName1(e.target.value);
             }}
             type="text"
-            placeholder="Enter item quantity."
+            placeholder="Enter item name"
             className={
-              'mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+              'className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
             }
           />
         </div>
+        <SelectInput
+          label="Type :"
+          value={itemType1}
+          onChange={(e: any) => setItemType1(e.target.value)}
+          options={itemTypeOptions}
+        />
+        <TextInputWithLabel
+          label="Quantity :"
+          value={itemQuantity1}
+          onChange={(e: any) => setItemQuantity1(e.target.value)}
+          placeholder="Enter item quantity."
+          disabled={false}
+          type="number"
+        />
         <TextInputWithLabel
           label="Pricing (MRP) :"
-          value={itemPricing}
-          onChange={(e: any) => setItemPricing(e.target.value)}
+          value={itemPricing1}
+          onChange={(e: any) => setItemPricing1(e.target.value)}
           placeholder="Enter item pricing"
           disabled={false}
           type="number"
@@ -380,9 +451,11 @@ const InitiateNewClaimRequest = () => {
     setAddMoreItemOpen(!isAddMoreItemOpen)
   }
 
-  const toggleAccountCard = () => {
-    setIsAccountCardOpen(!isAccountCardOpen);
-  }
+
+
+  // const toggleAccountCard = () => {
+  //   setIsAccountCardOpen(!isAccountCardOpen);
+  // }
 
   const selectSubCategoryBasedOnTreatement = (treatmentCategory: String) => {
     switch (treatmentCategory) {
@@ -398,8 +471,17 @@ const InitiateNewClaimRequest = () => {
         return null;
     }
   };
+
   useEffect(() => {
-    setSubCategory("")
+    if (treatmentCategory === "Consultation") {
+      setSubCategory("General consultation");
+    } else if (treatmentCategory === "Test") {
+      setSubCategory("Blood Test");
+    } else if (treatmentCategory === "Wellness") {
+      setSubCategory("Therapy");
+    } else if (treatmentCategory === "Medicine") {
+      setSubCategory("NA");
+    }
   }, [treatmentCategory])
 
 
@@ -560,12 +642,10 @@ const InitiateNewClaimRequest = () => {
             />
             <div>
               <h2 className="mt-3 text-bold text-base font-bold text-black dark:text-white">
-                Item Details :
+                Item Details:
               </h2>
-              <div className="flex items-center justify-between gap-2 ">
-                <p className="mt-2">
-                  Please add the item details.
-                </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="mt-2">Please add the item details.</p>
                 <button onClick={toggleCard} className="text-blue-500 underline cursor-pointer">
                   {isCardOpen ? (
                     <span>
@@ -582,24 +662,31 @@ const InitiateNewClaimRequest = () => {
                   )}
                 </button>
               </div>
-              {isCardOpen && itemDetailsCard()}
-            </div> {
-              isCardOpen ? (
-                <div className="flex items-center justify-between gap-2 ">
-                  <p></p>
-                  <button onClick={toggleAddMoreItemCard} className="mt-3 text-blue-500 underline cursor-pointer">
-                    {isAddMoreItemOpen ? "Remove Item" : "Add Another Item"}</button>
-                </div>
-              ) : (<></>)}
-            {
-              isAddMoreItemOpen ? (
-                itemDetailsCard()
-              ) : (<></>)
-            }
-
+              {isCardOpen && (
+                <>
+                  {itemDetailsCard()}
+                  <div className="flex items-center justify-between gap-2">
+                    <p></p>
+                    <button onClick={toggleAddMoreItemCard} className="mt-3 text-blue-500 underline cursor-pointer">
+                      {isAddMoreItemOpen ?
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                        </svg> :
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v10M7 12h10" />
+                        </svg>
+                      }
+                    </button>
+                  </div>
+                </>
+              )}
+              {isCardOpen && isAddMoreItemOpen && itemDetailsCard2()}
+            </div>
           </div>
 
-          <div className="rounded-lg border border-stroke bg-white mt-3 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          {/* <div className="rounded-lg border border-stroke bg-white mt-3 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="text-bold text-base font-bold text-black dark:text-white">
               Account details / UPI id:
             </h2>
@@ -607,6 +694,7 @@ const InitiateNewClaimRequest = () => {
               <p className="mt-3 mb-3">
                 Please select the payment type and enter the required information.
               </p>
+
               <button onClick={toggleAccountCard} className="text-blue-500 underline cursor-pointer">
                 {isAccountCardOpen ? (
                   <span>
@@ -623,8 +711,8 @@ const InitiateNewClaimRequest = () => {
                 )}
               </button>
             </div>
-            {isAccountCardOpen && renderDetailsForm()}
-          </div>
+            {isAccountCardOpen ? renderDetailsForm() : <></>}
+          </div> */}
 
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="text-1xl mb-4 font-bold text-black dark:text-white sm:text-title-xl1">
