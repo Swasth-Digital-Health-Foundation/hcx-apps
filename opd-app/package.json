@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "postbuild": "mkdir build/assisted-bsp && mv build/assets build/assisted-bsp/assets"
+    "postbuild": "mkdir build/opd-provider && mv build/assets build/opd-provider/assets"
   },
   "dependencies": {
     "-": "^0.0.1",
