@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "mkdir build/bsp && mv build/assets build/bsp/assets",
     "preview": "vite preview"
   },
   "author": {
