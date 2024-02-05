@@ -10,6 +10,10 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     build: {
       outDir: './build'
+    },
+    base: '/opd-provider',
+    server: {
+      host: '127.0.0.1'
     }
   };
 });
