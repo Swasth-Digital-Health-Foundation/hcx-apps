@@ -8,7 +8,7 @@ import './simple-datatables.css';
 import "react-toastify/dist/ReactToastify.css";
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-    <BrowserRouter basename="/beneficiary-otp">
+    <BrowserRouter >
       <App />
     </BrowserRouter>
 );
