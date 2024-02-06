@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: './build'
     },
-    base: '/opd-provider',
+    base: '/opd',
     server: {
       host: '127.0.0.1'
     }
