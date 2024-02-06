@@ -37,9 +37,9 @@ const App = () => {
         theme="colored"
       />
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route element={<DefaultLayout />}>
-          <Route path="/" element={<Navigate to="/assisted-bsp-login" />} />
+          <Route path="/login" element={<Navigate to="/assisted-bsp-login" />} />
           <Route path="/assisted-bsp-login" element={<Login />}></Route>
           <Route path="/home" element={<Home />} />
           <Route
