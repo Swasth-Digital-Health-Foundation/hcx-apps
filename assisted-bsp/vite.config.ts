@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: './build'
     },
-    base: '/assisted-bsp',
+    base: '/absp',
       server: {
         host: '127.0.0.1'
       }
