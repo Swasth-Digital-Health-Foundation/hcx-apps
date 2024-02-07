@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postbuild": "mkdir build/absp && mv build/assets build/absp/assets"
+
   },
   "dependencies": {
     "-": "^0.0.1",
