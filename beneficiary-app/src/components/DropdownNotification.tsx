@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as _ from "lodash";
 import { getNotifications } from '../services/hcxMockService';
 
 const DropdownNotification = () => {
     const [notifying, setNotifying] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
     const [showMessageCount, setShowMessageCount] = useState<boolean>(true);
 
     const [notificationData, setNotificationData] = useState<any>([]);

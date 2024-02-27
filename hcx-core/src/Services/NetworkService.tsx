@@ -122,7 +122,7 @@ export async function searchParticipant(apiUrl: any, payload: any, config: any) 
 
 export async function getRequestList(apiUrl: string, payload: any) {
     let response = await axios.post(
-        `${apiUrl}bsp/request/list`,
+        `${apiUrl}/bsp/request/list`,
         payload
     );
     return response;

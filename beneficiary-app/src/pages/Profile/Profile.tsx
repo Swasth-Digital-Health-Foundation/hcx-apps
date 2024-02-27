@@ -107,9 +107,12 @@ const Profile = () => {
   }, []);
   return (
     <>
-      <h2 className="text-bold mb-3 text-2xl font-bold text-black dark:text-white">
-        User profile
-      </h2>
+      <div className="flex items-center mb-3">
+        <h2 className="text-bold text-2xl font-bold text-black dark:text-white"> User Profile</h2>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 ml-2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>
+      </div>
       <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         {userProfileCard.map((ele: any) => {
           return (
@@ -121,9 +124,9 @@ const Profile = () => {
             </div>
           );
         })}
-        <h2 className="text-bold -mb-2 text-2xl font-medium text-black dark:text-white">
+        <h3 className="text-bold -mb-2 text-2xl font-medium text-black dark:text-white">
           Insurance details :
-        </h2>
+        </h3>
         {/* {userInfo[0]?.payor_details.map((ele: any, index: number) => ( */}
         <div className="mt-5 rounded-lg border border-stroke bg-white p-2 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="mb-2">

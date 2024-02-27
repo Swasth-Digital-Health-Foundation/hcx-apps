@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Logo from '../../images/swasth_logo.png';
+import { useNavigate } from 'react-router-dom';
 import PayorDetailsCard from '../../components/PayorDetailsCard/PayorDetailsCard';
 import { postRequest } from '../../services/registryService';
 import { toast } from 'react-toastify';
@@ -8,6 +7,7 @@ import LoadingButton from '../../components/LoadingButton';
 import strings from '../../utils/strings';
 import useDebounce from '../../hooks/useDebounce';
 import { generateToken, searchParticipant } from '../../services/hcxService';
+import TextInputWithLabel from '../../components/inputfield'
 import * as _ from "lodash";
 
 const SignUp = () => {
@@ -16,7 +16,6 @@ const SignUp = () => {
   const [mobileNumber, setMobileNumber] = useState<string>();
   const [userName, setUserName] = useState();
   const [email, setEmail] = useState();
-  const [isValid, setIsValid] = useState(true);
   const [loading, setLoading] = useState(false);
   const getMobileFromLocalStorage: any = localStorage.getItem('mobile');
   const [payor, setPayor] = useState<string>('wemeanhospital Mock Payor');
@@ -34,16 +33,6 @@ const SignUp = () => {
     setCards(updatedCards);
   };
 
-  // const addCard = () => {
-  //   const cardKey = cards.length + 1;
-
-  //   const newCard = {
-  //     cardKey,
-  //   };
-
-  //   setCards([...cards, newCard]);
-  // };
-
   const removeCard = (cardToRemove: any) => {
     const updatedCards = cards.filter(
       (card: any) => card.cardKey !== cardToRemove.cardKey
@@ -51,21 +40,14 @@ const SignUp = () => {
     setCards(updatedCards);
   };
 
-  const handlePayorChange = (e: any) => {
-    setPayor(e.target.value);
-  };
 
   const handleInsuranceIdChange = (e: any) => {
     setInsuranceId(e.target.value);
   };
 
-  // let addMoreDetails = cards.map((ele: any) => {
-  //   return { insurance_id: ele.insurance_id, payor: ele.payor };
-  // });
-
   let payload = {
     email: email,
-    mobile: "6363062395",
+    mobile: getMobileFromLocalStorage,
     name: userName,
     payor_details: [
       {
@@ -73,7 +55,6 @@ const SignUp = () => {
         payorName: payorName,
         recipientCode: participantCode
       },
-      // ...addMoreDetails,
     ],
   };
 
@@ -82,13 +63,22 @@ const SignUp = () => {
       setLoading(true);
       let registerResponse: any = await postRequest('/invite', payload);
       setLoading(false);
-      toast.success('User registered successfully!');
-      navigate('/home', { state: mobileNumber });
+      if (registerResponse.status === 200) {
+        toast.success('User registered successfully!');
+        navigate('/home', { state: mobileNumber });
+      } else {
+        toast.error('Failed to register user.');
+      }
     } catch (error: any) {
       setLoading(false);
-      toast.error(error.response.data.params.errmsg);
+      if (error.response && error.response.data && error.response.data.params && error.response.data.params.errmsg) {
+        toast.error(error.response.data.params.errmsg);
+      } else {
+        toast.error('An error occurred while registering user.');
+      }
     }
   };
+
 
   const handleUserNameChange = (e: any) => {
     setUserName(e.target.value);
@@ -152,67 +142,43 @@ const SignUp = () => {
     setPayorName(result);
   };
 
+  console.log(userName);
+
   return (
-    <div className="w-full m-auto border-stroke bg-white p-2 dark:border-strokedark dark:bg-black xl:w-1/2 xl:border">
-      <Link className="inline-block px-4 md:block lg:block" to="#">
-        <img className="w-48 dark:block" src={Logo} alt="Logo" />
-      </Link>
+    <div className="w-full">
       <h2 className="sm:text-title-xl1 mb-4 text-2xl font-bold text-black dark:text-white">
         {strings.ADD_PROFILE_DETAILS}
       </h2>
-      <div className="w-full rounded-lg border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-12.5 xl:p-17.5">
+      <div className="rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <form>
           <div className="mb-6">
-            <div>
-              <label className="mb-2.5 block text-left font-medium text-black dark:text-white">
-                {strings.USERS_NAME}
-              </label>
-              <div className="relative">
-                <input
-                  onChange={handleUserNameChange}
-                  type="text"
-                  placeholder={strings.ENTER_YOUR_NAME}
-                  className={
-                    'w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
-                  }
-                />
-              </div>
-            </div>
-            <div className="mt-5">
-              <label className="mb-2.5 block text-left font-medium text-black dark:text-white">
-                {strings.MOBILE}
-              </label>
-              <div className="relative">
-                <input
-                  disabled
-                  value={getMobileFromLocalStorage}
-                  placeholder={strings.ENTER_MOBILE_NUMBER}
-                  className={`border ${isValid ? 'border-stroke' : 'border-red'
-                    } w-full rounded-lg bg-transparent py-4 pl-6 pr-10 outline-none focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary`}
-                />
-              </div>
-            </div>
-            <div className="mt-5">
-              <label className="mb-2.5 block text-left font-medium text-black dark:text-white">
-                {strings.EMAILID}
-              </label>
-              <div className="relative">
-                <input
-                  onChange={handleEmailChange}
-                  type="email"
-                  placeholder={strings.ENTER_EMAIL_ADDRESS}
-                  className={
-                    'w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
-                  }
-                />
-              </div>
-            </div>
+            <TextInputWithLabel
+              label= {strings.USERS_NAME}
+              value= {userName}
+              onChange={handleUserNameChange}
+              placeholder={strings.ENTER_YOUR_NAME}              
+              disabled={false}
+              type="text"
+            />
+            <TextInputWithLabel
+              label= {strings.MOBILE}
+              value= {getMobileFromLocalStorage}
+              placeholder={strings.ENTER_MOBILE_NUMBER}
+              disabled={true}
+              type="text"
+            />
+             <TextInputWithLabel
+              label= {strings.EMAILID}
+              value= {email}
+              onChange = {handleEmailChange}
+              placeholder={strings.ENTER_EMAIL_ADDRESS}
+              disabled={false}
+              type="email"
+            />
           </div>
-
           <h2 className="sm:text-title-xl1 mb-4 text-2xl font-bold text-black dark:text-white">
             {strings.ADD_INSURANCE_PLAN}
           </h2>
-
           <div className="rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex flex-col gap-5.5 p-4">
               <div>
@@ -283,7 +249,7 @@ const SignUp = () => {
                 </div>
               </div>
               <div>
-                <label className="mb-2.5 block text-left font-medium text-black dark:text-white">
+                <label className="text-bold mt-3 text-base font-bold text-black dark:text-white">
                   {strings.INSURANCE_ID}
                 </label>
                 <div className="relative">
