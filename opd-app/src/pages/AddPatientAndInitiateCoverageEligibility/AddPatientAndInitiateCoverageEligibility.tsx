@@ -10,7 +10,6 @@ import { generateToken, searchParticipant } from "../../services/hcxService";
 import * as _ from "lodash";
 import LoadingButton from "../../components/LoadingButton";
 import Accordion from "../../components/Accordion";
-import useDebounce from "../../hooks/useDebounce";
 
 
 const AddPatientAndInitiateCoverageEligibility = () => {
@@ -57,13 +56,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     { label: "Dust", value: "Dust" },
     { label: "Medication", value: "Medication" },
     { label: "Cosmatic", value: "Cosmatic" },
-  ];
-  const payorOptions = [
-    {
-      label: `${patientInfo[0]?.payor_details[0]?.payorName || "Select"}`,
-      value: patientInfo[0]?.payor_details[0]?.payorName || "",
-    },
-    { label: "Swasth-reference payor", value: "Swast-reference payor" },
   ];
 
   const patientDataFromState: any = location.state?.obj;

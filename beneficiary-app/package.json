@@ -20,6 +20,7 @@
     "axios": "^1.5.0",
     "dayjs": "^1.11.10",
     "flatpickr": "^4.6.13",
+    "hcx-core": "1.0.0",
     "html5-qrcode": "^2.3.8",
     "http-proxy-middleware": "^2.0.6",
     "jsvectormap": "^1.5.1",

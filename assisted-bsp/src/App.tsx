@@ -12,6 +12,7 @@ import Login from "./pages/Authentication/Login";
 import ViewPatientDetails from "./pages/ViewPatientDetails/ViewPatientDetails";
 import VerifyClaim from "./pages/VerifyClaim/VerifyClaim";
 import SendBankDetails from "./pages/SendBankDetails/SendBankDetails";
+import Notification from "./pages/Notification/Notification";
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -64,6 +65,7 @@ const App = () => {
           />
           <Route path="/bank-details" element={<SendBankDetails />} />
           <Route path="/request-success" element={<RequestSuccess />} />
+          <Route path="/notification" element={<Notification />} />
         </Route>
       </Routes>
     </>
