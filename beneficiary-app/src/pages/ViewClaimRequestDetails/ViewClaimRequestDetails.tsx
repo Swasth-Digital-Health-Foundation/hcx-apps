@@ -4,7 +4,6 @@ import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import {
   createCommunicationOnRequest,
-  generateOutgoingRequest,
   isInitiated,
 } from '../../services/hcxMockService';
 import { toast } from 'react-toastify';
@@ -13,8 +12,9 @@ import * as _ from "lodash";
 import thumbnail from '../../images/pngwing.com.png'
 import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import Info from '../ViewCoverageEligibilityDetails/Info';
-import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
-
+import { CoverageEligibilityDetails, TreatmentAndBillingDetails, ConsentVerification } from 'hcx-core';
+import apiEndpoints from '../../services/apiEndpoints';
+import { generateOutgoingRequest } from "hcx-core";
 
 const ViewClaimRequestDetails = () => {
   const location = useLocation();
@@ -171,8 +171,7 @@ const ViewClaimRequestDetails = () => {
 
   const getSupportingDocsFromList = async () => {
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
-      preauthOrClaimListPayload
+      process.env.hcx_mock_service, preauthOrClaimListPayload, apiEndpoints.getPreauthAndClaimList
     );
     const data = response.data?.entries;
     setpreauthOrClaimList(data);
@@ -241,10 +240,11 @@ const ViewClaimRequestDetails = () => {
         </h2>
       </div>
       <div className="relative rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <RequestDetails claimRequestDetails={claimRequestDetails} />
+        {/* <RequestDetails claimRequestDetails={claimRequestDetails} /> */}
+        <CoverageEligibilityDetails claimRequestDetails={claimRequestDetails} />
         <Info setPopup={setPopup} popup={popup} requestDetails={details} location={location} />
       </div>
-      <div className="mt-3 rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+      {/* <div className="mt-3 rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-center justify-between">
           <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-2 font-semibold text-black dark:text-white">
             {strings.TREATMENT_AND_BILLING_DETAILS}
@@ -298,8 +298,11 @@ const ViewClaimRequestDetails = () => {
             )
           })}
         </div>
-      </div>
-
+      </div> */}
+      <TreatmentAndBillingDetails
+        treatmentDetails={treatmentDetails}
+        details={details}
+        claimAndPreauthEntries={claimAndPreauthEntries} />
       {hasClaimApproved ? <button
         onClick={(event: any) => {
           event.preventDefault();
@@ -311,7 +314,7 @@ const ViewClaimRequestDetails = () => {
         Home
       </button> : <></>}
 
-      {initiated ? (
+      {/* {initiated ? (
         <>
           <div className="flex items-center justify-between">
             <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
@@ -360,8 +363,9 @@ const ViewClaimRequestDetails = () => {
             </div>
           </div>
         </>
-      ) : null}</>
-
+      ) : null}</> */}
+      <ConsentVerification initiated={initiated} setOTP={setOTP} loading={loading} verifyOTP={verifyOTP} />
+    </>
 
   );
 };

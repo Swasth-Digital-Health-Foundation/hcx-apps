@@ -1,14 +1,16 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import Html5QrcodePlugin from '../../components/Html5QrcodeScannerPlugin/Html5QrcodeScannerPlugin';
+import { Html5QrcodePlugin } from "hcx-core";
 import { useEffect, useState } from 'react';
-import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
+import { ActiveClaimCycleCard } from 'hcx-core';
 import strings from '../../utils/strings';
-import { generateOutgoingRequest, getCoverageEligibilityRequestList } from '../../services/hcxMockService';
+// import { getCoverageEligibilityRequestList } from '../../services/hcxMockService';
 import { postRequest } from '../../services/registryService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { generateOutgoingRequest, getCoverageEligibilityRequestList, registryPostRequest } from "hcx-core";
+import apiEndpoints from '../../services/apiEndpoints';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ const Home = () => {
   const [coverageAndClaimData, setDisplayedData] = useState<any>(
     finalData.slice(0, 5)
   );
-  const latestStatusByEntry: Record<string, string | undefined> = {};
+  const [latestStatusByEntry, setlatestStatusByEntry] = useState<any>({});
 
   const onNewScanResult = (decodedText: any, decodedResult: any) => {
     setQrCodeData(decodedText);
@@ -57,10 +59,7 @@ const Home = () => {
       const sendCoverageEligibilityRequest = async () => {
         try {
           setLoading(true);
-          let response = await generateOutgoingRequest(
-            'create/coverageeligibility/check',
-            payload
-          );
+          let response = await generateOutgoingRequest(process.env.hcx_mock_service, payload, apiEndpoints.initiateCoverageEligibility);
           if (response?.status === 202) {
             toast.success("Coverage eligibility initiated successfully")
             setQrCodeData(undefined)
@@ -84,7 +83,7 @@ const Home = () => {
 
   const search = async () => {
     try {
-      const searchUser = await postRequest('/search', filter);
+      const searchUser = await registryPostRequest(process.env.registry_url, filter, apiEndpoints.registrySearch);
       setUserInformation(searchUser.data);
     } catch (error) {
       console.log(error);
@@ -117,7 +116,7 @@ const Home = () => {
 
   useEffect(() => {
     search();
-    getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+    getCoverageEligibilityRequestList(setLoading, requestPayload, process.env.hcx_mock_service, apiEndpoints.getPreauthAndClaimList, setActiveRequests, setFinalData, setDisplayedData);
   }, []);
 
   return (
@@ -138,7 +137,8 @@ const Home = () => {
                 qrbox={250}
                 disableFlip={false}
                 qrCodeSuccessCallback={onNewScanResult}
-              // setInitialized={initialized}
+                headerLable={"Scan the provider QR code to initiate the claim cycle"}
+                startLable={"Start scanner"}
               />
             </div>
           </div>
@@ -173,7 +173,7 @@ const Home = () => {
             <>
               <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(setLoading, requestPayload, process.env.hcx_mock_service, apiEndpoints.getPreauthAndClaimList, setActiveRequests, setFinalData, setDisplayedData);
                 }}
                 className={
                   loading ? "animate-spin h-7 w-7" : "h-7 w-7"
@@ -190,7 +190,7 @@ const Home = () => {
             <>
               <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(setLoading, requestPayload, process.env.hcx_mock_service, apiEndpoints.getPreauthAndClaimList, setActiveRequests, setFinalData, setDisplayedData);
                 }}
                 className={
                   loading ? "animate-spin h-7 w-7" : "h-7 w-7"
@@ -207,6 +207,45 @@ const Home = () => {
               if (ele?.type === 'claim') {
                 approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
+              const date = new Date(parseInt(ele.date));
+              const day = date.getDate().toString().padStart(2, "0");
+              const month = (date.getMonth() + 1).toString().padStart(2, "0");
+              const year = date.getFullYear();
+
+              const formattedDate = `${day}-${month}-${year}`;
+              const data: any = [
+                {
+                  key: "Beneficiary name",
+                  value: ele.patientName,
+                },
+                {
+                  key: "Initiation date",
+                  value: formattedDate,
+                },
+                {
+                  key: "Insurance ID",
+                  value: `${ele.insurance_id || "null"}`,
+                },
+                {
+                  key: "ServiceType",
+                  value: `${ele.claimType}`,
+                },
+                {
+                  key: "Status",
+                  value: (
+                    <span
+                      className={`${latestStatusByEntry[ele.workflow_id] === "Pending"
+                        ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
+                        : latestStatusByEntry[ele.workflow_id] === "Rejected"
+                          ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
+                          : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
+                        }`}
+                    >
+                      {latestStatusByEntry[ele.workflow_id]}
+                    </span>
+                  ),
+                },
+              ];
               return (
                 <div className="mt-2" key={index}>
                   <ActiveClaimCycleCard
@@ -223,6 +262,7 @@ const Home = () => {
                     workflowId={ele.workflow_id}
                     patientName={ele.patientName}
                     approvedAmount={approvedAmount}
+                    data={data}
                   />
                 </div>
               );

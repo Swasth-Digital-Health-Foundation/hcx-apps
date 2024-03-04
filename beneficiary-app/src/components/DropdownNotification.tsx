@@ -42,7 +42,6 @@ const DropdownNotification = () => {
                 >
                     <span className="absolute -z-1 inline-flex h-full w-full animate-ping rounded-full bg-meta-1 opacity-75"></span>
                 </span>
-
                 <svg
                     className="fill-current duration-300 ease-in-out"
                     width="18"

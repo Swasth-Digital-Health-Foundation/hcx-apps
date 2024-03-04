@@ -6,9 +6,11 @@ import { generateOutgoingRequest } from '../../services/hcxMockService';
 import TransparentLoader from '../../components/TransparentLoader';
 import * as _ from "lodash";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import PreauthAndCliamDetails from './PreauthAndCliamDetails';
-import RequestDetails from './RequestDetails';
+import { PreauthAndCliamDetails } from 'hcx-core';
+// import RequestDetails from './RequestDetails';
+import { CoverageEligibilityDetails } from "hcx-core";
 import Info from './Info';
+import apiEndpoints from '../../services/apiEndpoints';
 
 const CoverageEligibility = () => {
   const navigate = useNavigate();
@@ -117,12 +119,10 @@ const CoverageEligibility = () => {
     try {
       setisLoading(true);
       let statusCheckCoverageEligibility = await generateOutgoingRequest(
-        'bsp/request/list',
-        coverageEligibilityPayload
+        process.env.hcx_mock_service, coverageEligibilityPayload, apiEndpoints.getPreauthAndClaimList
       );
       let response = await generateOutgoingRequest(
-        'bsp/request/list',
-        preauthOrClaimListPayload
+        process.env.hcx_mock_service, preauthOrClaimListPayload, apiEndpoints.getPreauthAndClaimList
       );
       let preAuthAndClaimList = response.data?.entries;
       setpreauthOrClaimList(preAuthAndClaimList);
@@ -219,7 +219,7 @@ const CoverageEligibility = () => {
             </h2>
           </div>
           <div className="relative mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <RequestDetails claimRequestDetails={claimRequestDetails} />
+            <CoverageEligibilityDetails claimRequestDetails={claimRequestDetails} />
             <Info setPopup={setPopup} popup={popup} requestDetails={requestDetails} location={location} />
           </div>
           <PreauthAndCliamDetails preauthOrClaimList={preauthOrClaimList} />

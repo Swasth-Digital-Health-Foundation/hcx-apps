@@ -1,14 +1,16 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import * as _ from "lodash";
+import { generateOutgoingRequest } from "hcx-core"
+import apiEndpoints from './apiEndpoints';
 
-async function generateOutgoingRequest(url: any, payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/${url}`,
-    payload
-  );
-  return response;
-}
+// async function generateOutgoingRequest(url: any, payload: any) {
+//   const response = await axios.post(
+//     `${process.env.hcx_mock_service}/${url}`,
+//     payload
+//   );
+//   return response;
+// }
 
 async function isInitiated(payload: any) {
   const response = await axios.post(
@@ -59,8 +61,7 @@ const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
-      requestPayload
+      process.env.hcx_mock_service, requestPayload, apiEndpoints.getPreauthAndClaimList
     );
     const data = response.data.entries;
     setActiveRequests(data);
@@ -129,8 +130,7 @@ const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreaut
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
-      preauthOrClaimListPayload
+      process.env.hcx_mock_service, preauthOrClaimListPayload, apiEndpoints.getPreauthAndClaimList
     );
     let preAuthAndClaimList = response.data?.entries;
     setpreauthOrClaimList(preAuthAndClaimList);

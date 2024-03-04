@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { generateOutgoingRequest, getActivePlans, handleUpload } from '../../services/hcxMockService';
+import { getActivePlans, handleUpload } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import { toast } from 'react-toastify';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import { postRequest } from '../../services/registryService';
 import * as _ from "lodash";
-import SupportingDocuments from '../../components/SupportingDocuments';
+import { SupportingDocuments } from 'hcx-core';
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
-import DocumentsList from '../../components/DocumentsList';
+// import DocumentsList from '../../components/DocumentsList';
+import { DocumentsList, generateOutgoingRequest } from "hcx-core";
+import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
+import apiEndpoints from '../../services/apiEndpoints';
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -107,8 +110,7 @@ const InitiateNewClaimRequest = () => {
       handleUpload(mobileNumber, FileLists, requestBody, setUrlList);
       setTimeout(async () => {
         let submitClaim = await generateOutgoingRequest(
-          'create/claim/submit',
-          requestBody
+          process.env.hcx_mock_service, requestBody, apiEndpoints.submitClaim
         );
         setLoading(false);
         toast.success("Claim request initiated successfully")
@@ -244,7 +246,8 @@ const InitiateNewClaimRequest = () => {
         setSelectedFile={setSelectedFile}
         FileLists={FileLists}
         fileErrorMessage={fileErrorMessage}
-        selectedFile={selectedFile} />
+        selectedFile={selectedFile}
+        dropdownOptions={supportingDocumentsOptions} />
 
       {_.isEmpty(preauthOrClaimList) ? <></> : <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
