@@ -270,6 +270,8 @@ const ViewPatientDetails = () => {
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
 
+  console.log({ preauthOrClaimList })
+
   return (
     <>
       {!loading ? (
@@ -421,6 +423,7 @@ const ViewPatientDetails = () => {
             </div>
           )}
           {_.map(preauthOrClaimList, (ele: any, index: any) => {
+            const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -468,7 +471,7 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      {hasClaimApproved && ele?.status === 'Approved' ?
+                      {/* {hasClaimApproved && ele?.status === 'Approved' ?
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount
@@ -477,7 +480,29 @@ const ViewPatientDetails = () => {
                           <span className="text-base font-medium">
                             INR {ele.billAmount}
                           </span>
-                        </div> : null}
+                        </div> : null} */}
+                      {
+                        additionalInfo?.financial?.approved_amount &&
+                          additionalInfo?.financial?.approved_amount === 0 ?
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              Approved amount :
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              INR {0}
+                            </span>
+                          </div> :
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              Approved amount :
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              INR {additionalInfo?.financial?.approved_amount}
+                            </span>
+                          </div>
+                      }
                     </div>
                   </div>
                   {_.isEmpty(ele.supportingDocuments) ? null : <>
