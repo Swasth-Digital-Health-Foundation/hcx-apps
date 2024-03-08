@@ -1,14 +1,16 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import * as _ from "lodash";
+import { generateOutgoingRequest } from "hcx-core"
+import apiEndpoints from './apiEndpoints';
 
-async function generateOutgoingRequest(url: any, payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/${url}`,
-    payload
-  );
-  return response;
-}
+// async function generateOutgoingRequest(url: any, payload: any) {
+//   const response = await axios.post(
+//     `${process.env.hcx_mock_service}/${url}`,
+//     payload
+//   );
+//   return response;
+// }
 
 async function isInitiated(payload: any) {
   const response = await axios.post(
@@ -47,12 +49,19 @@ async function verifyOTP(payload: any) {
   return response;
 }
 
+async function getNotifications(payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/notification/list`,
+    payload
+  );
+  return response;
+}
+
 const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload: any, setActiveRequests: any, setFinalData: any, setDisplayedData: any) => {
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
-      requestPayload
+      process.env.hcx_mock_service, requestPayload, apiEndpoints.getPreauthAndClaimList
     );
     const data = response.data.entries;
     setActiveRequests(data);
@@ -117,6 +126,21 @@ const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any,
   }
 };
 
+const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }: any) => {
+  try {
+    setLoading(true);
+    let response = await generateOutgoingRequest(
+      process.env.hcx_mock_service, preauthOrClaimListPayload, apiEndpoints.getPreauthAndClaimList
+    );
+    let preAuthAndClaimList = response.data?.entries;
+    setpreauthOrClaimList(preAuthAndClaimList);
+    setLoading(false);
+  } catch (err) {
+    setLoading(false);
+    console.log(err);
+  }
+};
+
 export {
   generateOutgoingRequest,
   sendOTP,
@@ -124,5 +148,7 @@ export {
   isInitiated,
   createCommunicationOnRequest,
   getCoverageEligibilityRequestList,
-  handleUpload
+  handleUpload,
+  getActivePlans,
+  getNotifications
 };

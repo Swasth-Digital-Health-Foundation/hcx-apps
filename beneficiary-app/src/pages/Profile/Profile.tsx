@@ -124,7 +124,6 @@ const Profile = () => {
         <h2 className="text-bold -mb-2 text-2xl font-medium text-black dark:text-white">
           Insurance details :
         </h2>
-        {/* {userInfo[0]?.payor_details.map((ele: any, index: number) => ( */}
         <div className="mt-5 rounded-lg border border-stroke bg-white p-2 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="mb-2">
             <div className="gap-2">
@@ -174,7 +173,6 @@ const Profile = () => {
 
           </div>
         </div>
-        {/* ))} */}
 
         <div className="text-end p-2 font-medium">
           {!isEditing && <button onClick={handleEditClick}>Edit</button>}

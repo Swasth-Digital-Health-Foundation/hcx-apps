@@ -25,7 +25,6 @@ const AddConsultation = () => {
   const [isSuccess, setIsSuccess]: any = useState(false);
   const [loading, setLoading] = useState(false);
   const [fileUrlList, setUrlList] = useState<any>([]);
-  const [loaderSubmit, setLoaderSubmit] = useState(false);
 
   let FileLists: any;
   if (selectedFile !== undefined) {

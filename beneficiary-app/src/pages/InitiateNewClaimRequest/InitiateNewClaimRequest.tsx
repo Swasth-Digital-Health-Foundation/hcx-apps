@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { generateOutgoingRequest, handleUpload } from '../../services/hcxMockService';
+import { getActivePlans, handleUpload } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import { toast } from 'react-toastify';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import { postRequest } from '../../services/registryService';
 import * as _ from "lodash";
-import SupportingDocuments from '../../components/SupportingDocuments';
+import { SupportingDocuments } from 'hcx-core';
+import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
+// import DocumentsList from '../../components/DocumentsList';
+import { DocumentsList, generateOutgoingRequest } from "hcx-core";
+import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
+import apiEndpoints from '../../services/apiEndpoints';
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -26,14 +31,15 @@ const InitiateNewClaimRequest = () => {
   const [payorName, setPayorName] = useState<string>('');
   const [fileUrlList, setUrlList] = useState<any>([]);
   const [userInfo, setUserInformation] = useState<any>([]);
-  const [popup, setPopup] = useState(false)
+  const [popup, setPopup] = useState(false);
+  const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
 
   let FileLists: any;
   if (selectedFile !== undefined) {
     FileLists = Array.from(selectedFile);
   }
 
-  const cliamDetails = location.state;
+  const [cliamDetails, setClainDetails] = useState(location.state);
   const claimRequestDetails: any = [
     {
       key: 'Provider :',
@@ -104,8 +110,7 @@ const InitiateNewClaimRequest = () => {
       handleUpload(mobileNumber, FileLists, requestBody, setUrlList);
       setTimeout(async () => {
         let submitClaim = await generateOutgoingRequest(
-          'create/claim/submit',
-          requestBody
+          process.env.hcx_mock_service, requestBody, apiEndpoints.submitClaim
         );
         setLoading(false);
         toast.success("Claim request initiated successfully")
@@ -154,22 +159,24 @@ const InitiateNewClaimRequest = () => {
     search();
   }, []);
 
+  const preauthOrClaimListPayload = {
+    workflow_id: cliamDetails?.workflowId || '',
+    app: 'BSP',
+  };
+
+  useEffect(() => {
+    getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
+  }, [])
+
+  // console.log({ preauthOrClaimList })
+
   return (
     <div className="w-full">
       <h2 className="mb-4 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
         {strings.NEW_CLAIM_REQUEST}
       </h2>
       <div className="relative rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {_.map(claimRequestDetails, (ele: any, index: any) => {
-          return (
-            <div key={index} className="mb-2">
-              <h2 className="text-bold mt-1 text-base font-bold text-black dark:text-white">
-                {ele.key}
-              </h2>
-              <span className="text-base font-medium">{ele.value}</span>
-            </div>
-          );
-        })}
+        <RequestDetails claimRequestDetails={claimRequestDetails} />
         <div className='absolute top-2 right-2' onClick={() => setPopup(!popup)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
@@ -239,7 +246,13 @@ const InitiateNewClaimRequest = () => {
         setSelectedFile={setSelectedFile}
         FileLists={FileLists}
         fileErrorMessage={fileErrorMessage}
-        selectedFile={selectedFile} />
+        selectedFile={selectedFile}
+        dropdownOptions={supportingDocumentsOptions} />
+
+      {_.isEmpty(preauthOrClaimList) ? <></> : <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+        {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
+        <DocumentsList preauthOrClaimList={preauthOrClaimList} />
+      </div>}
       <div className="mb-5 mt-4">
         {!loading ? (
           <button
@@ -257,7 +270,7 @@ const InitiateNewClaimRequest = () => {
           <LoadingButton className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed" />
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

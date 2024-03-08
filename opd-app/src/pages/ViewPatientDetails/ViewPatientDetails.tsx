@@ -10,7 +10,7 @@ import TransparentLoader from "../../components/TransparentLoader";
 import { toast } from "react-toastify";
 import { postRequest } from "../../services/registryService";
 import { isEmpty } from "lodash";
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
 
@@ -28,6 +28,7 @@ const ViewPatientDetails = () => {
   const [apicallIdForClaim, setApicallID] = useState<any>();
   const [patientDetails, setPatientDetails] = useState<any>([]);
   const [consultationDetail, setConsultationDetails] = useState<any>();
+  const [isRejected, setIsRejected] = useState<boolean>(false)
 
   const requestDetails = {
     providerName: providerName,
@@ -179,6 +180,8 @@ const ViewPatientDetails = () => {
       }
       setType(
         response.data?.entries.map((ele: any) => {
+          if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
+          else setIsRejected(false);
           return ele.type;
         })
       );
@@ -267,6 +270,8 @@ const ViewPatientDetails = () => {
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
 
+  console.log({ preauthOrClaimList })
+
   return (
     <>
       {!loading ? (
@@ -313,7 +318,7 @@ const ViewPatientDetails = () => {
                 );
               })}
             </div>
-            {patientDetails[0]?.medical_history && (
+            {patientDetails[0]?.medical_history && !_.isEmpty(patientDetails[0]?.medical_history[0].allergies) ?
               <>
                 <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
                   Medical history
@@ -348,7 +353,7 @@ const ViewPatientDetails = () => {
                   )}
                 </div>
               </>
-            )}
+              : <></>}
             <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
               Insurance details
             </label>
@@ -409,7 +414,7 @@ const ViewPatientDetails = () => {
                       <a href={ele} download>
                         <div className='text-center'>
                           <img key={index} height={150} width={150} src={thumbnail} alt='image' />
-                          <span>{fileName}</span>
+                          <span>{decodeURIComponent(fileName)}</span>
                         </div>
                       </a>
                     );
@@ -418,6 +423,7 @@ const ViewPatientDetails = () => {
             </div>
           )}
           {_.map(preauthOrClaimList, (ele: any, index: any) => {
+            const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -428,6 +434,10 @@ const ViewPatientDetails = () => {
                   {ele?.status === "Approved" ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
                       &#10004; Approved
+                    </div>
+                  ) : ele?.status === "Rejected" ? (
+                    <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-danger dark:text-danger">
+                      Rejected
                     </div>
                   ) : (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-warning dark:text-success">
@@ -461,7 +471,7 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      {hasClaimApproved && ele?.status === 'Approved' ?
+                      {/* {hasClaimApproved && ele?.status === 'Approved' ?
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount
@@ -470,7 +480,29 @@ const ViewPatientDetails = () => {
                           <span className="text-base font-medium">
                             INR {ele.billAmount}
                           </span>
-                        </div> : null}
+                        </div> : null} */}
+                      {
+                        additionalInfo?.financial?.approved_amount &&
+                          additionalInfo?.financial?.approved_amount === 0 ?
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              Approved amount :
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              INR {0}
+                            </span>
+                          </div> :
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              Approved amount :
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              INR {additionalInfo?.financial?.approved_amount}
+                            </span>
+                          </div>
+                      }
                     </div>
                   </div>
                   {_.isEmpty(ele.supportingDocuments) ? null : <>
@@ -490,7 +522,7 @@ const ViewPatientDetails = () => {
                                 <a href={imageUrl} download>
                                   <div className='text-center'>
                                     <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{fileName}</span>
+                                    <span>{decodeURIComponent(fileName)}</span>
                                   </div>
                                 </a>
                               )
@@ -507,24 +539,31 @@ const ViewPatientDetails = () => {
           <div>
             {preauthOrClaimList.length === 0 && (
               <>
-                <div>
-                  <button
-                    onClick={() => navigate("/initiate-claim-request", {
-                      state: requestDetails,
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-                  >
-                    Initiate new claim request
-                  </button>
-                  <button
-                    onClick={() => navigate("/initiate-preauth-request", {
-                      state: requestDetails,
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
-                  >
-                    Initiate pre-auth request
-                  </button>
-                </div>
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> :
+                  <div>
+                    <button
+                      onClick={() => navigate("/initiate-claim-request", {
+                        state: { requestDetails: requestDetails },
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                    >
+                      Initiate claim
+                    </button>
+                    <button
+                      onClick={() => navigate("/initiate-preauth-request", {
+                        state: { requestDetails: requestDetails },
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
+                    >
+                      Initiate pre-auth
+                    </button>
+                  </div>
+                }
               </>
             )}
 
@@ -532,14 +571,19 @@ const ViewPatientDetails = () => {
               <></>
             ) : type.includes("preauth") ? (
               <>
-                <button
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> : <button
                   onClick={() => navigate("/initiate-claim-request", {
-                    state: requestDetails,
+                    state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
                   })}
                   className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                 >
                   Initiate new claim request
-                </button>
+                </button>}
               </>
             ) : null}
           </div>
