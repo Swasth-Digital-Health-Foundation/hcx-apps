@@ -2,15 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import LoadingButton from '../../components/LoadingButton';
-import { handleUpload } from '../../services/hcxMockService';
+import { generateOutgoingRequest, handleUpload } from '../../services/hcxMockService';
 import { toast } from 'react-toastify';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import * as _ from 'lodash';
 import { postRequest } from '../../services/registryService';
-// import SupportingDocuments from '../../components/SupportingDocuments';
-import { SupportingDocuments, generateOutgoingRequest } from 'hcx-core';
+import SupportingDocuments from '../../components/SupportingDocuments';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
-import apiEndpoints from '../../services/apiEndpoints';
 
 const PreAuthRequest = () => {
   const navigate = useNavigate();
@@ -145,7 +143,7 @@ const PreAuthRequest = () => {
       handleUpload(mobile, FileLists, requestBody, setUrlList);
       setTimeout(async () => {
         let submitPreauth = await generateOutgoingRequest(
-          process.env.hcx_mock_service, requestBody, apiEndpoints.submitPreauth
+          'create/preauth/submit', requestBody
         )
         setLoading(false);
         toast.success("Pre-auth request initiated successfully!")

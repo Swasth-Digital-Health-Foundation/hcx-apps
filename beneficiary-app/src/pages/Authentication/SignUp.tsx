@@ -65,7 +65,7 @@ const SignUp = () => {
 
   let payload = {
     email: email,
-    mobile: "6363062395",
+    mobile: getMobileFromLocalStorage,
     name: userName,
     payor_details: [
       {

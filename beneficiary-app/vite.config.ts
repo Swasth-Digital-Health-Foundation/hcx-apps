@@ -11,6 +11,6 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: './build'
     },
-    // base: '/beneficiary-otp'
+    base: '/bsp',
   };
 });

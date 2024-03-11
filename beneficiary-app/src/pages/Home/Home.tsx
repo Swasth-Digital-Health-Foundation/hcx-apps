@@ -1,16 +1,14 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Html5QrcodePlugin } from "hcx-core";
+import Html5QrcodePlugin from '../../components/Html5QrcodeScannerPlugin/Html5QrcodeScannerPlugin';
 import { useEffect, useState } from 'react';
-import { ActiveClaimCycleCard } from 'hcx-core';
+import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import strings from '../../utils/strings';
-// import { getCoverageEligibilityRequestList } from '../../services/hcxMockService';
+import { generateOutgoingRequest, getCoverageEligibilityRequestList } from '../../services/hcxMockService';
 import { postRequest } from '../../services/registryService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList, registryPostRequest } from "hcx-core";
-import apiEndpoints from '../../services/apiEndpoints';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -59,7 +57,10 @@ const Home = () => {
       const sendCoverageEligibilityRequest = async () => {
         try {
           setLoading(true);
-          let response = await generateOutgoingRequest(process.env.hcx_mock_service, payload, apiEndpoints.initiateCoverageEligibility);
+          let response = await generateOutgoingRequest(
+            'create/coverageeligibility/check',
+            payload
+          );
           if (response?.status === 202) {
             toast.success("Coverage eligibility initiated successfully")
             setQrCodeData(undefined)
@@ -83,7 +84,7 @@ const Home = () => {
 
   const search = async () => {
     try {
-      const searchUser = await registryPostRequest(process.env.registry_url, filter, apiEndpoints.registrySearch);
+      const searchUser = await postRequest('/search', filter);
       setUserInformation(searchUser.data);
     } catch (error) {
       console.log(error);
@@ -116,7 +117,7 @@ const Home = () => {
 
   useEffect(() => {
     search();
-    getCoverageEligibilityRequestList(setLoading, requestPayload, process.env.hcx_mock_service, apiEndpoints.getPreauthAndClaimList, setActiveRequests, setFinalData, setDisplayedData);
+    getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
   }, []);
 
   return (
@@ -132,13 +133,12 @@ const Home = () => {
         <div className="mt-2">
           <div className="qr-code p-1">
             <div id="reader" className="px-1">
-              <Html5QrcodePlugin
+            <Html5QrcodePlugin
                 fps={60}
                 qrbox={250}
                 disableFlip={false}
                 qrCodeSuccessCallback={onNewScanResult}
-                headerLable={"Scan the provider QR code to initiate the claim cycle"}
-                startLable={"Start scanner"}
+              // setInitialized={initialized}
               />
             </div>
           </div>
@@ -171,9 +171,9 @@ const Home = () => {
               No Active Requests
             </h1>
             <>
-              <ArrowPathIcon
+            <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, process.env.hcx_mock_service, apiEndpoints.getPreauthAndClaimList, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
                 }}
                 className={
                   loading ? "animate-spin h-7 w-7" : "h-7 w-7"
@@ -188,9 +188,9 @@ const Home = () => {
               {strings.YOUR_ACTIVE_CYCLE} ({activeRequests.length})
             </h1>
             <>
-              <ArrowPathIcon
+            <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, process.env.hcx_mock_service, apiEndpoints.getPreauthAndClaimList, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
                 }}
                 className={
                   loading ? "animate-spin h-7 w-7" : "h-7 w-7"

@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getActivePlans, handleUpload } from '../../services/hcxMockService';
+import { generateOutgoingRequest, handleUpload , getActivePlans} from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import { toast } from 'react-toastify';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import { postRequest } from '../../services/registryService';
 import * as _ from "lodash";
-import { SupportingDocuments } from 'hcx-core';
+import SupportingDocuments from '../../components/SupportingDocuments';
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
-// import DocumentsList from '../../components/DocumentsList';
-import { DocumentsList, generateOutgoingRequest } from "hcx-core";
+import DocumentsList from '../../components/DocumentsList';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
-import apiEndpoints from '../../services/apiEndpoints';
+import { } from '../../services/hcxMockService';
+
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -104,13 +104,15 @@ const InitiateNewClaimRequest = () => {
   };
 
   const mobileNumber: any = localStorage.getItem('mobile');
+  
   const submitClaim = async () => {
     try {
       setLoading(true);
       handleUpload(mobileNumber, FileLists, requestBody, setUrlList);
       setTimeout(async () => {
         let submitClaim = await generateOutgoingRequest(
-          process.env.hcx_mock_service, requestBody, apiEndpoints.submitClaim
+          'create/claim/submit',
+          requestBody
         );
         setLoading(false);
         toast.success("Claim request initiated successfully")
