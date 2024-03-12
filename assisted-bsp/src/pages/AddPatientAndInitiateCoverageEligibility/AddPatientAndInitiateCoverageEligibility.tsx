@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import TextInputWithLabel from "../../components/inputField";
 import SelectInput from "../../components/SelectInput";
 import CustomButton from "../../components/CustomButton";
-import { postRequest, updateRequest } from "../../services/registryService";
+import { postRequest } from "../../services/registryService";
 import { toast } from "react-toastify";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { generateOutgoingRequest } from "../../services/hcxMockService";
 import { generateToken, searchParticipant } from "../../services/hcxService";
 import * as _ from "lodash";
 import LoadingButton from "../../components/LoadingButton";
-import Accordion from "../../components/Accordion";
 import useDebounce from "../../hooks/useDebounce";
 
 

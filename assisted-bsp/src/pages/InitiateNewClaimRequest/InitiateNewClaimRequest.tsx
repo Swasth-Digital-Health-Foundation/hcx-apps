@@ -11,7 +11,6 @@ import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import useDebounce from '../../hooks/useDebounce';
-import thumbnail from "../../images/pngwing.com.png"
 
 import * as _ from "lodash";
 import DocumentsList from "../../components/DocumentsList";
@@ -50,22 +49,6 @@ const InitiateNewClaimRequest = () => {
   const [selectedDate, setSelectedDate] = useState<string>("");
 
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
-
-  const insuranceOptions = [
-    { label: "Select", value: "" },
-    {
-      label: displayedData[0]?.insurance_id,
-      value: displayedData[0]?.insurance_id,
-    },
-  ];
-
-  const serviceTypeOptions = [
-    { label: "Select", value: "" },
-    {
-      label: displayedData[0]?.claimType,
-      value: displayedData[0]?.claimType,
-    },
-  ];
 
   const documentTypeOptions = [
     {
@@ -525,10 +508,7 @@ const InitiateNewClaimRequest = () => {
               </div>
             )}
           </div>
-          <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-            {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
             <DocumentsList preauthOrClaimList={preauthOrClaimList} />
-          </div>
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
@@ -545,7 +525,7 @@ const InitiateNewClaimRequest = () => {
               <LoadingButton className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed" />
             )}
           </div>
-        </div>
+        </div >
       )}
     </>
   );
