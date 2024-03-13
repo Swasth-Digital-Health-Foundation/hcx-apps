@@ -45,7 +45,8 @@ const NotificationSection: React.FC<FaqItem> = ({ active, handleToggle, faq }) =
           <p className="font-sm font-medium text-black mt-4 dark:text-white">Sent by : {sender_code}</p>
         </div>
         <p className="py-2 text-xs text-black dark:text-white">{date}</p>
-      </div>}
+      </div>
+      }
     </div>
   );
 };

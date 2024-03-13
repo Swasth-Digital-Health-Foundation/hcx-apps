@@ -414,10 +414,7 @@ const InitiateNewClaimRequest = () => {
               </div>
             )}
           </div>
-          <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-            {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
-            <DocumentsList preauthOrClaimList={preauthOrClaimList} />
-          </div>
+          <DocumentsList preauthOrClaimList={preauthOrClaimList} />
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
