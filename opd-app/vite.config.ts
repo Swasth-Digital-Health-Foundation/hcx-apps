@@ -10,7 +10,6 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     build: {
       outDir: './build'
-    },
-    base: '/opd',
+    }
   };
 });
