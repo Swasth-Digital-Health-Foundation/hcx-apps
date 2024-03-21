@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
 import {
   generateOutgoingRequest,
-  getConsultationDetails,
+  getConsultationDetails, searchUser
 } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
 import { toast } from "react-toastify";
@@ -39,23 +39,14 @@ const ViewPatientDetails = () => {
 
   const [type, setType] = useState<string[]>([]);
 
-  const payload = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: {
-        eq: `${location.state?.patientMobile || localStorage.getItem("patientMobile")
-          }`,
-      },
-    },
-  };
+
 
   const getPatientDetails = async () => {
     try {
       setisLoading(true);
-      let registerResponse: any = await postRequest("search", payload);
+      let registerResponse: any = await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))
       console.log(registerResponse)
-      const patientDetails = registerResponse.data;
-      setPatientDetails(patientDetails);
+      setPatientDetails(registerResponse?.data?.result);
     } catch (error: any) {
       toast.error(error.response.data.params.errmsg, {
         position: toast.POSITION.TOP_CENTER,
@@ -69,15 +60,15 @@ const ViewPatientDetails = () => {
   const personalDeatails = [
     {
       key: "Patient name",
-      value: patientDetails[0]?.name,
+      value: patientDetails?.userName,
     },
     {
       key: "Mobile no",
-      value: patientDetails[0]?.mobile,
+      value: patientDetails?.mobile || location.state?.patientMobile || localStorage.getItem("patientMobile") ,
     },
     {
       key: "Address",
-      value: patientDetails[0]?.address,
+      value: patientDetails?.address,
     },
   ];
 
@@ -163,11 +154,11 @@ const ViewPatientDetails = () => {
     try {
       setisLoading(true);
       let statusCheckCoverageEligibility = await generateOutgoingRequest(
-        "bsp/request/list",
+        "request/list",
         coverageEligibilityPayload
       );
       let response = await generateOutgoingRequest(
-        "bsp/request/list",
+        "request/list",
         preauthOrClaimListPayload
       );
       let preAuthAndClaimList = response.data?.entries;
@@ -293,7 +284,7 @@ const ViewPatientDetails = () => {
               Patient details
             </label>
             <h2 className="sm:text-title-xl1 text-end font-semibold text-success dark:text-success">
-              {coverageEligibilityStatus === "Approved" ? (
+              {coverageEligibilityStatus === "response.complete" ? (
                 <div className="text-success">&#10004; Eligible</div>
               ) : (
                 <div className="mr-3 text-warning">Pending</div>
@@ -318,39 +309,33 @@ const ViewPatientDetails = () => {
                 );
               })}
             </div>
-            {patientDetails[0]?.medical_history && !_.isEmpty(patientDetails[0]?.medical_history[0].allergies) ?
+            {patientDetails?.medicalHistory && !_.isEmpty(patientDetails?.medicalHistory?.allergies) ?
               <>
                 <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
                   Medical history
                 </label>
                 <div className="items-center justify-between"></div>
                 <div>
-                  {_.map(patientDetails[0]?.medical_history,
-                    (ele: any, index: any) => {
-                      return (
-                        <div key={index} className="mb-2">
-                          <div className="mb-2 flex gap-2">
-                            <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Allergies
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.allergies}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <h2 className=" text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Blood group
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.bloodGroup}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
+                  <div className="mb-2">
+                    <div className="mb-2 flex gap-2">
+                      <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
+                        Allergies
+                      </h2>
+                      <div className="mr-6">:</div>
+                      <span className="text-base font-medium">
+                        {patientDetails?.medicalHistory?.allergies || ""}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <h2 className=" text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
+                        Blood group
+                      </h2>
+                      <div className="mr-6">:</div>
+                      <span className="text-base font-medium">
+                        {patientDetails?.medicalHistory?.blood_group || ""}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </>
               : <></>}
@@ -368,7 +353,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}
+                    {patientInsuranceId === "undefined" ? (patientDetails?.payorDetails?.insurance_id) : patientInsuranceId}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -377,7 +362,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}
+                    {patientPayorName === "undefined" ? (patientDetails?.payorDetails?.payorName) : patientPayorName}
                   </span>
                 </div>
               </div>
@@ -423,7 +408,7 @@ const ViewPatientDetails = () => {
             </div>
           )}
           {_.map(preauthOrClaimList, (ele: any, index: any) => {
-            const additionalInfo = JSON.parse(ele?.additionalInfo)
+            // const additionalInfo = JSON.parse(ele?.additionalInfo) || {}
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -431,7 +416,7 @@ const ViewPatientDetails = () => {
                     {ele?.type.charAt(0).toUpperCase() + ele?.type.slice(1)}{" "}
                     details :
                   </h2>
-                  {ele?.status === "Approved" ? (
+                  {ele?.status === "response.complete" ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
                       &#10004; Approved
                     </div>
@@ -481,7 +466,7 @@ const ViewPatientDetails = () => {
                             INR {ele.billAmount}
                           </span>
                         </div> : null} */}
-                      {
+                      {/* {
                         additionalInfo?.financial?.approved_amount &&
                           additionalInfo?.financial?.approved_amount === 0 ?
                           <div className="flex gap-2">
@@ -502,7 +487,7 @@ const ViewPatientDetails = () => {
                               INR {additionalInfo?.financial?.approved_amount}
                             </span>
                           </div>
-                      }
+                      } */}
                     </div>
                   </div>
                   {_.isEmpty(ele.supportingDocuments) ? null : <>

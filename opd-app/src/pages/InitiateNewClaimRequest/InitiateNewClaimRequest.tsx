@@ -174,7 +174,7 @@ const InitiateNewClaimRequest = () => {
   }, [displayedData]);
 
   const handlePreAuthRequest = async () => {
-    const response = await generateOutgoingRequest("create/claim/submit", initiateClaimRequestBody);
+    const response = await generateOutgoingRequest("claim/submit", initiateClaimRequestBody);
   };
 
   const submitClaim = async () => {

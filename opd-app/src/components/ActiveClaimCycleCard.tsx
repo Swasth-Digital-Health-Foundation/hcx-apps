@@ -71,7 +71,7 @@ const ActiveClaimCycleCard = (Props: any) => {
               : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
             }`}
         >
-          {Props.status}
+          {Props.status === "response.complete" ? "Approved" : Props.status }
         </span>
       ),
     },

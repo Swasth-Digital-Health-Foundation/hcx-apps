@@ -3,7 +3,7 @@ import Html5QrcodePlugin from "../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from "react";
 import ActiveClaimCycleCard from "../../components/ActiveClaimCycleCard";
 import strings from "../../utils/strings";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList } from "../../services/hcxMockService";
+import {  getCoverageEligibilityRequestList } from "../../services/hcxMockService";
 import * as _ from "lodash";
 import TransparentLoader from "../../components/TransparentLoader";
 import { generateToken, searchParticipant } from "../../services/hcxService";

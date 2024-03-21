@@ -79,6 +79,9 @@ const AddConsultation = () => {
     }
   };
 
+  console.log(location?.state);
+  
+
   const handleUpload = async () => {
     try {
       setLoading(true);

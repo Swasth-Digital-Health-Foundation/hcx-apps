@@ -10,39 +10,17 @@ async function generateOutgoingRequest(url: any, payload: any) {
   return response;
 }
 
-async function isInitiated(payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/check/communication/request`,
-    payload
+async function searchUser(url: any, payload: any) {
+  const response = await axios.get(
+    `${process.env.hcx_mock_service}/${url}/${payload}`
   );
   return response;
 }
 
-async function createCommunicationOnRequest(payload: any) {
+async function createUser(url: any,payload: any) {
   const response = await axios.post(
-    `${process.env.hcx_mock_service}/create/communication/on_request`,
-    payload
-  );
-  return response;
-}
-
-async function sendOTP(payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/send/otp`,
-    payload,
-    {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
-    }
-  );
-  return response;
-}
-
-async function verifyOTP(payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/verify/otp`,
-    payload
+    `${process.env.hcx_mock_service}/${url}`,
+        payload
   );
   return response;
 }
@@ -58,7 +36,7 @@ const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      "bsp/request/list",
+      "request/list",
       requestPayload
     );
     const data = response.data.entries;
@@ -125,11 +103,11 @@ const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any,
   }
 };
 
-const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList}: any) => {
+const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }: any) => {
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
+      'request/list',
       preauthOrClaimListPayload
     );
     let preAuthAndClaimList = response.data?.entries;
@@ -141,23 +119,12 @@ const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreaut
   }
 };
 
-async function getNotifications(payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/notification/list`,
-    payload
-  );
-  return response;
-}
-
 export {
   generateOutgoingRequest,
-  sendOTP,
-  verifyOTP,
-  isInitiated,
-  createCommunicationOnRequest,
+  createUser,
   getConsultationDetails,
   getCoverageEligibilityRequestList,
   handleUpload,
   getActivePlans,
-  getNotifications
+  searchUser
 };

@@ -176,14 +176,14 @@ const PreAuthRequest = () => {
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
         if (response?.status === 200) {
           // handlePreAuthRequest()
-          const preauthResponse = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
+          const preauthResponse = await generateOutgoingRequest("preauth/submit", initiateClaimRequestBody);
           setSubmitLoading(false);
           toast.success("Pre-auth request initiated successfully!")
           navigate("/home");
         }
       }
       else {
-        const preauthResponse = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
+        const preauthResponse = await generateOutgoingRequest("preauth/submit", initiateClaimRequestBody);
         if (preauthResponse.status === 202) {
           toast.success("Pre-auth request initiated successfully!")
           navigate("/home");
