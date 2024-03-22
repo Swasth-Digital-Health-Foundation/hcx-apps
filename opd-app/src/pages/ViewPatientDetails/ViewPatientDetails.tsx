@@ -490,7 +490,7 @@ const ViewPatientDetails = () => {
                       } */}
                     </div>
                   </div>
-                  {_.isEmpty(ele.supportingDocuments) ? null : <>
+                  {/* {_.isEmpty(ele.supportingDocuments) ? null : <>
                     <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
                       Supporting documents :
                     </h2>
@@ -515,7 +515,25 @@ const ViewPatientDetails = () => {
                         </div>
                       </div>
                     ))}
-                  </>}
+                  </>} */}
+                  {!isEmpty(ele.supportingDocuments) ? <>
+                <h2 className="text-bold text-base font-medium text-black dark:text-white">
+                  Supporting documents :
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {_.map(urlArray, (ele: string, index: number) => {
+                    const parts = ele.split('/');
+                    const fileName = parts[parts.length - 1];
+                    return (
+                      <a href={ele} download>
+                        <div className='text-center'>
+                          <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                          <span>{decodeURIComponent(fileName)}</span>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div></> : null}
                 </div>
               </>
             );
