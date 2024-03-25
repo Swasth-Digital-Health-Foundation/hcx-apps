@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { handleFileChange } from "../../utils/attachmentSizeValidation";
-import { generateOutgoingRequest, getConsultationDetails, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
+import { generateOutgoingRequest, getConsultationDetails, getCoverageEligibilityRequestList, handleUpload , searchUser} from "../../services/hcxMockService";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
@@ -87,8 +86,8 @@ const PreAuthRequest = () => {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
     mobile:
-      localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
-    patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
+      localStorage.getItem("mobile") || localStorage.getItem("patientMobile") || _.get(data, 'requestDetails.patientMobile', ''),
+    patientName: userInfo[0]?.name || localStorage.getItem("patientName") || _.get(data, 'requestDetails.patientName', ''),
     participantCode:
       _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
     payor: _.get(data, 'requestDetails.payor', '') || payorName,
@@ -111,23 +110,18 @@ const PreAuthRequest = () => {
   };
 
   console.log({ data })
-  const filter = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: { eq: localStorage.getItem("mobile") },
-    },
-  };
+
 
   useEffect(() => {
-    const searchUser = async () => {
+    const search = async () => {
       try {
-        const searchUser = await postRequest("/search", filter);
-        setUserInformation(searchUser.data);
+        let responseData: any = await searchUser("user/search", mobile || localStorage.getItem("mobile") || _.get(data, 'requestDetails.patientMobile', ''));
+        setUserInformation(responseData?.data?.result);
       } catch (error) {
         console.log(error);
       }
     };
-    searchUser();
+    search();
   }, []);
 
   const payorCodePayload = {
@@ -177,6 +171,7 @@ const PreAuthRequest = () => {
         if (response?.status === 200) {
           // handlePreAuthRequest()
           const preauthResponse = await generateOutgoingRequest("preauth/submit", initiateClaimRequestBody);
+          console.log("preauthResponse-------" + preauthResponse);
           setSubmitLoading(false);
           toast.success("Pre-auth request initiated successfully!")
           navigate("/home");

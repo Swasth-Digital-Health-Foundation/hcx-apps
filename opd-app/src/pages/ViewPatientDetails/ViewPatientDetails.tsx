@@ -8,7 +8,6 @@ import {
 } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
 import { toast } from "react-toastify";
-import { postRequest } from "../../services/registryService";
 import { isEmpty } from "lodash";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
@@ -64,7 +63,7 @@ const ViewPatientDetails = () => {
     },
     {
       key: "Mobile no",
-      value: patientDetails?.mobile || location.state?.patientMobile || localStorage.getItem("patientMobile") ,
+      value: patientDetails?.mobile || location.state?.patientMobile || localStorage.getItem("patientMobile"),
     },
     {
       key: "Address",
@@ -161,7 +160,7 @@ const ViewPatientDetails = () => {
         "request/list",
         preauthOrClaimListPayload
       );
-      let preAuthAndClaimList = response.data?.entries;
+      let preAuthAndClaimList = response.data?.entries;      
       setpreauthOrClaimList(preAuthAndClaimList);
       for (const entry of preAuthAndClaimList) {
         if (entry.type === "claim") {
@@ -260,8 +259,6 @@ const ViewPatientDetails = () => {
 
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
-
-  console.log({ preauthOrClaimList })
 
   return (
     <>
@@ -456,16 +453,16 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      {/* {hasClaimApproved && ele?.status === 'Approved' ?
+                      { ele?.status === 'response.complete' ?
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount
                           </h2>
                           <div className="mr-6">:</div>
                           <span className="text-base font-medium">
-                            INR {ele.billAmount}
+                            INR {ele.approvedAmount}
                           </span>
-                        </div> : null} */}
+                        </div> : null}
                       {/* {
                         additionalInfo?.financial?.approved_amount &&
                           additionalInfo?.financial?.approved_amount === 0 ?
@@ -517,23 +514,23 @@ const ViewPatientDetails = () => {
                     ))}
                   </>} */}
                   {!isEmpty(ele.supportingDocuments) ? <>
-                <h2 className="text-bold text-base font-medium text-black dark:text-white">
-                  Supporting documents :
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {_.map(urlArray, (ele: string, index: number) => {
-                    const parts = ele.split('/');
-                    const fileName = parts[parts.length - 1];
-                    return (
-                      <a href={ele} download>
-                        <div className='text-center'>
-                          <img key={index} height={150} width={150} src={thumbnail} alt='image' />
-                          <span>{decodeURIComponent(fileName)}</span>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div></> : null}
+                    <h2 className="text-bold text-base font-medium text-black dark:text-white">
+                      Supporting documents :
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {_.map(urlArray, (ele: string, index: number) => {
+                        const parts = ele.split('/');
+                        const fileName = parts[parts.length - 1];
+                        return (
+                          <a href={ele} download>
+                            <div className='text-center'>
+                              <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                              <span>{decodeURIComponent(fileName)}</span>
+                            </div>
+                          </a>
+                        );
+                      })}
+                    </div></> : null}
                 </div>
               </>
             );

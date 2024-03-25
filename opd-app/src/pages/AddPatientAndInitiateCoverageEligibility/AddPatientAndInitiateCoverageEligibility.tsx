@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import TextInputWithLabel from "../../components/inputField";
 import SelectInput from "../../components/SelectInput";
 import CustomButton from "../../components/CustomButton";
-import { postRequest, updateRequest } from "../../services/registryService";
 import { toast } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
 import { generateOutgoingRequest, searchUser, createUser } from "../../services/hcxMockService";

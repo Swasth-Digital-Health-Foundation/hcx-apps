@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { handleFileChange } from "../../utils/attachmentSizeValidation";
-import { generateOutgoingRequest, getActivePlans, getConsultationDetails, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
+import { generateOutgoingRequest, getActivePlans, getConsultationDetails, getCoverageEligibilityRequestList, handleUpload, searchUser } from "../../services/hcxMockService";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
-import thumbnail from "../../images/pngwing.com.png"
 import DocumentsList from "../../components/DocumentsList";
 
 const InitiateNewClaimRequest = () => {
@@ -74,7 +72,7 @@ const InitiateNewClaimRequest = () => {
     FileLists = Array.from(selectedFile);
   }
 
-  const [data, setData] = useState(location.state);
+  const [data] = useState(location.state);
   const handleDelete = (name: any) => {
     if (selectedFile !== undefined) {
       const updatedFilesList = selectedFile.filter(
@@ -88,13 +86,13 @@ const InitiateNewClaimRequest = () => {
   const email = localStorage.getItem('email');
 
   console.log({ data })
-
+  
   let initiateClaimRequestBody: any = {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
     mobile:
       localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
-    patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
+    patientName: userInfo[0]?.name || localStorage.getItem("patientName") || data?.requestDetails?.patientName,
     participantCode:
       _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
     payor: _.get(data, 'requestDetails.payor', '') || payorName,
@@ -116,18 +114,12 @@ const InitiateNewClaimRequest = () => {
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
 
-  const filter = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: { eq: localStorage.getItem("mobile") },
-    },
-  };
 
   useEffect(() => {
     const search = async () => {
       try {
-        const searchUser = await postRequest("/search", filter);
-        setUserInformation(searchUser.data);
+        let responseData: any = await searchUser("user/search", mobile || localStorage.getItem("mobile") || data?.requestDetails?.patientMobile);
+        setUserInformation(responseData?.data?.result);
       } catch (error) {
         console.log(error);
       }
@@ -175,6 +167,7 @@ const InitiateNewClaimRequest = () => {
 
   const handlePreAuthRequest = async () => {
     const response = await generateOutgoingRequest("claim/submit", initiateClaimRequestBody);
+    console.log(response)
   };
 
   const submitClaim = async () => {
@@ -220,10 +213,6 @@ const InitiateNewClaimRequest = () => {
     getConsultation()
     getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
   }, [])
-
-  let urls: string = consultationDetail?.supporting_documents_url;
-  const trimmedString: string = urls?.slice(1, -1);
-  const urlArray: any[] = trimmedString?.split(",");
 
   return (
     <>
@@ -341,55 +330,6 @@ const InitiateNewClaimRequest = () => {
                 />
               </div>
             </div>
-            {/* <h3 className='text-base text-black dark:text-white pt-4'>Documents added :</h3>
-            <div className="section flex items-center gap-2">
-              <div>
-                {!_.isEmpty(urls) ? <>
-                  <div className="flex flex-wrap gap-2">
-                    {_.map(urlArray, (ele: string, index: number) => {
-                      const parts = ele.split('/');
-                      const fileName = parts[parts.length - 1];
-                      return (
-                        <a href={ele} download>
-                          <div className='text-center'>
-                            <img key={index} height={100} width={100} src={thumbnail} alt='image' />
-                            <span>{fileName}</span>
-                          </div>
-                        </a>
-                      );
-                    })}
-                  </div></> : null}
-              </div>
-              <div>
-                {_.map(preauthOrClaimList, (ele: any) => {
-                  return (
-                    <>
-                      {_.isEmpty(ele.supportingDocuments) ? null : <>
-                        {Object.entries(ele.supportingDocuments).map(([key, values]) => (
-                          <div key={key}>
-                            <div className='flex'>
-                              {Array.isArray(values) &&
-                                values.map((imageUrl, index) => {
-                                  const parts = imageUrl.split('/');
-                                  const fileName = parts[parts.length - 1];
-                                  return (
-                                    <a href={imageUrl} download>
-                                      <div className='text-center'>
-                                        <img key={index} height={100} width={100} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                        <span>{fileName}</span>
-                                      </div>
-                                    </a>
-                                  )
-                                })}
-                            </div>
-                          </div>
-                        ))}
-                      </>}
-                    </>
-                  );
-                })}
-              </div>
-            </div> */}
             {isSuccess ? (
               <div>
                 {_.map(FileLists, (file: any) => {
@@ -414,7 +354,6 @@ const InitiateNewClaimRequest = () => {
               </div>
             )}
           </div>
-          <DocumentsList preauthOrClaimList={preauthOrClaimList} />
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
