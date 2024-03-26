@@ -160,7 +160,7 @@ const ViewPatientDetails = () => {
         "request/list",
         preauthOrClaimListPayload
       );
-      let preAuthAndClaimList = response.data?.entries;      
+      let preAuthAndClaimList = response.data?.entries;
       setpreauthOrClaimList(preAuthAndClaimList);
       for (const entry of preAuthAndClaimList) {
         if (entry.type === "claim") {
@@ -453,7 +453,7 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      { ele?.status === 'response.complete' ?
+                      {ele?.status === 'response.complete' ?
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount

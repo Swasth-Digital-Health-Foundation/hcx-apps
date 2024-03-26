@@ -40,7 +40,7 @@ const PreAuthRequest = () => {
 
   const [consultationDetail, setConsultationDetails] = useState<any>();
 
-  const [selectedInsurance, setSelectedInsurance] = useState<string>("");
+  const [selectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
 
   let FileLists: any;
@@ -48,7 +48,7 @@ const PreAuthRequest = () => {
     FileLists = Array.from(selectedFile);
   }
 
-  const [data, setData] = useState(location.state);
+  const [data] = useState(location.state);
 
   const handleDelete = (name: any) => {
     if (selectedFile !== undefined) {
@@ -85,9 +85,8 @@ const PreAuthRequest = () => {
   let initiateClaimRequestBody: any = {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
-    mobile:
-      localStorage.getItem("mobile") || localStorage.getItem("patientMobile") || _.get(data, 'requestDetails.patientMobile', ''),
-    patientName: userInfo[0]?.name || localStorage.getItem("patientName") || _.get(data, 'requestDetails.patientName', ''),
+    mobile: displayedData[0]?.mobile || _.get(data, 'requestDetails.patientMobile', '') || localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
+    patientName:  displayedData[0]?.patientName || _.get(data, 'requestDetails.patientName', '') || userInfo[0]?.name || localStorage.getItem("patientName"),
     participantCode:
       _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
     payor: _.get(data, 'requestDetails.payor', '') || payorName,
@@ -108,8 +107,6 @@ const PreAuthRequest = () => {
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
     app: "OPD",
   };
-
-  console.log({ data })
 
 
   useEffect(() => {

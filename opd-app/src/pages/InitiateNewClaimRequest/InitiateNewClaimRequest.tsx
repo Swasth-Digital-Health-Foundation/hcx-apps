@@ -90,9 +90,8 @@ const InitiateNewClaimRequest = () => {
   let initiateClaimRequestBody: any = {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
-    mobile:
-      localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
-    patientName: userInfo[0]?.name || localStorage.getItem("patientName") || data?.requestDetails?.patientName,
+    mobile: displayedData[0]?.mobile || localStorage.getItem("mobile"),
+    patientName: displayedData[0]?.patientName || userInfo[0]?.name || localStorage.getItem("patientName") || data?.requestDetails?.patientName,
     participantCode:
       _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
     payor: _.get(data, 'requestDetails.payor', '') || payorName,
@@ -113,8 +112,7 @@ const InitiateNewClaimRequest = () => {
     password: password,
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
-
-
+  
   useEffect(() => {
     const search = async () => {
       try {
