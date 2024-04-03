@@ -268,6 +268,7 @@ const ViewPatientDetails = () => {
             <ArrowPathIcon
               onClick={() => {
                 getActivePlans();
+                getPatientDetails()
               }}
               className={
                 loading ? "animate-spin h-7 w-7 absolute right-0" : "h-7 w-7 absolute right-0"
