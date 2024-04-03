@@ -3,8 +3,7 @@ import Html5QrcodePlugin from '../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from 'react';
 import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import strings from '../../utils/strings';
-import { generateOutgoingRequest, getCoverageEligibilityRequestList } from '../../services/hcxMockService';
-import { postRequest } from '../../services/registryService';
+import { generateOutgoingRequest, getCoverageEligibilityRequestList, searchUser } from '../../services/hcxMockService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
@@ -36,6 +35,7 @@ const Home = () => {
     mobile: getMobileFromLocalStorage,
     app: "BSP"
   };
+
 
   useEffect(() => {
     if (qrCodeData !== undefined) {
@@ -75,17 +75,11 @@ const Home = () => {
     }
   }, [qrCodeData]);
 
-  const filter = {
-    entityType: ['Beneficiary'],
-    filters: {
-      mobile: { eq: getMobileFromLocalStorage },
-    },
-  };
 
   const search = async () => {
     try {
-      const searchUser = await postRequest('/search', filter);
-      setUserInformation(searchUser.data);
+      let response: any = await searchUser("user/search", getMobileFromLocalStorage || location.state?.patientMobile)
+      setUserInformation(response?.data?.result);
     } catch (error) {
       console.log(error);
     }
@@ -133,7 +127,7 @@ const Home = () => {
         <div className="mt-2">
           <div className="qr-code p-1">
             <div id="reader" className="px-1">
-            <Html5QrcodePlugin
+              <Html5QrcodePlugin
                 fps={60}
                 qrbox={250}
                 disableFlip={false}
@@ -171,7 +165,7 @@ const Home = () => {
               No Active Requests
             </h1>
             <>
-            <ArrowPathIcon
+              <ArrowPathIcon
                 onClick={() => {
                   getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
                 }}
@@ -188,7 +182,7 @@ const Home = () => {
               {strings.YOUR_ACTIVE_CYCLE} ({activeRequests.length})
             </h1>
             <>
-            <ArrowPathIcon
+              <ArrowPathIcon
                 onClick={() => {
                   getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
                 }}
@@ -205,7 +199,7 @@ const Home = () => {
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
               let approvedAmount: any = "";
               if (ele?.type === 'claim') {
-                approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
+                // approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
               const date = new Date(parseInt(ele.date));
               const day = date.getDate().toString().padStart(2, "0");
@@ -260,7 +254,7 @@ const Home = () => {
                     mobile={location.state}
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
-                    patientName={ele.patientName}
+                    patientName={ele.patientName || userInformation?.userName}
                     approvedAmount={approvedAmount}
                     data={data}
                   />

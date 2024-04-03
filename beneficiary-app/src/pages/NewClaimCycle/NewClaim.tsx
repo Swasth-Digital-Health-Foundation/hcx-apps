@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateToken, searchParticipant } from '../../services/hcxService';
+import { searchUser } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from 'lodash';
 import strings from '../../utils/strings';
@@ -72,42 +73,18 @@ const NewClaim = () => {
 
   const getMobileFromLocalStorage = localStorage.getItem('mobile');
 
-  const userSearch = {
-    entityType: ['Beneficiary'],
-    filters: {
-      mobile: { eq: getMobileFromLocalStorage },
-    },
-  };
-
-
-  const searchUser = async () => {
+  const registrySearch = async () => {
     try {
-      const searchUser = await postRequest('/search', userSearch);
-      setUserInformation(searchUser.data);
+      let response: any = await searchUser("user/search", getMobileFromLocalStorage)
+      setUserInformation(response?.data?.result);
     } catch (error) {
       console.log(error);
     }
   };
-
   useEffect(() => {
-    searchUser
+    registrySearch
   }, [])
 
-  const filter = {
-    entityType: ['Beneficiary'],
-    filters: {
-      mobile: { eq: localStorage.getItem('mobile') },
-    },
-  };
-
-  const searchUserInfo = async () => {
-    try {
-      const searchUser = await postRequest('/search', filter);
-      setUserInformation(searchUser.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const getPayorName = () => {
     if (userInfo) {
@@ -122,7 +99,7 @@ const NewClaim = () => {
   };
 
   useEffect(() => {
-    searchUserInfo();
+    registrySearch();
     getPayorName();
   }, [insurancePlanInputRef]);
 
@@ -193,12 +170,13 @@ const NewClaim = () => {
               className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent bg-transparent py-4 px-6 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
             >
               <option value="">select</option>
-              {_.map(userInfo[0]?.payor_details, (ele: any, index: any) => {
+              <option value={userInfo?.payorDetails?.insurance_id}>{userInfo?.payorDetails?.insurance_id}</option>
+
+              {/* {_.map(userInfo?.payorDetails, (ele: any, index: any) => {
                 return (
                   <option key={index} value={ele?.insurance_id}>{ele?.insurance_id}</option>
                 );
-              })}
-              <option value="add another">add another</option>
+              })} */}
             </select>
             <span className="absolute top-1/2 right-4 z-10 -translate-y-1/2">
               <svg

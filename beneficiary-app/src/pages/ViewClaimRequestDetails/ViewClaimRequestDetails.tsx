@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
@@ -11,8 +11,8 @@ import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
 import thumbnail from '../../images/pngwing.com.png'
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
-
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { isEmpty } from "lodash";
 
 const ViewClaimRequestDetails = () => {
   const location = useLocation();
@@ -135,7 +135,11 @@ const ViewClaimRequestDetails = () => {
       setRefresh(false);
       toast.error('Policy consent is not initiated.');
     }
-  };
+  };  
+
+  let urls: string = preAuthAndClaimList[0]?.supportingDocuments  ;
+  const trimmedString: string = urls?.slice(1, -1);
+  const urlArray: any[] = trimmedString?.split(",");
 
   const recipientCode = localStorage.getItem('recipientCode');
   const payload = {
@@ -169,7 +173,7 @@ const ViewClaimRequestDetails = () => {
 
   const getSupportingDocsFromList = async () => {
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
+      'request/list',
       preauthOrClaimListPayload
     );
     const data = response.data?.entries;
@@ -298,7 +302,27 @@ const ViewClaimRequestDetails = () => {
             </h2>
             <span className="text-base font-medium">INR {details?.approvedAmount}</span>
           </div>}
-          {claimAndPreauthEntries.map((ele: any) => {
+
+          {!isEmpty(urls) ? <>
+                <h2 className="text-bold text-base font-medium text-black dark:text-white">
+                  Supporting documents :
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {_.map(urlArray, (ele: string, index: number) => {
+                    const parts = ele.split('/');
+                    const fileName = parts[parts.length - 1];
+                    return (
+                      <a href={ele} download>
+                        <div className='text-center'>
+                          <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                          <span>{decodeURIComponent(fileName)}</span>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div></> : null}
+          
+          {/* {claimAndPreauthEntries.map((ele: any) => {
             return (
               _.isEmpty(ele.supportingDocuments) ? null : <>
                 <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
@@ -327,7 +351,7 @@ const ViewClaimRequestDetails = () => {
                 )}
               </>
             )
-          })}
+          })} */}
         </div>
       </div>
 
