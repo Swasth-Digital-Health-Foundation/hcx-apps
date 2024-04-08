@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
 import {
-  generateOutgoingRequest,
+  generateOutgoingRequest, searchUser
 } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
 import { toast } from "react-toastify";
-import { postRequest } from "../../services/registryService";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
+import { isEmpty } from "lodash";
 
 const ViewPatientDetails = () => {
   const navigate = useNavigate();
@@ -35,22 +35,12 @@ const ViewPatientDetails = () => {
 
   const [type, setType] = useState<string[]>([]);
 
-  const payload = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: {
-        eq: `${location.state?.patientMobile || localStorage.getItem("patientMobile")
-          }`,
-      },
-    },
-  };
 
   const getPatientDetails = async () => {
     try {
       setLoading(true);
-      let registerResponse: any = await postRequest("search", payload);
-      const patientDetails = registerResponse.data;
-      setPatientDetails(patientDetails);
+      let registerResponse: any = await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))
+      setPatientDetails(registerResponse?.data?.result);
     } catch (error: any) {
       toast.error(error.response.data.params.errmsg, {
         position: toast.POSITION.TOP_CENTER,
@@ -58,42 +48,24 @@ const ViewPatientDetails = () => {
     }
   };
 
-  localStorage.setItem("patientMobile", patientDetails[0]?.mobile);
-  localStorage.setItem("patientName", patientDetails[0]?.name);
+  localStorage.setItem("patientMobile", patientDetails?.mobile);
+  localStorage.setItem("patientName", patientDetails?.userName);
 
   const personalDeatails = [
     {
       key: "Beneficiary name",
-      value: patientDetails[0]?.name,
+      value: patientDetails?.userName,
     },
     {
       key: "Mobile no",
-      value: patientDetails[0]?.mobile || location.state?.patientMobile,
+      value: patientDetails?.mobile || location.state?.patientMobile,
     },
     {
       key: "Address",
-      value: patientDetails[0]?.address,
+      value: patientDetails?.address,
     },
   ];
 
-  // const consultationDetailsData = [
-  //   {
-  //     key: "Treatment type",
-  //     value: consultationDetail?.service_type,
-  //   },
-  //   {
-  //     key: "Service type",
-  //     value: consultationDetail?.treatment_type,
-  //   },
-  //   {
-  //     key: "Symptom",
-  //     value: consultationDetail?.symptoms,
-  //   },
-  // ];
-
-  // let urls: string = consultationDetail?.supporting_documents_url;
-  // const trimmedString: string = urls?.slice(1, -1);
-  // const urlArray: any[] = trimmedString?.split(",");
 
   const participantCodePayload = {
     filters: {
@@ -124,6 +96,17 @@ const ViewPatientDetails = () => {
     }
   };
 
+  const getSupportingDocuments = (supportingDocuments: any) => {
+    try {
+      let urls: string = supportingDocuments;
+      const trimmedString: string = urls?.slice(1, -1);
+      const urlArray: any[] = trimmedString?.split(",");
+      return urlArray;
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   const search = async () => {
     const response = await searchParticipant(participantCodePayload, config);
     setProviderName(response.data?.participants[0]?.participant_name);
@@ -147,7 +130,7 @@ const ViewPatientDetails = () => {
     app: "ABSP",
   };
 
-  const patientMobile = localStorage.getItem("patientMobile");
+  const patientMobile = location.state?.patientMobile;
 
   const coverageEligibilityPayload = {
     mobile:
@@ -159,11 +142,11 @@ const ViewPatientDetails = () => {
     try {
       setLoading(true);
       let statusCheckCoverageEligibility = await generateOutgoingRequest(
-        "bsp/request/list",
+        "request/list",
         coverageEligibilityPayload
       );
       let response = await generateOutgoingRequest(
-        "bsp/request/list",
+        "request/list",
         preauthOrClaimListPayload
       );
       let preAuthAndClaimList = response.data?.entries;
@@ -251,7 +234,7 @@ const ViewPatientDetails = () => {
   }, [location.state?.patientMobile]);
 
   const hasClaimApproved = preauthOrClaimList.some(
-    (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
+    (entry: any) => entry.type === 'claim' && entry.status === 'response.complete'
   );
 
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
@@ -265,6 +248,7 @@ const ViewPatientDetails = () => {
             <ArrowPathIcon
               onClick={() => {
                 getActivePlans();
+                getPatientDetails()
               }}
               className={
                 loading ? "animate-spin h-7 w-7 absolute right-0" : "h-7 w-7 absolute right-0"
@@ -278,7 +262,7 @@ const ViewPatientDetails = () => {
               Beneficiary Details
             </label>
             <h2 className="sm:text-title-xl1 text-end font-semibold text-success dark:text-success">
-              {coverageEligibilityStatus === "Approved" ? (
+              {coverageEligibilityStatus === "response.complete" ? (
                 <div className="text-success">&#10004; Eligible</div>
               ) : (
                 <div className="mr-3 text-warning">Pending</div>
@@ -317,7 +301,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}                  </span>
+                    {patientInsuranceId === "undefined" ? (patientDetails?.payorDetails?.insurance_id) : patientInsuranceId}                  </span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
@@ -325,13 +309,12 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}                  </span>
+                    {patientPayorName === "undefined" ? (patientDetails?.payorDetails?.payorName) : patientPayorName}                  </span>
                 </div>
               </div>
             </div>
           </div>
           {_.map(preauthOrClaimList, (ele: any, index: any) => {
-            const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -339,7 +322,7 @@ const ViewPatientDetails = () => {
                     {ele?.type.charAt(0).toUpperCase() + ele?.type.slice(1)}{" "}
                     details :
                   </h2>
-                  {ele?.status === "Approved" ? (
+                  {ele?.status === "response.complete" ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
                       &#10004; Approved
                     </div>
@@ -379,44 +362,39 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      {additionalInfo?.financial?.approved_amount &&
+                      {ele.status === "response.complete" ? (
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount
                           </h2>
                           <div className="mr-6">:</div>
                           <span className="text-base font-medium">
-                            INR {additionalInfo?.financial?.approved_amount}
+                            INR {ele.approvedAmount}
                           </span>
-                        </div>}
+                        </div>) : <></>
+                      }
                     </div>
                   </div>
-                  {_.isEmpty(ele.supportingDocuments) ? null : <>
-                    <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
+
+                  {!isEmpty(ele?.supportingDocuments) ? <>
+                    <h2 className="text-bold text-base font-medium text-black dark:text-white">
                       Supporting documents :
                     </h2>
-                    {Object.entries(ele.supportingDocuments).map(([key, values]) => (
-                      <div key={key}>
-                        <h3 className='text-base font-bold text-black dark:text-white'>Document type : <span className='text-base font-medium'>{key}</span></h3>
-                        <div className='flex'>
-                          {Array.isArray(values) &&
-                            values.map((imageUrl, index) => {
-                              const parts = imageUrl.split('/');
-                              const fileName = parts[parts.length - 1];
-                              return (
-                                <a href={imageUrl} download>
-                                  <div className='text-center'>
-                                    <img key={index} height={100} width={100} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{decodeURIComponent(fileName)}</span>
-                                  </div>
-                                </a>
-                              )
-                            })}
-                        </div>
-                      </div>
-                    ))}
-                  </>}
-                  {
+                    <div className="flex flex-wrap gap-2">
+                      {_.map(getSupportingDocuments(ele?.supportingDocuments), (ele: string, index: number) => {
+                        const parts = ele.split('/');
+                        const fileName = parts[parts.length - 1];
+                        return (
+                          <a href={ele} download>
+                            <div className='text-center'>
+                              <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                              <span>{decodeURIComponent(fileName)}</span>
+                            </div>
+                          </a>
+                        );
+                      })}
+                    </div></> : null}
+                  {/* {
                     ele?.accountNumber === '1234' ? <></> :
                       <div className='mt-2'>
                         <div className="flex items-center justify-between">
@@ -440,7 +418,7 @@ const ViewPatientDetails = () => {
                           </div>
                         </div>
                       </div>
-                  }
+                  } */}
                 </div>
 
               </>
