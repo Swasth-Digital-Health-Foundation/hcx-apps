@@ -82,7 +82,7 @@ const PreAuthRequest = () => {
   const email = localStorage.getItem('email');
   const password = localStorage.getItem('password')
 
-  let initiateClaimRequestBody: any = {
+  let initiatePreAuthRequestBody: any = {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
     mobile: displayedData[0]?.mobile || _.get(data, 'requestDetails.patientMobile', '') || localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
@@ -160,22 +160,21 @@ const PreAuthRequest = () => {
 
   const mobile = localStorage.getItem("patientMobile")
 
-  const submitClaim = async () => {
+  const submitPreauth = async () => {
     try {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFile)) {
-        const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
+        const response = await handleUpload(mobile, FileLists, initiatePreAuthRequestBody, setUrlList);
         if (response?.status === 200) {
-          // handlePreAuthRequest()
-          const preauthResponse = await generateOutgoingRequest("preauth/submit", initiateClaimRequestBody);
-          console.log("preauthResponse-------" + preauthResponse);
+          const preauthResponse = await generateOutgoingRequest("preauth/submit", initiatePreAuthRequestBody);
+          console.log("preauthResponse" + preauthResponse);
           setSubmitLoading(false);
           toast.success("Pre-auth request initiated successfully!")
           navigate("/home");
         }
       }
       else {
-        const preauthResponse = await generateOutgoingRequest("preauth/submit", initiateClaimRequestBody);
+        const preauthResponse = await generateOutgoingRequest("preauth/submit", initiatePreAuthRequestBody);
         if (preauthResponse.status === 202) {
           toast.success("Pre-auth request initiated successfully!")
           navigate("/home");
@@ -376,7 +375,7 @@ const PreAuthRequest = () => {
                 }
                 onClick={(event: any) => {
                   event.preventDefault();
-                  submitClaim();
+                  submitPreauth();
                 }}
                 type="submit"
                 className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
