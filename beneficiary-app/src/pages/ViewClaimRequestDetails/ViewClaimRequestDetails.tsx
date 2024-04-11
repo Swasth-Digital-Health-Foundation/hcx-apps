@@ -12,7 +12,6 @@ import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
 import thumbnail from '../../images/pngwing.com.png'
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { isEmpty } from "lodash";
 
 const ViewClaimRequestDetails = () => {
   const location = useLocation();
@@ -104,10 +103,6 @@ const ViewClaimRequestDetails = () => {
       key: 'Bill amount :',
       value: `INR ${details?.billAmount || ''}`,
     },
-    // {
-    //   key: 'Approved amount :',
-    //   value: `INR ${details?.approvedAmount || ''}`,
-    // }
   ];
 
   const getVerificationPayload = {
@@ -120,14 +115,12 @@ const ViewClaimRequestDetails = () => {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayload);
       setRefresh(false);
-      // if (res.status === 200) {
-      //   setInitiated(true);
-      // }
       if (res.status === 200 && res?.data?.result?.otpStatus === 'initiated') {
         setInitiated(true)
         toast.success('Policy consent is initiated.');
-      }
-      else {
+      } else if (res?.data?.result?.otpStatus === 'failed') {
+        toast.error("Failed to verify consent. Please ask the payor to resend the request.")
+      } else {
         setInitiated(false)
         toast.error('Policy consent is not initiated.');
       }
@@ -135,9 +128,9 @@ const ViewClaimRequestDetails = () => {
       setRefresh(false);
       toast.error('Policy consent is not initiated.');
     }
-  };  
+  };
 
-  let urls: string = preAuthAndClaimList[0]?.supportingDocuments  ;
+  let urls: string = preAuthAndClaimList[0]?.supportingDocuments;
   const trimmedString: string = urls?.slice(1, -1);
   const urlArray: any[] = trimmedString?.split(",");
 
@@ -156,10 +149,12 @@ const ViewClaimRequestDetails = () => {
     try {
       setLoading(true);
       const res = await createCommunicationOnRequest(payload);
-      setLoading(false);
-      setInitiated(false);
-      toast.success(res.data?.message);
-      navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
+      if (res.status = 202) {
+        setLoading(false);
+        setInitiated(false);
+        toast.success("OTP submitted successfully!");
+        navigate('/home', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
+      }
     } catch (err) {
       setLoading(false);
       toast.error('Enter valid OTP!');
@@ -213,30 +208,20 @@ const ViewClaimRequestDetails = () => {
   return (
     <>
       {!hasClaimApproved ? (
-            <div className="relative flex pb-8 cursor-pointer">
-            <ArrowPathIcon
-              onClick={() => {
-                getVerification();
-              }}
-              className={
-                loading ? "animate-spin h-11 w-7 absolute right-0" : "h-16 w-8 absolute right-2"
-              }
-              aria-hidden="true"
-            />
-            {loading ? "Please wait..." : ""}
-          </div>
-      )  : (
-        <>
-          {/* <button
-            onClick={(event: any) => {
-              event.preventDefault();
-              navigate('/home');
+        <div className="relative flex pb-8 cursor-pointer">
+          <ArrowPathIcon
+            onClick={() => {
+              getVerification();
             }}
-            type="submit"
-            className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
-          >
-            Home
-          </button> */}
+            className={
+              loading ? "animate-spin h-11 w-7 absolute right-0" : "h-16 w-8 absolute right-2"
+            }
+            aria-hidden="true"
+          />
+          {loading ? "Please wait..." : ""}
+        </div>
+      ) : (
+        <>
         </>
       )}
       <div className="relative mb-4 items-center justify-between">
@@ -303,105 +288,28 @@ const ViewClaimRequestDetails = () => {
             <span className="text-base font-medium">INR {details?.approvedAmount}</span>
           </div>}
 
-          {!isEmpty(urls) ? <>
-                <h2 className="text-bold text-base font-medium text-black dark:text-white">
-                  Supporting documents :
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {_.map(urlArray, (ele: string, index: number) => {
-                    const parts = ele.split('/');
-                    const fileName = parts[parts.length - 1];
-                    return (
-                      <a href={ele} download>
-                        <div className='text-center'>
-                          <img key={index} height={150} width={150} src={thumbnail} alt='image' />
-                          <span>{decodeURIComponent(fileName)}</span>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div></> : null}
-          
-          {/* {claimAndPreauthEntries.map((ele: any) => {
-            return (
-              _.isEmpty(ele.supportingDocuments) ? null : <>
-                <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
-                  Supporting documents :
-                </h2>
-                {Object.entries(ele?.supportingDocuments).map(([key, values]) =>
-                  <div key={key}>
-                    <h3 className='text-base font-bold text-black dark:text-white'>Document type : <span className='text-base font-medium'>{key}</span></h3>
-                    <div className='flex'>
-                      {Array.isArray(values) &&
-                        values.map((imageUrl, index) => {
-                          const parts = imageUrl.split('/');
-                          const fileName = parts[parts.length - 1];
-                          return (
-                            <a href={imageUrl} download>
-                              <div className='text-center'>
-                                <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                <span>{fileName}</span>
-                              </div>
-                            </a>
-                          )
-                        })}
-                    </div>
-                  </div>
-
-                )}
-              </>
-            )
-          })} */}
+          {urls === "{}" || urls === undefined ? <></> :
+            <>
+              <h2 className="text-bold text-base font-medium text-black dark:text-white">
+                Supporting documents :
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {_.map(urlArray, (ele: string, index: number) => {
+                  const parts = ele.split('/');
+                  const fileName = parts[parts.length - 1];
+                  return (
+                    <a href={ele} download>
+                      <div className='text-center'>
+                        <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                        <span>{decodeURIComponent(fileName)}</span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div></>}
         </div>
       </div>
-
-      {/* <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center justify-between">
-            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
-              Beneficiary bank details :
-            </h2>
-          </div>
-          <div>
-            {_.map(preAuthAndClaimList, (ele: any) => {
-              return (
-                <div className="flex gap-2">
-                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                    {ele.key}
-                  </h2>
-                  <span className="text-base font-medium">{ele.value}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div> */}
-
-      {/* {!hasClaimApproved ? (
-        <div
-          onClick={() => getVerification()}
-          className="align-center mt-4 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-        >
-          {!refresh ? (
-            <span className="cursor-pointer">Refresh</span>
-          ) : (
-            <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-          )}
-        </div>
-      ) : (
-        <>
-          <button
-            onClick={(event: any) => {
-              event.preventDefault();
-              navigate('/home');
-            }}
-            type="submit"
-            className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
-          >
-            Home
-          </button>
-        </>
-      )} */}
-
-{hasClaimApproved?<button
+      {hasClaimApproved ? <button
         onClick={(event: any) => {
           event.preventDefault();
           navigate('/home');
@@ -410,7 +318,7 @@ const ViewClaimRequestDetails = () => {
         className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
       >
         Home
-      </button>:<></>}
+      </button> : <></>}
 
       {initiated ? (
         <>
@@ -463,7 +371,7 @@ const ViewClaimRequestDetails = () => {
         </>
       ) : null}</>
 
-      
+
   );
 };
 

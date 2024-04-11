@@ -8,7 +8,7 @@ import {
 import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 const SendBankDetails = () => {
   const location = useLocation();
@@ -137,7 +137,7 @@ const SendBankDetails = () => {
             loading ? "animate-spin h-11 w-7 absolute right-0" : "h-20 w-8 absolute right-2"
           }
           aria-hidden="true"
-        />:<></>}
+        /> : <></>}
         {/* {!refresh ? (
           <span className="cursor-pointer">Refresh</span>
         ) : (
@@ -194,48 +194,39 @@ const SendBankDetails = () => {
         : <></>
       }
       {
-        beneficiaryBankDetails[0]?.accountNumber === '1234' ? <></> : <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center justify-between">
-            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
-              Beneficiary bank details :
-            </h2>
-          </div>
-          <div>
-            {_.map(bankAccountDetails, (ele: any) => {
-              return (
-                <div className="flex gap-2">
-                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                    {ele.key}
-                  </h2>
-                  <span className="text-base font-medium">{ele.value}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        beneficiaryBankDetails[0]?.bankStatus === "successful" ?
+          <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="flex items-center justify-between">
+              <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+                Beneficiary bank details :
+              </h2>
+            </div>
+            <div>
+              {_.map(bankAccountDetails, (ele: any) => {
+                return (
+                  <div className="flex gap-2">
+                    <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                      {ele.key}
+                    </h2>
+                    <span className="text-base font-medium">{ele.value}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div> : <></>
       }
 
-      {beneficiaryBankDetails[0]?.bankStatus === 'successful' ? 
-      <button
-        onClick={(event: any) => {
-          event.preventDefault();
-          navigate('/home');
-        }}
-        type="submit"
-        className="align-center mt-3 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
-      >
-        Home
-      </button> :
-        // <button
-        //   className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-        //   onClick={() => getVerificationForBank()}
-        // >
-        //   {!refresh ? (
-        //     <span className="cursor-pointer">Refresh</span>
-        //   ) : (
-        //     <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-        //   )}
-        // </button>
+      {beneficiaryBankDetails[0]?.bankStatus === 'successful' ?
+        <button
+          onClick={(event: any) => {
+            event.preventDefault();
+            navigate('/home');
+          }}
+          type="submit"
+          className="align-center mt-3 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
+        >
+          Home
+        </button> :
         <></>
       }
 

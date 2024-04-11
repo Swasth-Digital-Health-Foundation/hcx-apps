@@ -110,9 +110,11 @@ const InitiateNewClaimRequest = () => {
           'claim/submit',
           requestBody
         );
-        setLoading(false);
-        toast.success("Claim request initiated successfully")
-        navigate('/home');
+        if(submitClaim.status === 202){
+          setLoading(false);
+          toast.success("Claim request initiated successfully")
+          navigate('/home');
+        }  
       }, 2000);
     } catch (err) {
       setLoading(false);
@@ -248,10 +250,9 @@ const InitiateNewClaimRequest = () => {
         selectedFile={selectedFile}
         dropdownOptions={supportingDocumentsOptions} />
 
-      {_.isEmpty(preauthOrClaimList) ? <></> : <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {/* <h3 className='mb-2.5 block text-left font-medium text-black dark:text-white'>Documents added :</h3> */}
+      {/* {_.isEmpty(preauthOrClaimList) ? <></> : <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <DocumentsList preauthOrClaimList={preauthOrClaimList} />
-      </div>}
+      </div>} */}
       <div className="mb-5 mt-4">
         {!loading ? (
           <button

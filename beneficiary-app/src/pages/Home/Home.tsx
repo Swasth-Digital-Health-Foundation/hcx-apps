@@ -45,20 +45,20 @@ const Home = () => {
         participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         serviceType: 'OPD',
         mobile: localStorage.getItem('mobile'),
-        payor: userInformation[0]?.payor_details[0]?.payorName,
-        insuranceId: userInformation[0]?.payor_details[0]?.insurance_id,
-        patientName: userInformation[0]?.name,
+        payor: userInformation?.payorDetails?.payorName,
+        insuranceId: userInformation?.payorDetails?.insurance_id,
+        patientName: userInformation?.userName,
         app: "BSP",
         bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-        recipientCode: userInformation[0]?.payor_details[0]?.recipientCode
+        recipientCode: userInformation?.payorDetails?.payor
       };
 
       const sendCoverageEligibilityRequest = async () => {
         try {
           setLoading(true);
           let response = await generateOutgoingRequest(
-            'create/coverageeligibility/check',
+            'coverageeligibility/check',
             payload
           );
           if (response?.status === 202) {
@@ -104,7 +104,7 @@ const Home = () => {
 
       // Extract the status of the latest item
       if (latestItem) {
-        latestStatusByEntry[key] = latestItem.status;
+        latestStatusByEntry[key] = latestItem.status === "response.complete" ? "Approved" : latestItem.status;
       }
     }
   });
@@ -119,7 +119,7 @@ const Home = () => {
       <div className="flex justify-between">
         <div>
           <h1 className="text-1xl mb-3 font-bold text-black dark:text-white">
-            {strings.WELCOME_TEXT} {userInformation[0]?.name || '...'}
+            {strings.WELCOME_TEXT} {userInformation?.userName || '...'}
           </h1>
         </div>
       </div>
@@ -254,7 +254,7 @@ const Home = () => {
                     mobile={location.state}
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
-                    patientName={ele.patientName || userInformation?.userName}
+                    patientName={ userInformation?.userName || ele.patientName }
                     approvedAmount={approvedAmount}
                     data={data}
                   />
