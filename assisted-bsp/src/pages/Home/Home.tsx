@@ -200,7 +200,7 @@ const Home = () => {
 
       // Extract the status of the latest item
       if (latestItem) {
-        latestStatusByEntry[key] = latestItem.status;
+        latestStatusByEntry[key] = latestItem.status === "response.complete" ? "Approved" : "Pending";
       }
     }
   });

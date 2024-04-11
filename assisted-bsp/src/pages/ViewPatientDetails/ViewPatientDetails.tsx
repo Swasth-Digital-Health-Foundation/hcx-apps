@@ -373,10 +373,44 @@ const ViewPatientDetails = () => {
                           </span>
                         </div>) : <></>
                       }
+                      {ele.status === "response.complete" && ele.type === 'claim' ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
+                              Policy consent :
+                              <span className='text-success , ml-10'>&#10004; Approved</span>
+                            </h2>
+                          </div>
+                          <div className="flex gap-2">
+                            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+                              Beneficiary bank details :
+                            </h2>
+                          </div>
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              Account Number
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              {ele.accountNumber}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              IFSC code
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              {ele.ifscCode}
+                            </span>
+                          </div>
+                        </>
+                      ) : <></>}
+
                     </div>
                   </div>
 
-                  {!isEmpty(ele?.supportingDocuments) ? <>
+                  {Object.keys(ele?.supportingDocuments).length === 0 ? <>
                     <h2 className="text-bold text-base font-medium text-black dark:text-white">
                       Supporting documents :
                     </h2>
@@ -394,33 +428,7 @@ const ViewPatientDetails = () => {
                         );
                       })}
                     </div></> : null}
-                  {/* {
-                    ele?.accountNumber === '1234' ? <></> :
-                      <div className='mt-2'>
-                        <div className="flex items-center justify-between">
-                          <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-1 font-semibold text-black dark:text-white">
-                            Beneficiary bank details :
-                          </h2>
-                        </div>
-                        <div>
-                          <div>
-                            <div className='flex gap-2'>
-                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                                Account number :
-                              </h2>
-                              <span className="text-base font-medium">{ele.accountNumber}</span>
-                            </div>
-                            <div className='flex gap-2'>
-                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                                IFSC code :
-                              </h2>
-                              <span className="text-base font-medium">{ele.ifscCode}</span>                        </div>
-                          </div>
-                        </div>
-                      </div>
-                  } */}
                 </div>
-
               </>
             );
           })}

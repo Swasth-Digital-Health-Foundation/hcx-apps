@@ -121,7 +121,7 @@ const SendBankDetails = () => {
       let res = await createCommunicationOnRequest(bankDetailsPayload);
       setLoading(false);
       if (res.status === 202) {
-        toast.success('Bank deatils submitted successfully!');
+        toast.success('Bank details submitted successfully!');
         navigate('/home');
       }
     } catch (err) {
@@ -130,7 +130,7 @@ const SendBankDetails = () => {
       console.log(err);
     }
   };   
-
+  
 
   return (
     <div>   
@@ -197,7 +197,7 @@ const SendBankDetails = () => {
         : <></>
       }
       {
-        bankDetails?.bankStatus === 'successful' ? ( 
+        beneficiaryBankDetails[0]?.bankStatus === 'successful' ? ( 
         <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">

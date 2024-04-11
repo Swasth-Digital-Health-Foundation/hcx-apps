@@ -177,9 +177,12 @@ const VerifyClaim = () => {
       const res = await createCommunicationOnRequest(payload);
       setLoading(false);
       setInitiated(false);
-      toast.success(res.data?.message);
-      console.log(location.state);
-      navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
+      if(res?.status == 202){
+        toast.success("OTP submitted successfully!");
+        console.log(location.state);
+        navigate('/home')
+      } 
+      // navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
     } catch (err) {
       setLoading(false);
       toast.error('Enter valid OTP!');
@@ -372,7 +375,7 @@ console.log(preAuthAndClaimList);
                 >
                   {strings.VERIFY_OTP_BUTTON}
                 </button>
-              )}
+              )} 
             </div>
           </div>
         </>
