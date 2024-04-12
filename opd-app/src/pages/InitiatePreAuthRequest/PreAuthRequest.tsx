@@ -323,7 +323,9 @@ const PreAuthRequest = () => {
               </div>
             </div>
             <div className="pt-4">
-              {!_.isEmpty(urls) ? <>
+              {urls === "{}" || urls === undefined ? 
+              <></> :
+              <>  
                 <h2 className="text-bold text-base font-medium text-black dark:text-white">
                   Documents added :
                 </h2>
@@ -340,7 +342,7 @@ const PreAuthRequest = () => {
                       </a>
                     );
                   })}
-                </div></> : null}
+                </div></>}
             </div>
             {isSuccess ? (
               <div>
