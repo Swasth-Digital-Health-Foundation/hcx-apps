@@ -44,7 +44,6 @@ const Home = () => {
   }
 
   const userSearchPayload = {
-    entityType: ["Beneficiary"],
     filters: {
       participant_code: { eq: getEmailFromLocalStorage },
     },

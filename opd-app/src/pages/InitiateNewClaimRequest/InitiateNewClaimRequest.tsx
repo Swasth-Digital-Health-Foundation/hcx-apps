@@ -10,7 +10,9 @@ import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
+// import SupportingDocs from "../../components/SupportingDocument";
 import DocumentsList from "../../components/DocumentsList";
+import SupportingDocs from "../../components/SupportingDocument";
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -85,8 +87,10 @@ const InitiateNewClaimRequest = () => {
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
 
-  console.log({ data })
+  // console.log({ data })
+  // console.log({selectedFile});
   
+
   let initiateClaimRequestBody: any = {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
@@ -112,7 +116,7 @@ const InitiateNewClaimRequest = () => {
     password: password,
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
-  
+
   useEffect(() => {
     const search = async () => {
       try {
@@ -167,11 +171,14 @@ const InitiateNewClaimRequest = () => {
     const response = await generateOutgoingRequest("claim/submit", initiateClaimRequestBody);
     console.log(response)
   };
+  console.log("selected file from old upload --" , FileLists);
+
 
   const submitClaim = async () => {
     try {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFile)) {
+        
         const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
         console.log("response", response)
         if (response?.status === 200) {
@@ -249,6 +256,7 @@ const InitiateNewClaimRequest = () => {
               type="number"
             />
           </div>
+           <SupportingDocs />
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="text-1xl mb-4 font-bold text-black dark:text-white sm:text-title-xl1">
               {strings.SUPPORTING_DOCS}
@@ -300,7 +308,8 @@ const InitiateNewClaimRequest = () => {
                         event,
                         setFileErrorMessage,
                         setIsSuccess,
-                        setSelectedFile
+                        setSelectedFile,
+                        documentType
                       );
                     }}
                   />
@@ -321,7 +330,8 @@ const InitiateNewClaimRequest = () => {
                       event,
                       setFileErrorMessage,
                       setIsSuccess,
-                      setSelectedFile
+                      setSelectedFile,
+                      documentType
                     );
                   }}
                   className="w-full rounded-md border border-stroke p-3 outline-none transition file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm file:font-medium focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
