@@ -1,6 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Logo from "../../images/swasth_logo.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import LoadingButton from "../../components/LoadingButton";
 import * as _ from "lodash";
@@ -13,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [searchParams] = useSearchParams();
 
   localStorage.setItem("email", email);
   localStorage.setItem("password", password);
@@ -39,6 +40,37 @@ const Login = () => {
   const handleTogglePassword = () => {
     setPasswordVisible(!passwordVisible);
   };
+
+  useEffect(()=>{
+    const token = searchParams.get('auth');
+    if(token){ 
+      console.log('TEST token ===> ', token);
+      setLoading(true);
+      fetch(`https://accounts.stage.clinikk.com/v1/oauth/userinfo`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      .then((response) => response.json())
+      .then((json) => {
+          if(json.roles){
+            console.log("auth user ======> ", json);
+            console.log("USERname ===> ", json.roles, process.env.SEARCH_PARTICIPANT_USERNAME);
+            loginCredentials.username = process?.env?.SEARCH_PARTICIPANT_USERNAME ? process?.env?.SEARCH_PARTICIPANT_USERNAME : '' ;
+            loginCredentials.password = process?.env?.SEARCH_PARTICIPANT_PASSWORD ? process?.env?.SEARCH_PARTICIPANT_PASSWORD : '' ;
+            setTimeout(()=>{
+              userLogin();
+            },200);
+          }
+          setLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        setLoading(false);
+      });
+    }
+  },[]);
 
   return (
     <div className="w-full border-stroke bg-white dark:border-strokedark dark:bg-black">
