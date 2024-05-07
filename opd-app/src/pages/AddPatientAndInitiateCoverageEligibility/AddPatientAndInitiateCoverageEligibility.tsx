@@ -58,7 +58,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   ];
 
   const patientDataFromState: any = location.state?.obj;
-  console.log(patientDataFromState);
 
 
   const payload = {
@@ -100,13 +99,16 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     },
     {
       key: "Payor name :",
-      value: patientInfo?.payorDetails?.payorName || patientDataFromState?.payorName,
+      value: payorName ||  patientDataFromState?.payorName || patientInfo.length != 0 ? patientInfo?.payorDetails[0]?.payorName : ""
     },
     {
       key: "Insurance ID :",
-      value: patientInfo?.payorDetails?.insurance_id || patientDataFromState?.insuranceId
+      value: insuranceID || patientDataFromState?.insuranceId || patientInfo.length != 0 ? patientInfo?.payorDetails[0]?.insurance_id : ""
     },
   ];
+
+  console.log(patientInfo);
+  
 
   const userSearchPayload = {
     entityType: ["Beneficiary"],
@@ -228,17 +230,22 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   localStorage.setItem("patientMobile", mobile || patientDataFromState?.mobile);
   const email = localStorage.getItem('email')
   const passowrd = localStorage.getItem('password')
+  localStorage.setItem('mobile', mobile || patientDataFromState?.mobile)
+
+  
+  if(patientInfo.length != 0){
   localStorage.setItem('patientInsuranceId', patientInfo?.payorDetails?.insurance_id);
   localStorage.setItem('patientPayorName', patientInfo?.payorDetails?.payorName)
+  }
 
   const coverageeligibilityPayload = {
     insuranceId:
       insuranceID ||
-      patientInfo?.payorDetails?.insurance_id || patientDataFromState?.insuranceId,
+      patientInfo.length != 0 ? patientInfo?.payorDetails[0]?.insurance_id : "" || patientDataFromState?.insuranceId,
     mobile: mobile || patientDataFromState?.mobile,
     payor:
       payorName ||
-      patientInfo?.payorDetails?.payorName || patientDataFromState?.payorName,
+      patientInfo.length != 0 ? patientInfo?.payorDetails[0]?.payorName : "" || patientDataFromState?.payorName,
     providerName: localStorage.getItem("providerName"),
     participantCode:
       participantInfo[0]?.participant_code || email,
@@ -246,7 +253,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     patientName: patientInfo[0]?.name || patientInfo?.userName || name || patientDataFromState?.patientName,
     app: "OPD",
     password: passowrd,
-    recipientCode: patientInfo?.payorDetails?.payor || payorParticipantCode || patientDataFromState?.hcxPayorCode
+    recipientCode: payorParticipantCode || patientInfo.length != 0 ? patientInfo?.payorDetails[0]?.payor : "" || patientDataFromState?.hcxPayorCode
   };
 
   const sendCoverageEligibilityRequest = async () => {
@@ -322,6 +329,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   useEffect(() => {
     searchPayorForPatient();
   }, []);
+  
 
   useEffect(() => {
     if (mobile !== "") {
@@ -430,7 +438,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   <TextInputWithLabel
                     label="Payor Name :"
                     value={
-                      payorName || patientInfo?.payorDetails?.payorName || ""
+                      payorName || patientInfo?.payorDetails[0]?.payorName || ""
                     }
                     disabled={false || isEditable}
                     type="text"
@@ -438,7 +446,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   <TextInputWithLabel
                     label="Participant Code :"
                     value={
-                      payorParticipantCode || patientInfo?.payorDetails?.payor || ""
+                      payorParticipantCode ||  patientInfo?.payorDetails[0].payor || ""
                     }
                     disabled={false || isEditable}
                     type="text"
@@ -529,7 +537,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             <TextInputWithLabel
               label="Insurance ID :"
               value={
-                patientInfo?.payorDetails?.insurance_id || insuranceID
+               insuranceID || patientInfo.length != 0 ? patientInfo?.payorDetails[0]?.insurance_id : ""
               }
               onChange={(e: any) => setInsuranceID(e.target.value)}
               placeholder="Enter Insurance ID"

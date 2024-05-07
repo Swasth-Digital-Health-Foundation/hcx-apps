@@ -8,7 +8,6 @@ import {
 } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
 import { toast } from "react-toastify";
-import { isEmpty } from "lodash";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
@@ -352,7 +351,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId === "undefined" ? (patientDetails?.payorDetails?.insurance_id) : patientInsuranceId}
+                    {patientInsuranceId === "undefined" ? (patientDetails.length != 0 ? patientDetails?.payorDetails[0]?.insurance_id : "") : patientInsuranceId}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -361,7 +360,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName === "undefined" ? (patientDetails?.payorDetails?.payorName) : patientPayorName}
+                    {patientPayorName === "undefined" ? (patientDetails.length != 0 ? patientDetails?.payorDetails[0]?.payorName : "") : patientPayorName}
                   </span>
                 </div>
               </div>
