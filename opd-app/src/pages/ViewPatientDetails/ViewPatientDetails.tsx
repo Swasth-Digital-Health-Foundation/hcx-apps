@@ -89,7 +89,6 @@ const ViewPatientDetails = () => {
   const trimmedString: string = urls?.slice(1, -1);
   const urlArray: any[] = trimmedString?.split(",");
 
-
   const participantCodePayload = {
     filters: {
       participant_code: { eq: location.state?.participantCode },
@@ -493,14 +492,14 @@ const ViewPatientDetails = () => {
                         Supporting documents :
                       </h2>
                       <div className="flex flex-wrap gap-2">
-                        {_.map(urlArray, (ele: string, index: number) => {
+                        {_.map(ele?.supportingDocuments?.slice(1, -1)?.split(",") ?? [], (ele: string, index: number) => {
                           const parts = ele.split('/');
-                          const fileName = parts[parts.length - 1];
-                          return (
+                          const fileName = parts[parts.length - 1]
+                         return (
                             <a href={ele} download>
                               <div className='text-center'>
                                 <img key={index} height={150} width={150} src={thumbnail} alt='image' />
-                                <span>{decodeURIComponent(fileName)}</span>
+                                <span>{decodeURIComponent(fileName).replace('/','')}</span>
                               </div>
                             </a>
                           );
