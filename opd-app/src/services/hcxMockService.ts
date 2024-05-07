@@ -74,7 +74,7 @@ const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload
   }
 };
 
-const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any, setUrlList: any) => {
+const handleUpload = async (mobileNumber: any, FileLists: any) => {
   try {
     const formData = new FormData();
     formData.append('mobile', mobileNumber);
@@ -88,14 +88,6 @@ const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any,
       method: 'POST',
       data: formData,
     });
-    let obtainedResponse = response.data;
-    const uploadedUrls = _.map(obtainedResponse, (ele: any) => ele.url);
-    // Update the payload with the new URLs
-    requestBody.supportingDocuments[0].urls = uploadedUrls;
-    setUrlList((prevFileUrlList: any) => [
-      ...prevFileUrlList,
-      ...obtainedResponse,
-    ]);
     toast.info('Documents uploaded successfully!');
     return response;
   } catch (error) {

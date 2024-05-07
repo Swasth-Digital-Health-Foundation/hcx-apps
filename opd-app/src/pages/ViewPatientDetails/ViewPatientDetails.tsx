@@ -465,7 +465,7 @@ const ViewPatientDetails = () => {
                             INR {ele.approvedAmount}
                           </span>
                         </div> : null}
-                      {ele?.remarks === "" ? <></> :
+                      {  ele?.remarks === "" ? <></> :
                         <>
                           <div className="flex items-center justify-between">
                             <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
