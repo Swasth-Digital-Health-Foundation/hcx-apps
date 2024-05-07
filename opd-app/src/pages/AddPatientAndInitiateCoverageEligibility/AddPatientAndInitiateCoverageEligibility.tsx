@@ -72,17 +72,17 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       blood_group: bloodGroup,
     },
     payor_details:
-    [ {
-      insurance_id:
-        insuranceID ||
-        patientDataFromState?.payorName ||
-        patientInfo[0]?.payor_details[0]?.payorName,
-      payorName:
-        payorName ||
-        patientDataFromState?.insuranceId ||
-        patientInfo[0]?.payor_details[0]?.insurance_id,
-      payor: payorParticipantCode || ""
-    }]
+      [{
+        insurance_id:
+          insuranceID ||
+          patientDataFromState?.payorName ||
+          patientInfo[0]?.payor_details[0]?.payorName,
+        payorName:
+          payorName ||
+          patientDataFromState?.insuranceId ||
+          patientInfo[0]?.payor_details[0]?.insurance_id,
+        payor: payorParticipantCode || ""
+      }]
   };
 
   const patientDetails = [
@@ -167,15 +167,18 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   const registerUser = async () => {
     try {
-      let registerResponse: any = await createUser("user/create", payload)
-      setLoading(false);
-      toast.success(
-        "Patient added successfully, initiating coverage eligibility",
-        {
-          position: toast.POSITION.TOP_CENTER,
-        }
-      );
+      let response: any = await createUser("user/create", payload)
+      if (response?.status === 202) {
+        setLoading(false);
+        toast.success(
+          "Patient added successfully, initiating coverage eligibility",
+          {
+            position: toast.POSITION.TOP_CENTER,
+          }
+        );
+      }
     } catch (error: any) {
+      setLoading(false);
       toast.info("Patient already exists,  initiating coverage eligibility", {
         position: toast.POSITION.TOP_CENTER,
       });
@@ -546,9 +549,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
               if (isPatientExists === false) {
                 registerUser();
               }
-              // if (payload.medical_history?.allergies !== '' || payload.medical_history?.bloodGroup !== '') {
-              //   updateMedicalHistory();
-              // }
               sendCoverageEligibilityRequest();
             }}
             disabled={false}
