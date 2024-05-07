@@ -67,12 +67,12 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     address:
       address || patientDataFromState?.address || patientInfo[0]?.address,
     medical_history:
-    {
+    [{
       allergies: allergies,
       blood_group: bloodGroup,
-    },
+    }],
     payor_details:
-    {
+    [ {
       insurance_id:
         insuranceID ||
         patientDataFromState?.payorName ||
@@ -82,7 +82,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
         patientDataFromState?.insuranceId ||
         patientInfo[0]?.payor_details[0]?.insurance_id,
       payor: payorParticipantCode || ""
-    }
+    }]
   };
 
   const patientDetails = [
