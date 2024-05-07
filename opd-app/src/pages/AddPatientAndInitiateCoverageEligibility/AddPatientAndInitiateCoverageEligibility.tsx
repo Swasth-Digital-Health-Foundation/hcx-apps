@@ -229,14 +229,12 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   localStorage.setItem("patientMobile", mobile || patientDataFromState?.mobile);
   const email = localStorage.getItem('email')
   const passowrd = localStorage.getItem('password')
-  localStorage.setItem('mobile', mobile || patientDataFromState?.mobile)
+  localStorage.setItem('mobile', mobile || patientDataFromState?.mobile)  
 
   const coverageeligibilityPayload = {
-    insuranceId:
-      insuranceID || patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.insurance_id : "",
+    insuranceId: insuranceID ||  (patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.insurance_id : ""),
     mobile: mobile || patientDataFromState?.mobile,
-    payor:
-      payorName || patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payorName : "",
+    payor: payorName || (patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payorName : ""),
     providerName: localStorage.getItem("providerName"),
     participantCode:
       participantInfo[0]?.participant_code || email,
@@ -244,7 +242,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     patientName: patientInfo[0]?.name || patientInfo?.userName || name || patientDataFromState?.patientName,
     app: "OPD",
     password: passowrd, 
-    recipientCode: patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payor : "" || payorParticipantCode
+    recipientCode: payorParticipantCode || (patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payor : "")
   };
 
   const sendCoverageEligibilityRequest = async () => {
@@ -320,7 +318,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   useEffect(() => {
     searchPayorForPatient();
   }, []);
-
 
   useEffect(() => {
     if (mobile !== "") {
