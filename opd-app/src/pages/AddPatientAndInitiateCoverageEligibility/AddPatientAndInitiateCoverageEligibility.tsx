@@ -67,10 +67,10 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     address:
       address || patientDataFromState?.address || patientInfo[0]?.address,
     medical_history:
-    [{
+    {
       allergies: allergies,
       blood_group: bloodGroup,
-    }],
+    },
     payor_details:
     [ {
       insurance_id:
