@@ -217,7 +217,6 @@ const PreAuthRequest = () => {
     }
   };
 
-  console.log("initiatePreAuthRequestBody---", initiatePreAuthRequestBody);
 
   const getConsultation = async () => {
     try {
