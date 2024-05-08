@@ -213,8 +213,7 @@ const InitiateNewClaimRequest = () => {
   };
 
   useEffect(() => {
-    getConsultation()
-    getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
+    getConsultation().then(() => {getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))})
   }, [])
 
 
@@ -337,29 +336,28 @@ const InitiateNewClaimRequest = () => {
               </div>
             </div>
             {Object.keys(selectedFiles).length === 0 || Object.values(selectedFiles).every(files => files.length === 0) === null ? <></> :
-              <div>
-                <table className="w-full table-auto mt-10">
-                  <thead>
+                <table className="table-auto w-full mt-5">
+                  <thead className="text-left">
                     <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                      <th className="min-w-[220px] py-4 px-2 font-medium text-black dark:text-white xl:pl-11">
+                      <th>
                         Document type
                       </th>
-                      <th className="min-w-[150px] py-4 px-30 font-medium text-black dark:text-white">
+                      <th>
                         Document name
                       </th>
-                      <th className="py-4 px-50  font-medium text-black dark:text-white">
+                      <th>
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="text-left">
                     {Object.entries(selectedFiles).map(([fileType, files]) => (
                       files.map((file, index) => (
                         <tr key={`${fileType}-${index}`}>
-                          <td className='text-left dark:bg-meta-4 pl-11 p-3'>{fileType}</td>
-                          <td className='pl-30 p-3'>{file.name}</td>
-                          <td className='pl-50 p-3'>
-                            <div className="flex items-center justify-between">
+                          <td>{fileType}</td>
+                          <td>{file.name}</td>
+                          <td>
+                            <div >
                               <button onClick={() => handleDelete(file.name)} className="text-red underline text-end"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                               </svg>
@@ -371,9 +369,8 @@ const InitiateNewClaimRequest = () => {
                     ))}
                   </tbody>
                 </table>
-              </div>
             }
-          </div>
+            </div>
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
