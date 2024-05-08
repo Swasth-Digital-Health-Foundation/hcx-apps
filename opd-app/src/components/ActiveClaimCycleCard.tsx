@@ -97,7 +97,6 @@ const ActiveClaimCycleCard = (Props: any) => {
           <span
             className="cursor-pointer text-right"
             onClick={() =>
-              // navigate("/coverage-eligibility", { state: information })
               getConsultation()
             }
           >

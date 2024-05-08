@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import {
-  generateOutgoingRequest,
-  getConsultationDetails, searchUser
-} from "../../services/hcxMockService";
+import { generateOutgoingRequest, getConsultationDetails, searchUser } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
 import { toast } from "react-toastify";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -43,7 +40,6 @@ const ViewPatientDetails = () => {
     try {
       setisLoading(true);
       let registerResponse: any = await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))
-      console.log(registerResponse)
       setPatientDetails(registerResponse?.data?.result);
     } catch (error: any) {
       toast.error(error.response.data.params.errmsg, {
@@ -155,41 +151,43 @@ const ViewPatientDetails = () => {
         "request/list",
         coverageEligibilityPayload
       );
-      let response = await generateOutgoingRequest(
-        "request/list",
-        preauthOrClaimListPayload
-      );
-      let preAuthAndClaimList = response.data?.entries;
-      setpreauthOrClaimList(preAuthAndClaimList);
-      for (const entry of preAuthAndClaimList) {
-        if (entry.type === "claim") {
-          setApicallID(entry.apiCallId);
-          break;
+      if (statusCheckCoverageEligibility.status === 200) {
+        let response = await generateOutgoingRequest(
+          "request/list",
+          preauthOrClaimListPayload
+        );
+        let preAuthAndClaimList = response.data?.entries;
+        setpreauthOrClaimList(preAuthAndClaimList);
+        for (const entry of preAuthAndClaimList) {
+          if (entry.type === "claim") {
+            setApicallID(entry.apiCallId);
+            break;
+          }
         }
+        setType(
+          response.data?.entries.map((ele: any) => {
+            if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
+            else setIsRejected(false);
+            return ele.type;
+          })
+        );
+
+        let coverageData = statusCheckCoverageEligibility.data?.entries;
+        setCoverageDetails(coverageData);
+
+        const entryKey = Object?.keys(coverageDetails[0])[0];
+
+        // Filter the objects with type "claim"
+        const claimObjects = coverageDetails[0][entryKey].filter(
+          (obj: any) => obj.type === "claim"
+        );
+        // Extract the apicallId values from the "claim" objects
+
+        const apicallIds = claimObjects.map((obj: any) => obj.apiCallId);
+        setapicallIds(apicallIds);
+
+        setisLoading(false);
       }
-      setType(
-        response.data?.entries.map((ele: any) => {
-          if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
-          else setIsRejected(false);
-          return ele.type;
-        })
-      );
-
-      let coverageData = statusCheckCoverageEligibility.data?.entries;
-      setCoverageDetails(coverageData);
-
-      const entryKey = Object?.keys(coverageDetails[0])[0];
-
-      // Filter the objects with type "claim"
-      const claimObjects = coverageDetails[0][entryKey].filter(
-        (obj: any) => obj.type === "claim"
-      );
-
-      // Extract the apicallId values from the "claim" objects
-      const apicallIds = claimObjects.map((obj: any) => obj.apiCallId);
-      setapicallIds(apicallIds);
-
-      setisLoading(false);
     } catch (err) {
       setisLoading(false);
       console.log(err);
@@ -350,7 +348,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {(patientDetails.length != 0 ? patientDetails?.payorDetails[0]?.insurance_id : "") || patientInsuranceId}
+                    {patientInsuranceId || (patientDetails && patientDetails.length !== 0 ? patientDetails?.payorDetails[0]?.insurance_id : "")}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -359,7 +357,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {(patientDetails.length != 0 ? patientDetails?.payorDetails[0]?.payorName : "") || patientPayorName}
+                    {patientPayorName || (patientDetails && patientDetails.length !== 0 ? patientDetails?.payorDetails[0]?.payorName : "")}
                   </span>
                 </div>
               </div>
@@ -464,7 +462,7 @@ const ViewPatientDetails = () => {
                             INR {ele.approvedAmount}
                           </span>
                         </div> : null}
-                      {  ele?.remarks === "" ? <></> :
+                      {ele?.remarks === "" ? <></> :
                         <>
                           <div className="flex items-center justify-between">
                             <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
@@ -495,11 +493,11 @@ const ViewPatientDetails = () => {
                         {_.map(ele?.supportingDocuments?.slice(1, -1)?.split(",") ?? [], (ele: string, index: number) => {
                           const parts = ele.split('/');
                           const fileName = parts[parts.length - 1]
-                         return (
+                          return (
                             <a href={ele} download>
                               <div className='text-center'>
                                 <img key={index} height={150} width={150} src={thumbnail} alt='image' />
-                                <span>{decodeURIComponent(fileName).replace('/','')}</span>
+                                <span>{decodeURIComponent(fileName).replace('/', '')}</span>
                               </div>
                             </a>
                           );
@@ -510,7 +508,6 @@ const ViewPatientDetails = () => {
               </>
             );
           })}
-
           <div>
             {preauthOrClaimList.length === 0 && (
               <>
