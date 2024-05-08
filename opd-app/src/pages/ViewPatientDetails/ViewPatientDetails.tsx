@@ -36,11 +36,12 @@ const ViewPatientDetails = () => {
 
 
 
-  const getPatientDetails = async () => {
+  const getPatientDetails =async () => {
     try {
       setisLoading(true);
-      let registerResponse: any = await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))
+      let registerResponse: any =await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))      
       setPatientDetails(registerResponse?.data?.result);
+      setisLoading(false)
     } catch (error: any) {
       toast.error(error.response.data.params.errmsg, {
         position: toast.POSITION.TOP_CENTER,
@@ -48,8 +49,8 @@ const ViewPatientDetails = () => {
     }
   };
 
-  localStorage.setItem("patientMobile", patientDetails[0]?.mobile);
-  localStorage.setItem("patientName", patientDetails[0]?.name);
+  localStorage.setItem("patientMobile", location.state.patientMobile);
+  localStorage.setItem("patientName", patientDetails?.userName);
 
   const personalDeatails = [
     {
@@ -195,8 +196,7 @@ const ViewPatientDetails = () => {
   };
 
   useEffect(() => {
-    tokenGeneration();
-    getActivePlans();
+    tokenGeneration().then(() =>  getActivePlans());
   }, [preauthOrClaimListPayload.workflow_id, patientMobile]);
 
   const getConsultation = async () => {
@@ -217,7 +217,6 @@ const ViewPatientDetails = () => {
         break;
       }
     }
-    getConsultation();
   }, []);
 
 
@@ -247,8 +246,8 @@ const ViewPatientDetails = () => {
   }, [coverageStatus, patientMobile]);
 
   useEffect(() => {
-    getPatientDetails();
-  }, [location.state?.patientMobile]);
+    getPatientDetails().then(() => getConsultation());
+  }, [location.state?.patientMobile || localStorage.getItem("patientMobile")]);
 
   const hasClaimApproved = preauthOrClaimList.some(
     (entry: any) => entry.type === "claim"
@@ -265,7 +264,6 @@ const ViewPatientDetails = () => {
             <ArrowPathIcon
               onClick={() => {
                 getActivePlans();
-                getPatientDetails()
               }}
               className={
                 loading ? "animate-spin h-7 w-7 absolute right-0" : "h-7 w-7 absolute right-0"
@@ -348,7 +346,8 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId || (patientDetails && patientDetails.length !== 0 ? patientDetails?.payorDetails[0]?.insurance_id : "")}
+
+                    {patientInsuranceId || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.insurance_id : "")}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -357,7 +356,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName || (patientDetails && patientDetails.length !== 0 ? patientDetails?.payorDetails[0]?.payorName : "")}
+                    {patientPayorName || (!_.isEmpty(patientDetails)  ? patientDetails?.payorDetails[0]?.payorName : "")}
                   </span>
                 </div>
               </div>
