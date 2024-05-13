@@ -45,13 +45,13 @@ const Home = () => {
         participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         serviceType: 'OPD',
         mobile: localStorage.getItem('mobile'),
-        payor: userInformation?.payorDetails?.payorName,
-        insuranceId: userInformation?.payorDetails?.insurance_id,
+        payor: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payorName,
+        insuranceId: userInformation?.payorDetails && userInformation?.payorDetails[0]?.insurance_id,
         patientName: userInformation?.userName,
         app: "BSP",
         bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-        recipientCode: userInformation?.payorDetails?.payor
+        recipientCode: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payor
       };
 
       const sendCoverageEligibilityRequest = async () => {
@@ -75,6 +75,7 @@ const Home = () => {
     }
   }, [qrCodeData]);
 
+  
 
   const search = async () => {
     try {
@@ -110,9 +111,10 @@ const Home = () => {
   });
 
   useEffect(() => {
-    search();
-    getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
-  }, []);
+    search().then(() => {
+        getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+    });
+}, []);
 
   return (
     <div>
@@ -150,6 +152,7 @@ const Home = () => {
             </a>
           </div>
         </div>
+        { loading ? (<></>) : <></>}
       </div>
       <div className="mt-6">
         {loading ? (

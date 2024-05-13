@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { generateOutgoingRequest, handleUpload , getActivePlans , searchUser} from '../../services/hcxMockService';
+import { generateOutgoingRequest, handleUpload, getActivePlans, searchUser } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import { toast } from 'react-toastify';
 import strings from '../../utils/strings';
@@ -8,7 +8,6 @@ import { generateToken, searchParticipant } from '../../services/hcxService';
 import * as _ from "lodash";
 import SupportingDocuments from '../../components/SupportingDocuments';
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
-import DocumentsList from '../../components/DocumentsList';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
 import { } from '../../services/hcxMockService';
 
@@ -32,6 +31,7 @@ const InitiateNewClaimRequest = () => {
   const [userInfo, setUserInformation] = useState<any>([]);
   const [popup, setPopup] = useState(false);
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
+  const [payorDetails, setPayorDetails] = useState<any>({});
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -50,19 +50,19 @@ const InitiateNewClaimRequest = () => {
     },
     {
       key: 'Payor name :',
-      value:  userInfo?.payorDetails?.payorName || cliamDetails?.payor || payorName ,
+      value: payorDetails[0]?.payorName || cliamDetails?.payor || payorName,
     },
     {
       key: 'Insurance ID :',
       value: cliamDetails?.insuranceId || 'null',
     },
-  ];
+  ];  
 
   let requestBody: any = {
     insuranceId: cliamDetails?.insuranceId || '',
     mobile: localStorage.getItem('mobile') || '',
     participantCode: cliamDetails?.participantCode || '',
-    payor: userInfo?.payorDetails?.payorName || cliamDetails?.payor || payorName ,
+    payor: payorDetails[0]?.payorName || cliamDetails?.payor || payorName,
     providerName: cliamDetails?.providerName || '',
     patientName: userInfo?.userName,
     serviceType: cliamDetails?.serviceType || '',
@@ -79,28 +79,25 @@ const InitiateNewClaimRequest = () => {
     type: 'OPD',
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: userInfo?.payorDetails?.payor,
+    recipientCode: payorDetails[0]?.payor,
     app: "BSP"
   };
-
-  console.log("Request body", requestBody);
-  
 
   const participantCodePayload = {
     filters: {
       participant_code: { eq: location.state?.participantCode },
     },
   };
-  
+
 
   const payorCodePayload = {
     filters: {
-      participant_code: { eq: location.state?.payorCode },
+      participant_code: { eq: payorDetails[0]?.payor },
     },
   };
 
   const mobileNumber: any = localStorage.getItem('mobile');
-  
+
   const submitClaim = async () => {
     try {
       setLoading(true);
@@ -110,11 +107,11 @@ const InitiateNewClaimRequest = () => {
           'claim/submit',
           requestBody
         );
-        if(submitClaim.status === 202){
+        if (submitClaim.status === 202) {
           setLoading(false);
           toast.success("Claim request initiated successfully")
           navigate('/home');
-        }  
+        }
       }, 2000);
     } catch (err) {
       setLoading(false);
@@ -151,6 +148,7 @@ const InitiateNewClaimRequest = () => {
     try {
       let response: any = await searchUser("user/search", mobileNumber || location.state?.patientMobile)
       setUserInformation(response?.data?.result);
+      setPayorDetails(response?.data?.result?.payorDetails && response?.data?.result?.payorDetails.filter((ele: any) => ele.insurance_id === cliamDetails?.insuranceId))
     } catch (error) {
       console.log(error);
     }
@@ -168,8 +166,6 @@ const InitiateNewClaimRequest = () => {
   useEffect(() => {
     getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
   }, [])
-
-  // console.log({ preauthOrClaimList })
 
   return (
     <div className="w-full">
@@ -249,7 +245,6 @@ const InitiateNewClaimRequest = () => {
         fileErrorMessage={fileErrorMessage}
         selectedFile={selectedFile}
         dropdownOptions={supportingDocumentsOptions} />
-
       {/* {_.isEmpty(preauthOrClaimList) ? <></> : <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <DocumentsList preauthOrClaimList={preauthOrClaimList} />
       </div>} */}

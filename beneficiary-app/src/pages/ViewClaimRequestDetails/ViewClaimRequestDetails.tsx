@@ -175,9 +175,6 @@ const ViewClaimRequestDetails = () => {
     setpreauthOrClaimList(data);
   };
 
-  const claimAndPreauthEntries = preAuthAndClaimList.filter(
-    (entry: any) => entry.type === 'claim' || entry.type === 'preauth'
-  );
 
   const hasClaimApproved = preAuthAndClaimList.some(
     (entry: any) => entry.type === 'claim' && entry.status === 'Approved'

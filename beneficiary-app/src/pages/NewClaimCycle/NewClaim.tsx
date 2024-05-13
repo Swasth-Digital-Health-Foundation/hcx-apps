@@ -5,7 +5,6 @@ import { searchUser } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from 'lodash';
 import strings from '../../utils/strings';
-import { postRequest } from '../../services/registryService';
 import AddAnotherInsurance from './AddAnotherInsurance';
 import ProviderSearch from './ProviderSearch';
 
@@ -170,13 +169,11 @@ const NewClaim = () => {
               className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent bg-transparent py-4 px-6 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
             >
               <option value="">select</option>
-              <option value={userInfo?.payorDetails?.insurance_id}>{userInfo?.payorDetails?.insurance_id}</option>
-
-              {/* {_.map(userInfo?.payorDetails, (ele: any, index: any) => {
+              {_.map(userInfo?.payorDetails, (ele: any, index: any) => {
                 return (
                   <option key={index} value={ele?.insurance_id}>{ele?.insurance_id}</option>
                 );
-              })} */}
+              })}
             </select>
             <span className="absolute top-1/2 right-4 z-10 -translate-y-1/2">
               <svg

@@ -32,10 +32,18 @@ async function searchUser(url: any, payload: any) {
   return response;
 }
 
-async function createUser(url: any,payload: any) {
+async function createUser(url: any, payload: any) {
   const response = await axios.post(
     `${process.env.hcx_mock_service}/${url}`,
-        payload
+    payload
+  );
+  return response;
+}
+
+async function userUpdate(url: any, payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/${url}`,
+    payload
   );
   return response;
 }
@@ -69,7 +77,7 @@ async function verifyOTP(payload: any) {
   return response;
 }
 
-const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList}: any) => {
+const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }: any) => {
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
@@ -166,5 +174,6 @@ export {
   getActivePlans,
   getNotifications,
   searchUser,
-  createUser
+  createUser,
+  userUpdate
 };
