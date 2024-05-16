@@ -11,6 +11,7 @@ import AddPatientAndInitiateCoverageEligibility from "./pages/AddPatientAndIniti
 import Login from "./pages/Authentication/Login";
 import AddConsultation from "./pages/AddConsultation/AddConsultation";
 import ViewPatientDetails from "./pages/ViewPatientDetails/ViewPatientDetails";
+import UserProfile from "./pages/UserProfile/userProfile";
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -62,6 +63,10 @@ const App = () => {
           <Route
             path="/initiate-preauth-request"
             element={<PreAuthRequest />}
+          />
+           <Route
+            path="/user-profile"
+            element={<UserProfile />}
           />
           <Route path="/request-success" element={<RequestSuccess />} />
         </Route>

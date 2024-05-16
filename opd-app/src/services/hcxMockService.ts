@@ -75,6 +75,7 @@ const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload
 };
 
 const handleUpload = async (mobileNumber: any, FileLists: any) => {
+  toast.info('Uploading documents please wait...!');
   try {
     const formData = new FormData();
     formData.append('mobile', mobileNumber);
@@ -82,13 +83,15 @@ const handleUpload = async (mobileNumber: any, FileLists: any) => {
     FileLists.forEach((file: any) => {
       formData.append(`file`, file);
     });
-    toast.info('Uploading documents please wait...!');
     const response = await axios({
       url: `${process.env.hcx_mock_service}/upload/documents`,
       method: 'POST',
       data: formData,
     });
-    toast.info('Documents uploaded successfully!');
+    if(response.status === 200){
+      toast.dismiss();
+      toast.success('Documents uploaded successfully!');
+    }
     return response;
   } catch (error) {
     console.error('Error in uploading file', error);

@@ -30,7 +30,7 @@ const InitiateNewClaimRequest = () => {
   );
 
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [consultationDetail, setConsultationDetails] = useState<any>();
+  const [consultationDetails, setConsultationDetails] = useState<any>();
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File[] }>({});
   const [files, setFiles] = useState<File[]>([]);
@@ -172,7 +172,6 @@ const InitiateNewClaimRequest = () => {
     console.log(response)
   };
 
-
   const submitClaim = async () => {
     try {
       setSubmitLoading(true);
@@ -183,9 +182,11 @@ const InitiateNewClaimRequest = () => {
         if (response?.status === 200) {
           handlePreAuthRequest()
           setSubmitLoading(false);
+          toast.dismiss()
           toast.success("Claim request initiated successfully!");
         }
       } else {
+        toast.dismiss()
         handlePreAuthRequest()
         toast.success("Claim request initiated successfully!");
       }
@@ -193,6 +194,7 @@ const InitiateNewClaimRequest = () => {
       navigate("/home");
     } catch (err) {
       setSubmitLoading(false);
+      toast.dismiss()
       toast.error("Failed to submit claim, try again!");
     }
   };
@@ -201,12 +203,13 @@ const InitiateNewClaimRequest = () => {
     try {
       const response = await getConsultationDetails(_.get(data, "requestDetails.workflowId", ""));
       let consultationDetails = response.data;
+      console.log("consultationDetails", consultationDetails);
       setConsultationDetails(consultationDetails);
     } catch (err: any) {
       console.log(err);
     }
   };
-
+  
   const preauthOrClaimListPayload = {
     workflow_id: _.get(data, "requestDetails.workflowId", ""),
     app: 'OPD',

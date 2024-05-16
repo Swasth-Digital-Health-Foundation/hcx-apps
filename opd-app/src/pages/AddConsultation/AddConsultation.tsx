@@ -73,6 +73,7 @@ const AddConsultation = () => {
         "consultation/add",
         consultationPayload)
         if(response?.status === 200){
+          toast.dismiss()
           toast.success("Consultation added successfully!");
           navigate("/coverage-eligibility", { state: location.state });
         }
@@ -96,6 +97,7 @@ const AddConsultation = () => {
         FileLists.forEach((file: any) => {
           formData.append(`file`, file);
         });
+        toast.dismiss()
         toast.info("Uploading documents please wait...!");
         const response = await axios({
           url: `${process.env.hcx_mock_service}/upload/documents`,
@@ -114,14 +116,16 @@ const AddConsultation = () => {
           ...obtainedResponse,
         ]);
         consultationPayload.supporting_documents_url = uploadedUrls;
-        toast.info("Documents uploaded successfully!");
         if (response.status === 200) {
+          toast.dismiss()
+          toast.info("Documents uploaded successfully!");
           addConsultation()
         }
         setLoading(false)
       }
     } catch (error) {
       setLoading(false);
+      toast.dismiss()
       toast.error("Faild to upload documents, please try again!");
     }
   };

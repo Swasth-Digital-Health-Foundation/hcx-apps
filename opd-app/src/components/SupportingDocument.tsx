@@ -4,7 +4,6 @@ const SupportingDocs = () => {
     const [documentType, setDocumentType] = useState('Prescription');
     const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File[] }>({});
 
-    console.log(selectedFiles);
 
     const handleDelete = (name: string) => {
         setSelectedFiles(prevSelectedFiles => {
@@ -15,9 +14,6 @@ const SupportingDocs = () => {
             return updatedFiles;
         });
     };
-
-    console.log("selectedFiles", { selectedFiles });
-
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
