@@ -154,7 +154,7 @@ const Home = () => {
 
   useEffect(() => {
     if (isValid && isSearched) {
-      userSearch();
+      userSearch().then(() => getCoverageEligibilityRequestList(setLoading, getListUsingMobile, setActiveRequests, setFinalData, setDisplayedData));
     }
     if (mobileNumber === "") {
       setSearched(false)
@@ -253,7 +253,7 @@ const Home = () => {
                 } else {
                   setSearched(true)
                   setSearchedMobile(mobileNumber)
-                  getCoverageEligibilityRequestList(setLoading, getListUsingMobile, setActiveRequests, setFinalData, setDisplayedData);
+                  // getCoverageEligibilityRequestList(setLoading, getListUsingMobile, setActiveRequests, setFinalData, setDisplayedData);
                 }
               }}
               disabled={!isValid}
