@@ -35,7 +35,7 @@ const DropdownNotification = () => {
                 }}
                 className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full border-[0.5px] border-stroke bg-gray hover:text-primary dark:border-strokedark dark:bg-meta-4 dark:text-white"
             >
-                {showMessageCount ? <div className="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red ml-6 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">{notificationData.length - 1 || 0}</div> : <></>}
+                {showMessageCount ? <div className="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red ml-6 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">{notificationData.length || 0}</div> : <></>}
                 <span
                     className={`absolute -top-0.5 right-0 z-1 h-2 w-2 rounded-full bg-meta-1 ${notifying === false ? 'hidden' : 'inline'
                         }`}
