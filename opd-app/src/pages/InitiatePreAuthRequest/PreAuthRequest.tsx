@@ -9,7 +9,6 @@ import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
-import SupportingDocs from "../../components/SupportingDocument";
 
 const PreAuthRequest = () => {
   const navigate = useNavigate();
@@ -75,6 +74,23 @@ const PreAuthRequest = () => {
     });
     setFiles((prevFiles) => prevFiles.filter((file) => file.name !== name));
   };
+
+  let urls: string = consultationDetails?.supporting_documents_url;
+  const trimmedString: string = urls?.slice(1, -1);
+  const consultationDocs: any[] = trimmedString?.split(",");
+
+  function addConsultationUrls(supportingDocs: { documentType: string; urls: any; }[], consultationUrls: any) {
+    const prescriptionIndex = supportingDocs.findIndex(doc => doc.documentType === "prescription");
+    if (prescriptionIndex !== -1) {
+      supportingDocs[prescriptionIndex].urls = supportingDocs[prescriptionIndex].urls.concat(consultationUrls);
+    } else {
+      supportingDocs.push({
+        documentType: "prescription",
+        urls: consultationUrls
+      });
+    }
+  }
+
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,9 +210,9 @@ const PreAuthRequest = () => {
         const response = await handleUpload(mobile, files);
         if (response?.status === 200) {
           const supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
+          addConsultationUrls(supportingDocs, consultationDocs)
           _.set(initiatePreAuthRequestBody, "supportingDocuments", supportingDocs)
           const preauthResponse = await generateOutgoingRequest("preauth/submit", initiatePreAuthRequestBody);
-          console.log("preauthResponse" + preauthResponse);
           setSubmitLoading(false);
           toast.dismiss()
           toast.success("Pre-auth request initiated successfully!")
@@ -204,6 +220,8 @@ const PreAuthRequest = () => {
         }
       }
       else {
+        const supportingDocs = addConsultationUrls([], consultationDocs);
+        _.set(initiatePreAuthRequestBody, "supportingDocuments", supportingDocs);
         const preauthResponse = await generateOutgoingRequest("preauth/submit", initiatePreAuthRequestBody);
         if (preauthResponse.status === 202) {
           toast.dismiss()
@@ -237,7 +255,7 @@ const PreAuthRequest = () => {
 
   console.log("consultation details ", consultationDetails?.supporting_documents_url);
 
-  console.log("SupportingDocs" , initiatePreAuthRequestBody );
+  console.log("SupportingDocs", initiatePreAuthRequestBody);
 
 
   return (
