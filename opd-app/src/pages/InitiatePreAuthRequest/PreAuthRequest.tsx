@@ -253,11 +253,6 @@ const PreAuthRequest = () => {
     getConsultation()
   }, [])
 
-  console.log("consultation details ", consultationDetails?.supporting_documents_url);
-
-  console.log("SupportingDocs", initiatePreAuthRequestBody);
-
-
   return (
     <>
       {loading ? (
