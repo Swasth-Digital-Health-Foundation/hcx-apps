@@ -6,6 +6,7 @@ import LoadingButton from "../../components/LoadingButton";
 import * as _ from "lodash";
 import animationImage from '../../images/banner.svg';
 import { login } from "../../services/hcxService";
+import ReferenceAppsPage from "../ReferenceAppsPage/ReferenceAppsPage";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ const Login = () => {
               </span>
             </div>
           </div>
-
+        <ReferenceAppsPage/>
           <div className="w-full border-stroke dark:border-strokedark xl:w-1/2 xl:border-l-2">
             <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
               <div className="text-center w-full xl:hidden">
