@@ -26,6 +26,21 @@ async function createCommunicationOnRequest(payload: any) {
   return response;
 }
 
+async function searchUser(url: any, payload: any) {
+  const response = await axios.get(
+    `${process.env.hcx_mock_service}/${url}/${payload}`
+  );
+  return response;
+}
+
+async function createUser(url: any,payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/${url}`,
+        payload
+  );
+  return response;
+}
+
 async function sendOTP(payload: any) {
   const response = await axios.post(
     `${process.env.hcx_mock_service}/send/otp`,
@@ -66,7 +81,7 @@ const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      "bsp/request/list",
+      "request/list",
       requestPayload
     );
     const data = response.data.entries;
@@ -137,7 +152,7 @@ const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreaut
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
+      'request/list',
       preauthOrClaimListPayload
     );
     let preAuthAndClaimList = response.data?.entries;
@@ -159,5 +174,7 @@ export {
   getCoverageEligibilityRequestList,
   handleUpload,
   getActivePlans,
-  getNotifications
+  getNotifications,
+  searchUser,
+  createUser
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
@@ -10,8 +10,8 @@ import {
 import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import * as _ from "lodash";
-import { CurrencyBangladeshiIcon } from '@heroicons/react/24/outline';
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import {  ArrowPathIcon } from "@heroicons/react/24/outline";
+
 
 
 const VerifyClaim = () => {
@@ -30,6 +30,8 @@ const VerifyClaim = () => {
   const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
   const [popup, setPopup] = useState(false);
+  const [consentDetails , setConsentDetails] = useState<any>();
+
 
 
   const participantCodePayload = {
@@ -123,21 +125,22 @@ const VerifyClaim = () => {
     request_id: details?.apiCallId,
   };
 
+  console.log(location.state);
+
+  
     
 
   const getVerification = async () => {
     try {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayload);
+      setConsentDetails(res.data?.result)
       setRefresh(false);
-      if (res.status === 200) {
-        setInitiated(true);
-      }
       if (res.status === 200 && res?.data?.result?.otpStatus === 'initiated') {
         setInitiated(true)
         toast.success('Policy consent is initiated.');
       }
-      else {
+      else if (res.status === 200 && res?.data?.result?.otpStatus === 'Pending') {
         setInitiated(false)
         toast.error('Policy consent is not initiated.');
       }
@@ -148,7 +151,6 @@ const VerifyClaim = () => {
   };
 
   const recipientCode =  location.state.recipientCode;  
-  // const recipientCode = localStorage.getItem('recipientCode');
 
   const bankDetails: any = preAuthAndClaimList.filter(
     (entry: any) => {
@@ -157,10 +159,11 @@ const VerifyClaim = () => {
       }
     }
   )
+    
 
    const payload = {
     request_id: details?.apiCallId,
-    mobile: localStorage.getItem('patientMobile'),
+    mobile: location.state?.mobile || localStorage.getItem('patientMobile'),
     otp_code: OTP,
     type: 'otp',
     participantCode: localStorage.getItem('senderCode') ,
@@ -174,9 +177,12 @@ const VerifyClaim = () => {
       const res = await createCommunicationOnRequest(payload);
       setLoading(false);
       setInitiated(false);
-      toast.success(res.data?.message);
-      console.log(location.state);
-      navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
+      if(res?.status == 202){
+        toast.success("OTP submitted successfully!");
+        console.log(location.state);
+        navigate('/home')
+      } 
+      // navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
     } catch (err) {
       setLoading(false);
       toast.error('Enter valid OTP!');
@@ -191,7 +197,7 @@ const VerifyClaim = () => {
 
   const getSupportingDocsFromList = async () => {
     let response = await generateOutgoingRequest(
-      'bsp/request/list',
+      'request/list',
       preauthOrClaimListPayload
     );
     const data = response.data?.entries;
@@ -204,20 +210,22 @@ const VerifyClaim = () => {
   };
 
   const hasClaimApproved = preAuthAndClaimList.some(
-    (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
+    (entry: any) => entry.type === 'claim' && entry.status === 'response.complete'
   );
 
-  const isVerificationSuccessful = preAuthAndClaimList.some(
-    (entry: any) => entry.type === 'claim' && entry.otpStatus === 'successful' && entry.status !== 'Approved'
-  );
+console.log(preAuthAndClaimList);
+     
 
+  const isVerificationSuccessful = preAuthAndClaimList.some(    
+    (entry: any) => entry.type === 'claim' && entry.otpStatus === 'successful' && entry.status !== 'response.complete' 
+  );
 
   useEffect(() => {
     getSupportingDocsFromList();
   }, [details?.workflowId]);
 
   useEffect(() => {
-    if (isVerificationSuccessful && payorName !== undefined) {
+    if (isVerificationSuccessful  && payorName !== undefined) {
       navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } })
     }
   }, [payorName])
@@ -239,16 +247,6 @@ const VerifyClaim = () => {
             />
             {loading ? "Please wait..." : ""}
           </div>
-        // <div
-        //   onClick={() => getVerification()}
-        //   className="align-center mt-4 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-        // >
-        //   {!refresh ? (
-        //     <span className="cursor-pointer">Refresh1</span>
-        //   ) : (
-        //     <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-        //   )}
-        // </div>
       ) : (
         <>
           <button
@@ -332,44 +330,6 @@ const VerifyClaim = () => {
         </div>
       </>}
 
-      {/* {!hasClaimApproved ? (
-            <div className="relative flex pb-8">
-            <ArrowPathIcon
-              onClick={() => {
-                getVerification();
-              }}
-              className={
-                loading ? "animate-spin h-10 w-7 absolute right-0" : "h-7 w-7 absolute right-0"
-              }
-              aria-hidden="true"
-            />
-            {loading ? "Please wait..." : ""}
-          </div>
-        // <div
-        //   onClick={() => getVerification()}
-        //   className="align-center mt-4 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-        // >
-        //   {!refresh ? (
-        //     <span className="cursor-pointer">Refresh1</span>
-        //   ) : (
-        //     <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-        //   )}
-        // </div>
-      ) : (
-        <>
-          <button
-            onClick={(event: any) => {
-              event.preventDefault();
-              navigate('/home');
-            }}
-            type="submit"
-            className="align-center mt-8 flex w-full justify-center rounded bg-primary py-3 font-medium text-gray"
-          >
-            Home
-          </button>
-        </>
-      )} */}
-
       {initiated ? (
         <>
           <div className="flex items-center justify-between">
@@ -415,7 +375,7 @@ const VerifyClaim = () => {
                 >
                   {strings.VERIFY_OTP_BUTTON}
                 </button>
-              )}
+              )} 
             </div>
           </div>
         </>
