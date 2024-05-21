@@ -2,9 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../../images/swasth_logo.png';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { postRequest } from '../../services/registryService';
 import LoadingButton from '../../components/LoadingButton';
-import { sendOTP, verifyOTP } from '../../services/hcxMockService';
+import { sendOTP, verifyOTP, searchUser } from '../../services/hcxMockService';
 import strings from '../../utils/strings';
 import maskMobileNumber from '../../utils/maskMobileNumber';
 
@@ -36,18 +35,21 @@ const VerifyOTP = () => {
       setLoading(true);
       const otpResponse = await verifyOTP(verifyOTPrequestBody);
       if (otpResponse.status === 200) {
-        const searchUser = await postRequest('/search', filter);
-        if (searchUser?.data?.length !== 0) {
-          toast.success('OTP verified successfully!');
-          navigate('/home', { state: filter });
-        } else {
-          navigate('/signup');
+        try {
+          let response: any = await searchUser("user/search", mobileNumber)
+          if (response.status === 200) {
+            toast.success('OTP verified successfully!');
+            navigate('/home', { state: filter });
+          }
+        } catch (error) {
+          console.log(error);
         }
+      } else {
+        navigate('/signup');
       }
     } catch (error: any) {
       setLoading(false);
       if (error.response?.status === 400) {
-        // console.log("status",error.response)
         toast.error('Enter valid OTP!');
       } else {
         toast.error('Request timed out,try again!');

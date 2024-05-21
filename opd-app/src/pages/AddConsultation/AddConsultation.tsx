@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import SelectInput from "../../components/SelectInput";
 import strings from "../../utils/strings";
 import { handleFileChange } from "../../utils/attachmentSizeValidation";
@@ -72,46 +72,58 @@ const AddConsultation = () => {
       const response = await generateOutgoingRequest(
         "consultation/add",
         consultationPayload)
-        toast.success("Consultation added successfully!");
-        navigate("/coverage-eligibility", { state: location.state });
+        if(response?.status === 200){
+          toast.dismiss()
+          toast.success("Consultation added successfully!");
+          navigate("/coverage-eligibility", { state: location.state });
+        }
     } catch (err) {
+      setLoading(false)
       toast.error("Faild to add consultation, try again!");
     }
   };
 
+
   const handleUpload = async () => {
     try {
       setLoading(true);
-      const formData = new FormData();
-      formData.append("mobile", patientMobile);
-      FileLists.forEach((file: any) => {
-        formData.append(`file`, file);
-      });
-      toast.info("Uploading documents please wait...!");
-      const response = await axios({
-        url: `${process.env.hcx_mock_service}/upload/documents`,
-        method: "POST",
-        data: formData,
-      });
-      let obtainedResponse = response.data;
-      const uploadedUrls: string[] = [];
-
-      // Iterate through the obtainedResponse and add each URL to the array
-      obtainedResponse.forEach((ele: any) => {
-        uploadedUrls.push(ele.url);
-      });
-      setUrlList((prevFileUrlList: any) => [
-        ...prevFileUrlList,
-        ...obtainedResponse,
-      ]);
-      consultationPayload.supporting_documents_url = uploadedUrls;
-      toast.info("Documents uploaded successfully!");
-      if (response.status === 200) {
+      if (FileLists === undefined) {
         addConsultation()
+      } else {
+        const formData = new FormData();
+        formData.append("mobile", patientMobile);
+        FileLists.forEach((file: any) => {
+          formData.append(`file`, file);
+        });
+        toast.dismiss()
+        toast.info("Uploading documents please wait...!");
+        const response = await axios({
+          url: `${process.env.hcx_mock_service}/upload/documents`,
+          method: "POST",
+          data: formData,
+        });
+        let obtainedResponse = response.data;
+        const uploadedUrls: string[] = [];
+
+        // Iterate through the obtainedResponse and add each URL to the array
+        obtainedResponse.forEach((ele: any) => {
+          uploadedUrls.push(ele.url);
+        });
+        setUrlList((prevFileUrlList: any) => [
+          ...prevFileUrlList,
+          ...obtainedResponse,
+        ]);
+        consultationPayload.supporting_documents_url = uploadedUrls;
+        if (response.status === 200) {
+          toast.dismiss()
+          toast.info("Documents uploaded successfully!");
+          addConsultation()
+        }
+        setLoading(false)
       }
-      setLoading(false)
     } catch (error) {
       setLoading(false);
+      toast.dismiss()
       toast.error("Faild to upload documents, please try again!");
     }
   };
@@ -151,7 +163,7 @@ const AddConsultation = () => {
         />
       </div>
       <label className="text-1xl block pt-3 text-left font-bold text-black dark:text-white">
-        Supporting documents : *
+        Supporting documents :
       </label>
       <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
         <label className="mb-2.5 block text-left font-medium text-black dark:text-white">
@@ -285,7 +297,6 @@ const AddConsultation = () => {
               treatmentType === "" ||
               serviceType === "" ||
               symptoms === "" ||
-              selectedFile === undefined ||
               fileErrorMessage
             }
           />

@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom';
 import LogoIcon from '../images/swasth_logo.png';
 import DarkModeSwitcher from './DarkModeSwitcher';
 import { useEffect, useState } from 'react';
-import DropdownNotification from './DropdownNotification';
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
@@ -109,7 +108,6 @@ const Header = (props: {
 
         <div className="flex items-center gap-3 2xsm:gap-7">
           <ul className="flex items-center gap-2 2xsm:gap-4">
-            <DropdownNotification />
             <DarkModeSwitcher />
           </ul>
         </div>

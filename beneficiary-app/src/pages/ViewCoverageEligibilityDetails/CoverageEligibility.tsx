@@ -114,11 +114,11 @@ const CoverageEligibility = () => {
     try {
       setisLoading(true);
       let statusCheckCoverageEligibility = await generateOutgoingRequest(
-        'bsp/request/list',
+        'request/list',
         coverageEligibilityPayload
       );
       let response = await generateOutgoingRequest(
-        'bsp/request/list',
+        'request/list',
         preauthOrClaimListPayload
       );
       let preAuthAndClaimList = response.data?.entries;
@@ -172,7 +172,7 @@ const CoverageEligibility = () => {
       const eligibilityObject = coverageStatus[workflowId].find(
         (obj: any) => obj.type === 'coverageeligibility'
       );
-      const status = eligibilityObject.status;
+      const status = eligibilityObject.status === "response.complete" ? "Approved" : eligibilityObject.status;
       setcoverageStatus(status);
     } else {
       console.log(
@@ -182,8 +182,12 @@ const CoverageEligibility = () => {
   }, [coverageStatus]);
 
   const hasClaimApproved = preauthOrClaimList.some(
-    (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
+    (entry: any) => entry.type === 'claim' && entry.status === 'response.complete'
   );
+  
+  let urls: string = preauthOrClaimList[0]?.supportingDocuments;
+  const trimmedString: string = urls?.slice(1, -1);
+  const urlArray: any[] = trimmedString?.split(",");
 
   return (
     <>
@@ -239,7 +243,6 @@ const CoverageEligibility = () => {
             </div> : null}
           </div>
           {_.map(preauthOrClaimList, (ele: any) => {
-            const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -247,7 +250,7 @@ const CoverageEligibility = () => {
                     {ele?.type.charAt(0).toUpperCase() + ele?.type.slice(1)}{' '}
                     details :
                   </h2>
-                  {ele?.status === 'Approved' ? (
+                  {ele?.status === 'response.complete' ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
                       &#10004; Approved
                     </div>
@@ -281,46 +284,50 @@ const CoverageEligibility = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      {
-                        additionalInfo?.financial?.approved_amount &&
+                      {ele.status === "response.complete" ?
                         <div className="flex gap-2">
                           <h2 className="text-bold text-base font-bold text-black dark:text-white">
                             Approved amount :
                           </h2>
                           <span className="text-base font-medium">
-                            INR {additionalInfo?.financial?.approved_amount}
+                            INR {ele.approvedAmount}
                           </span>
-                        </div>
+                        </div> : <></>
                       }
                     </div>
                   </div>
-                  {_.isEmpty(ele.supportingDocuments) ? null : <>
-                    <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
-                      Supporting documents :
-                    </h2>
-                    {Object.entries(ele.supportingDocuments).map(([key, values]) => (
-                      <div key={key}>
-                        <h3 className='text-base font-bold text-black dark:text-white'>Document type : <span className='text-base font-medium'>{key}</span></h3>
-                        <div className='flex'>
-                          {Array.isArray(values) &&
-                            values.map((imageUrl, index) => {
-                              const parts = imageUrl.split('/');
-                              const fileName = parts[parts.length - 1];
-                              return (
-                                <a href={imageUrl} download>
-                                  <div className='text-center'>
-                                    <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{fileName}</span>
-                                  </div>
-                                </a>
-                              )
-                            })}
-                        </div>
+                  {urls === "{}" || urls === undefined ? <></> :
+                    <>
+                      <h2 className="text-bold text-base font-medium text-black dark:text-white">
+                        Supporting documents :
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {_.map(urlArray, (ele: string, index: number) => {
+                          const parts = ele.split('/');
+                          const fileName = parts[parts.length - 1];
+                          return (
+                            <a href={ele} download>
+                              <div className='text-center'>
+                                <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                                <span>{decodeURIComponent(fileName)}</span>
+                              </div>
+                            </a>
+                          );
+                        })}
+                      </div></>
+                    }
+                    {
+                      ele?.otpStatus === "successful" && ele.type === "claim" ?
+                      <>
+                     <div className="flex items-center justify-between">
+                        <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
+                          Policy consent : <span className='text-success'>&#10004; Approved</span>
+                        </h2>
                       </div>
-                    ))}
-                  </>}
+                      </>  : <></>
+                    }
                   {
-                    ele?.accountNumber === '1234' ? <></> :
+                    ele?.bankStatus === "successful" && ele.type === "claim" ?
                       <div className='mt-2'>
                         <div className="flex items-center justify-between">
                           <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-1 font-semibold text-black dark:text-white">
@@ -342,7 +349,7 @@ const CoverageEligibility = () => {
                               <span className="text-base font-medium">{ele.ifscCode}</span>                        </div>
                           </div>
                         </div>
-                      </div>
+                      </div> : <></>
                   }
                 </div>
               </>

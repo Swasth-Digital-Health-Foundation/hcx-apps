@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "postbuild": "mkdir build/opd && mv build/assets build/opd/assets"
-  },
+    },
   "dependencies": {
     "-": "^0.0.1",
     "@heroicons/react": "^2.0.18",

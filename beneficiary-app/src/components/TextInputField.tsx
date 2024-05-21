@@ -4,10 +4,10 @@ const TextInputWithLabel = ({
   onChange,
   placeholder,
   disabled,
-  type,
+  type 
 }: any) => {
   return (
-    <div className="text-bold mt-3 text-base font-bold text-black dark:text-white">
+    <div className="block text-left font-medium text-black dark:text-white">
       {label}
       <div>
         <input
@@ -16,7 +16,6 @@ const TextInputWithLabel = ({
           disabled={disabled}
           type={type}
           placeholder={placeholder}
-          onWheel={e => e.target instanceof HTMLElement && e.target.blur()}
           className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
         />
       </div>

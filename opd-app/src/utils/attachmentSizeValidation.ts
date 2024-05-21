@@ -1,9 +1,4 @@
-export const handleFileChange: any = (
-  event: any,
-  setErrorMsg: any,
-  setIsSuccess: any,
-  setSelectedFile: any
-) => {
+export const handleFileChange: any = ( event: any, setErrorMsg: any, setIsSuccess: any, setSelectedFile: any) => {
   const files = event.target.files;
   const MAX_FILE_SIZE = 1 * 1024 * 1024;
 

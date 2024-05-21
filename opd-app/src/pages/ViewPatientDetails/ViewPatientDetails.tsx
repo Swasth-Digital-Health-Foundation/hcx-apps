@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import {
-  generateOutgoingRequest,
-  getConsultationDetails,
-} from "../../services/hcxMockService";
+import { generateOutgoingRequest, getConsultationDetails, searchUser } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
 import { toast } from "react-toastify";
-import { postRequest } from "../../services/registryService";
-import { isEmpty } from "lodash";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
@@ -39,23 +34,14 @@ const ViewPatientDetails = () => {
 
   const [type, setType] = useState<string[]>([]);
 
-  const payload = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: {
-        eq: `${location.state?.patientMobile || localStorage.getItem("patientMobile")
-          }`,
-      },
-    },
-  };
 
-  const getPatientDetails = async () => {
+
+  const getPatientDetails =async () => {
     try {
       setisLoading(true);
-      let registerResponse: any = await postRequest("search", payload);
-      console.log(registerResponse)
-      const patientDetails = registerResponse.data;
-      setPatientDetails(patientDetails);
+      let registerResponse: any =await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))      
+      setPatientDetails(registerResponse?.data?.result);
+      setisLoading(false)
     } catch (error: any) {
       toast.error(error.response.data.params.errmsg, {
         position: toast.POSITION.TOP_CENTER,
@@ -63,21 +49,21 @@ const ViewPatientDetails = () => {
     }
   };
 
-  localStorage.setItem("patientMobile", patientDetails[0]?.mobile);
-  localStorage.setItem("patientName", patientDetails[0]?.name);
+  localStorage.setItem("patientMobile", location.state.patientMobile);
+  localStorage.setItem("patientName", patientDetails?.userName);
 
   const personalDeatails = [
     {
       key: "Patient name",
-      value: patientDetails[0]?.name,
+      value: patientDetails?.userName,
     },
     {
       key: "Mobile no",
-      value: patientDetails[0]?.mobile,
+      value: patientDetails?.mobile || location.state?.patientMobile || localStorage.getItem("patientMobile"),
     },
     {
       key: "Address",
-      value: patientDetails[0]?.address,
+      value: patientDetails?.address,
     },
   ];
 
@@ -163,44 +149,46 @@ const ViewPatientDetails = () => {
     try {
       setisLoading(true);
       let statusCheckCoverageEligibility = await generateOutgoingRequest(
-        "bsp/request/list",
+        "request/list",
         coverageEligibilityPayload
       );
-      let response = await generateOutgoingRequest(
-        "bsp/request/list",
-        preauthOrClaimListPayload
-      );
-      let preAuthAndClaimList = response.data?.entries;
-      setpreauthOrClaimList(preAuthAndClaimList);
-      for (const entry of preAuthAndClaimList) {
-        if (entry.type === "claim") {
-          setApicallID(entry.apiCallId);
-          break;
+      if (statusCheckCoverageEligibility.status === 200) {
+        let response = await generateOutgoingRequest(
+          "request/list",
+          preauthOrClaimListPayload
+        );
+        let preAuthAndClaimList = response.data?.entries;
+        setpreauthOrClaimList(preAuthAndClaimList);
+        for (const entry of preAuthAndClaimList) {
+          if (entry.type === "claim") {
+            setApicallID(entry.apiCallId);
+            break;
+          }
         }
+        setType(
+          response.data?.entries.map((ele: any) => {
+            if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
+            else setIsRejected(false);
+            return ele.type;
+          })
+        );
+
+        let coverageData = statusCheckCoverageEligibility.data?.entries;
+        setCoverageDetails(coverageData);
+
+        const entryKey = Object?.keys(coverageDetails[0])[0];
+
+        // Filter the objects with type "claim"
+        const claimObjects = coverageDetails[0][entryKey].filter(
+          (obj: any) => obj.type === "claim"
+        );
+        // Extract the apicallId values from the "claim" objects
+
+        const apicallIds = claimObjects.map((obj: any) => obj.apiCallId);
+        setapicallIds(apicallIds);
+
+        setisLoading(false);
       }
-      setType(
-        response.data?.entries.map((ele: any) => {
-          if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
-          else setIsRejected(false);
-          return ele.type;
-        })
-      );
-
-      let coverageData = statusCheckCoverageEligibility.data?.entries;
-      setCoverageDetails(coverageData);
-
-      const entryKey = Object?.keys(coverageDetails[0])[0];
-
-      // Filter the objects with type "claim"
-      const claimObjects = coverageDetails[0][entryKey].filter(
-        (obj: any) => obj.type === "claim"
-      );
-
-      // Extract the apicallId values from the "claim" objects
-      const apicallIds = claimObjects.map((obj: any) => obj.apiCallId);
-      setapicallIds(apicallIds);
-
-      setisLoading(false);
     } catch (err) {
       setisLoading(false);
       console.log(err);
@@ -208,8 +196,7 @@ const ViewPatientDetails = () => {
   };
 
   useEffect(() => {
-    tokenGeneration();
-    getActivePlans();
+    tokenGeneration().then(() =>  getActivePlans());
   }, [preauthOrClaimListPayload.workflow_id, patientMobile]);
 
   const getConsultation = async () => {
@@ -230,7 +217,6 @@ const ViewPatientDetails = () => {
         break;
       }
     }
-    getConsultation();
   }, []);
 
 
@@ -260,8 +246,8 @@ const ViewPatientDetails = () => {
   }, [coverageStatus, patientMobile]);
 
   useEffect(() => {
-    getPatientDetails();
-  }, [location.state?.patientMobile]);
+    getPatientDetails().then(() => getConsultation());
+  }, [location.state?.patientMobile || localStorage.getItem("patientMobile")]);
 
   const hasClaimApproved = preauthOrClaimList.some(
     (entry: any) => entry.type === "claim"
@@ -269,8 +255,6 @@ const ViewPatientDetails = () => {
 
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
-
-  console.log({ preauthOrClaimList })
 
   return (
     <>
@@ -293,7 +277,7 @@ const ViewPatientDetails = () => {
               Patient details
             </label>
             <h2 className="sm:text-title-xl1 text-end font-semibold text-success dark:text-success">
-              {coverageEligibilityStatus === "Approved" ? (
+              {coverageEligibilityStatus === "response.complete" ? (
                 <div className="text-success">&#10004; Eligible</div>
               ) : (
                 <div className="mr-3 text-warning">Pending</div>
@@ -318,39 +302,33 @@ const ViewPatientDetails = () => {
                 );
               })}
             </div>
-            {patientDetails[0]?.medical_history && !_.isEmpty(patientDetails[0]?.medical_history[0].allergies) ?
+            {patientDetails?.medicalHistory && !_.isEmpty(patientDetails?.medicalHistory?.allergies) ?
               <>
                 <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
                   Medical history
                 </label>
                 <div className="items-center justify-between"></div>
                 <div>
-                  {_.map(patientDetails[0]?.medical_history,
-                    (ele: any, index: any) => {
-                      return (
-                        <div key={index} className="mb-2">
-                          <div className="mb-2 flex gap-2">
-                            <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Allergies
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.allergies}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <h2 className=" text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Blood group
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.bloodGroup}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
+                  <div className="mb-2">
+                    <div className="mb-2 flex gap-2">
+                      <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
+                        Allergies
+                      </h2>
+                      <div className="mr-6">:</div>
+                      <span className="text-base font-medium">
+                        {patientDetails?.medicalHistory?.allergies || ""}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <h2 className=" text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
+                        Blood group
+                      </h2>
+                      <div className="mr-6">:</div>
+                      <span className="text-base font-medium">
+                        {patientDetails?.medicalHistory?.blood_group || ""}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </>
               : <></>}
@@ -368,7 +346,8 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}
+
+                    {patientInsuranceId || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.insurance_id : "")}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -377,7 +356,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}
+                    {patientPayorName || (!_.isEmpty(patientDetails)  ? patientDetails?.payorDetails[0]?.payorName : "")}
                   </span>
                 </div>
               </div>
@@ -402,28 +381,29 @@ const ViewPatientDetails = () => {
                   );
                 })}
               </div>
-              {!isEmpty(urls) ? <>
-                <h2 className="text-bold text-base font-medium text-black dark:text-white">
-                  Supporting documents :
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {_.map(urlArray, (ele: string, index: number) => {
-                    const parts = ele.split('/');
-                    const fileName = parts[parts.length - 1];
-                    return (
-                      <a href={ele} download>
-                        <div className='text-center'>
-                          <img key={index} height={150} width={150} src={thumbnail} alt='image' />
-                          <span>{decodeURIComponent(fileName)}</span>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div></> : null}
+              {urls === "{}" || urls === undefined ? <> </> :
+                <>
+                  <h2 className="text-bold text-base font-medium text-black dark:text-white">
+                    Supporting documents :
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {_.map(urlArray, (ele: string, index: number) => {
+                      const parts = ele.split('/');
+                      const fileName = parts[parts.length - 1];
+                      return (
+                        <a href={ele} download>
+                          <div className='text-center'>
+                            <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                            <span>{decodeURIComponent(fileName)}</span>
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div></>}
             </div>
           )}
           {_.map(preauthOrClaimList, (ele: any, index: any) => {
-            const additionalInfo = JSON.parse(ele?.additionalInfo)
+            // const additionalInfo = JSON.parse(ele?.additionalInfo) || {}
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -431,7 +411,7 @@ const ViewPatientDetails = () => {
                     {ele?.type.charAt(0).toUpperCase() + ele?.type.slice(1)}{" "}
                     details :
                   </h2>
-                  {ele?.status === "Approved" ? (
+                  {ele?.status === "response.complete" ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
                       &#10004; Approved
                     </div>
@@ -471,71 +451,62 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      {/* {hasClaimApproved && ele?.status === 'Approved' ?
+                      {ele?.status === 'response.complete' ?
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount
                           </h2>
                           <div className="mr-6">:</div>
                           <span className="text-base font-medium">
-                            INR {ele.billAmount}
+                            INR {ele.approvedAmount}
                           </span>
-                        </div> : null} */}
-                      {
-                        additionalInfo?.financial?.approved_amount &&
-                          additionalInfo?.financial?.approved_amount === 0 ?
-                          <div className="flex gap-2">
-                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
-                              Approved amount :
+                        </div> : null}
+                      {ele?.remarks === "" ? <></> :
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+                              <span className="flex items-center">
+                                {"Remarks"}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6 ml-2">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" />
+                                </svg>
+                              </span>
                             </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              INR {0}
-                            </span>
-                          </div> :
-                          <div className="flex gap-2">
-                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
-                              Approved amount :
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              INR {additionalInfo?.financial?.approved_amount}
-                            </span>
                           </div>
+                          <div className="flex gap-2">
+                            <h2 className="">
+                              {ele.remarks}
+                            </h2>
+                          </div>
+                        </>
                       }
                     </div>
                   </div>
-                  {_.isEmpty(ele.supportingDocuments) ? null : <>
-                    <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
-                      Supporting documents :
-                    </h2>
-                    {Object.entries(ele.supportingDocuments).map(([key, values]) => (
-                      <div key={key}>
-                        <h3 className='text-base font-bold text-black dark:text-white'>Document type : <span className='text-base font-medium'>{key}</span></h3>
-                        <div className='flex'>
-                          {Array.isArray(values) &&
-                            values.map((imageUrl, index) => {
-                              const parts = imageUrl.split('/');
-                              const fileName = parts[parts.length - 1];
-                              console.log(fileName)
-                              return (
-                                <a href={imageUrl} download>
-                                  <div className='text-center'>
-                                    <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{decodeURIComponent(fileName)}</span>
-                                  </div>
-                                </a>
-                              )
-                            })}
-                        </div>
+                  {ele.supportingDocuments === "{}" || ele.supportingDocuments === undefined ?
+                    <></> :
+                    <>
+                      <h2 className="text-bold text-base font-medium text-black dark:text-white">
+                        Supporting documents :
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {_.map(ele?.supportingDocuments?.slice(1, -1)?.split(",") ?? [], (ele: string, index: number) => {
+                          const parts = ele.split('/');
+                          const fileName = parts[parts.length - 1]
+                          return (
+                            <a href={ele} download>
+                              <div className='text-center'>
+                                <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                                <span>{decodeURIComponent(fileName).replace('/', '')}</span>
+                              </div>
+                            </a>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </>}
+                    </>}
                 </div>
               </>
             );
           })}
-
           <div>
             {preauthOrClaimList.length === 0 && (
               <>

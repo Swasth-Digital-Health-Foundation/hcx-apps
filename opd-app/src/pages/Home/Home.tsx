@@ -3,7 +3,7 @@ import Html5QrcodePlugin from "../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from "react";
 import ActiveClaimCycleCard from "../../components/ActiveClaimCycleCard";
 import strings from "../../utils/strings";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList } from "../../services/hcxMockService";
+import { getCoverageEligibilityRequestList, searchUser } from "../../services/hcxMockService";
 import * as _ from "lodash";
 import TransparentLoader from "../../components/TransparentLoader";
 import { generateToken, searchParticipant } from "../../services/hcxService";
@@ -24,6 +24,9 @@ const Home = () => {
   const [initialized, setInitialized] = useState(true);
   const [isValid, setIsValid] = useState(true);
   const [finalData, setFinalData] = useState<any>([]);
+  const [isSearched, setSearched] = useState<boolean>(false);
+  const [searchedMobileNumber, setSearchedMobile] = useState<any>();
+  const [userInfo, setUserInformation] = useState<any>([]);
 
   const getEmailFromLocalStorage = localStorage.getItem("email");
 
@@ -44,7 +47,6 @@ const Home = () => {
   }
 
   const userSearchPayload = {
-    entityType: ["Beneficiary"],
     filters: {
       participant_code: { eq: getEmailFromLocalStorage },
     },
@@ -101,6 +103,15 @@ const Home = () => {
     }
   };
 
+  const userSearch = async () => {
+    try {
+      let responseData: any = await searchUser("user/search", searchedMobileNumber);
+      setUserInformation(responseData?.data?.result);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
   const loadMoreData = () => {
     const nextData = finalData.slice(currentIndex, currentIndex + 5);
@@ -139,6 +150,35 @@ const Home = () => {
   useEffect(() => {
     search();
   }, [])
+
+
+  useEffect(() => {
+    if (isValid && isSearched) {
+      userSearch().then(() => getCoverageEligibilityRequestList(setLoading, getListUsingMobile, setActiveRequests, setFinalData, setDisplayedData));
+    }
+    if (mobileNumber === "") {
+      setSearched(false)
+    }
+  }, [isValid, isSearched, mobileNumber, searchedMobileNumber, searchUser, setUserInformation]);
+
+  const patientProfile = [
+    {
+      "key": "Patient Id : ",
+      "value": userInfo?.beneficiaryId
+    },
+    {
+      "key": "Name : ",
+      "value": userInfo?.userName
+    },
+    {
+      "key": "Contact :",
+      "value": searchedMobileNumber
+    },
+    {
+      "key": "Address :",
+      "value": userInfo?.address
+    }
+  ]
 
   return (
     <div>
@@ -192,9 +232,6 @@ const Home = () => {
             aria-hidden="true"
           />
         </div>
-        {/* <label className="mb-2.5 mt-2 block text-left font-medium text-black dark:text-white">
-          {strings.PATIENT_MOBILE}
-        </label> */}
         <div className="relative mt-3">
           <input
             onChange={handleMobileNumberChange}
@@ -214,7 +251,9 @@ const Home = () => {
                 if (mobileNumber === "") {
                   toast.info("please enter mobile number");
                 } else {
-                  getCoverageEligibilityRequestList(setLoading, getListUsingMobile, setActiveRequests, setFinalData, setDisplayedData);
+                  setSearched(true)
+                  setSearchedMobile(mobileNumber)
+                  // getCoverageEligibilityRequestList(setLoading, getListUsingMobile, setActiveRequests, setFinalData, setDisplayedData);
                 }
               }}
               disabled={!isValid}
@@ -247,41 +286,80 @@ const Home = () => {
             </button>
           </div>
         ) : (
-          <h1 className="mt-5 px-1 text-2xl font-bold text-black dark:text-white">
-            {strings.ACTIVE_LIST} ({activeRequests.length})
-          </h1>
-        )}
-        {!loading ? (
-          <div>
-            {_.map(displayedData, (ele: any, index: number) => {
-              return (
-                <div className="mt-2" key={index}>
-                  <ActiveClaimCycleCard
-                    participantCode={ele.sender_code}
-                    payorCode={ele.recipient_code}
-                    date={ele.date}
-                    insurance_id={ele.insurance_id}
-                    claimType={ele.claimType}
-                    apiCallId={ele.apiCallId}
-                    status={latestStatusByEntry[ele.workflow_id]}
-                    type={ele.type}
-                    mobile={location.state}
-                    billAmount={ele.billAmount}
-                    workflowId={ele.workflow_id}
-                    patientMobileNumber={ele.mobile || mobileNumber}
-                    patientName={ele.patientName}
-                    recipient_code={ele.recipient_code}
-                  />
+          <>
+            {isSearched ? (
+              <div className="mt-2 relative">
+                <label className="block mb-2 text-left text-2xl font-bold text-black dark:text-white">
+                  {"Patient details"}
+                </label>
+                <div className="relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+                  {
+                    patientProfile?.map((patient) => <div className="flex gap-3 p-1">
+                      <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                        {patient.key}
+                      </h2>
+                      <span className="text-base font-medium">{patient.value}</span>
+                    </div>)
+                  }
+                  <span
+                    className="cursor-pointer text-right"
+                    onClick={(event: any) => {
+                      event.preventDefault();
+                      navigate('/user-profile', { state: { userInfo: userInfo, searchedMobileNumber, displayedData, activeRequests } });
+                    }}
+                  >
+                    <div className="flex items-center justify-end gap-2">
+                      <p>View details</p>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </div>
+                  </span>
+                  {/* <button
+                    onClick={(event: any) => {
+                      event.preventDefault();
+                      navigate('/user-profile', { state: { userInfo: userInfo, searchedMobileNumber, displayedData, activeRequests } });
+                    }}
+                    type="submit"
+                    className="absolute right-0 mt-2 flex justify-end underline">
+                    View Details
+                  </button> */}
                 </div>
-              );
-            })}
-            <div className="mt-2 flex justify-end underline">
-              {currentIndex < activeRequests.length && (
-                <button onClick={loadMoreData}>{strings.VIEW_MORE}</button>
-              )}
-            </div>
-          </div>
-        ) : null}
+              </div>
+            ) : (
+              <div>
+                <h1 className="mt-5 px-1 text-2xl font-bold text-black dark:text-white">
+                  {strings.ACTIVE_LIST} ({activeRequests.length})
+                </h1>
+                {_.map(displayedData, (ele: any, index: number) => (
+                  <div className="mt-2" key={index}>
+                    <ActiveClaimCycleCard
+                      participantCode={ele.sender_code}
+                      payorCode={ele.recipient_code}
+                      date={ele.date}
+                      insurance_id={ele.insurance_id}
+                      claimType={ele.claimType}
+                      apiCallId={ele.apiCallId}
+                      status={latestStatusByEntry[ele.workflow_id]}
+                      type={ele.type}
+                      mobile={location.state}
+                      billAmount={ele.billAmount}
+                      workflowId={ele.workflow_id}
+                      patientMobileNumber={ele.mobile || mobileNumber}
+                      patientName={ele.patientName}
+                      recipient_code={ele.recipient_code}
+                    />
+                  </div>
+                ))}
+                <div className="mt-2 flex justify-end underline">
+                  {currentIndex < activeRequests.length && (
+                    <button onClick={loadMoreData}>{strings.VIEW_MORE}</button>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

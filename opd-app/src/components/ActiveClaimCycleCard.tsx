@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getConsultationDetails } from "../services/hcxMockService";
 
@@ -31,7 +31,9 @@ const ActiveClaimCycleCard = (Props: any) => {
   const getConsultation = async () => {
     try {
       const consultationResponse = await getConsultationDetails(Props.workflowId);
-      navigate("/coverage-eligibility", { state: information })
+      if (consultationResponse.status === 200) {
+        navigate("/coverage-eligibility", { state: information })
+      }
     } catch (err: any) {
       console.log(err);
       // toast.error()
@@ -71,7 +73,7 @@ const ActiveClaimCycleCard = (Props: any) => {
               : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
             }`}
         >
-          {Props.status}
+          {Props.status === "response.complete" ? "Approved" : Props.status}
         </span>
       ),
     },
@@ -97,7 +99,6 @@ const ActiveClaimCycleCard = (Props: any) => {
           <span
             className="cursor-pointer text-right"
             onClick={() =>
-              // navigate("/coverage-eligibility", { state: information })
               getConsultation()
             }
           >
