@@ -32,6 +32,14 @@ async function getConsultationDetails(workflow_id: any) {
   return response;
 }
 
+async function userUpdate(url: any, payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/${url}`,
+    payload
+  );
+  return response;
+}
+
 const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload: any, setActiveRequests: any, setFinalData: any, setDisplayedData: any) => {
   try {
     setLoading(true);
@@ -121,5 +129,6 @@ export {
   getCoverageEligibilityRequestList,
   handleUpload,
   getActivePlans,
-  searchUser
+  searchUser,
+  userUpdate
 };

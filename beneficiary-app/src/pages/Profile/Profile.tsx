@@ -69,11 +69,11 @@ const Profile = () => {
 
   const updatePayload = {
     mobile: getMobileFromLocalStorage,
-    name: editedUserName,
-    address: editedAddress,
+    name: editedUserName || userInfo?.userName,
+    address: editedAddress || userInfo?.address,
     medical_history: {
-      blood_group: editedBloodGroup,
-      allergies: editedAllergies
+      blood_group: editedBloodGroup || userInfo?.medicalHistory?.blood_group,
+      allergies: editedAllergies || userInfo?.medicalHistory?.allergies
     }
   }
 
@@ -100,7 +100,7 @@ const Profile = () => {
 
   const handleStateChange = () => {
     setInsuranceId(''),
-      setBeneficiaryName('')
+    setBeneficiaryName('')
     setPayorName('')
     setPayorParticipantCode('')
   }
@@ -175,9 +175,11 @@ const Profile = () => {
   useEffect(() => {
     search();
   }, []);
+  
   return (
     <>
-      {loading ? <TransparentLoader /> : <>
+      {loading ? <TransparentLoader /> : 
+      <>
         <h2 className="text-bold mb-3 text-2xl font-bold text-black dark:text-white">
           User profile
         </h2>
@@ -359,7 +361,8 @@ const Profile = () => {
             }
           </div>
         </div>
-      </>}
+      </>
+      }
     </>
   )
 };
