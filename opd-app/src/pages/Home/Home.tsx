@@ -163,19 +163,19 @@ const Home = () => {
 
   const patientProfile = [
     {
-      "key": "Patient Id : ",
-      "value": userInfo?.beneficiaryId
+      "key": "Patient ID ",
+      "value": userInfo && userInfo.beneficiaryId ? `OP/${userInfo.beneficiaryId.toString().slice(0, 6)}` : ""    
     },
     {
-      "key": "Name : ",
+      "key": "Patient Name ",
       "value": userInfo?.userName
     },
     {
-      "key": "Contact :",
+      "key": "Patient Mobile ",
       "value": searchedMobileNumber
     },
     {
-      "key": "Address :",
+      "key": "Address ",
       "value": userInfo?.address
     }
   ]
@@ -293,14 +293,19 @@ const Home = () => {
                   {"Patient details"}
                 </label>
                 <div className="relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-                  {
-                    patientProfile?.map((patient) => <div className="flex gap-3 p-1">
-                      <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                        {patient.key}
-                      </h2>
-                      <span className="text-base font-medium">{patient.value}</span>
-                    </div>)
-                  }
+                  {patientProfile.map((ele: any, index: any) => {
+                    return (
+                      <div className="flex items-center">
+                        <h2
+                          key={index}
+                          className="font-small mt-1 block text-left text-black dark:text-white"
+                        >
+                          <b className="inline-block w-40">{ele.key}</b>{" "}
+                        </h2>
+                        <span>: {ele.value}</span>
+                      </div>
+                    );
+                  })}
                   <span
                     className="cursor-pointer text-right"
                     onClick={(event: any) => {

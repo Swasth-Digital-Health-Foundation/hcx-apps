@@ -119,7 +119,8 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   };
 
   const medicalHistoryComponent = () => {
-    return (<div className="rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+    return (
+    <div className="rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
       <SelectInput
         label="Blood group :"
         value={bloodGroup || patientInfo[0]?.medical_history?.blood_group}
