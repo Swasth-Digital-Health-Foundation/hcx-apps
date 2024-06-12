@@ -3,8 +3,7 @@ import Html5QrcodePlugin from '../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from 'react';
 import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import strings from '../../utils/strings';
-import { generateOutgoingRequest, getCoverageEligibilityRequestList } from '../../services/hcxMockService';
-import { postRequest } from '../../services/registryService';
+import { generateOutgoingRequest, getCoverageEligibilityRequestList, searchUser } from '../../services/hcxMockService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
@@ -25,7 +24,7 @@ const Home = () => {
   const [coverageAndClaimData, setDisplayedData] = useState<any>(
     finalData.slice(0, 5)
   );
-  const latestStatusByEntry: Record<string, string | undefined> = {};
+  const [latestStatusByEntry, setlatestStatusByEntry] = useState<any>({});
 
   const onNewScanResult = (decodedText: any, decodedResult: any) => {
     setQrCodeData(decodedText);
@@ -37,6 +36,7 @@ const Home = () => {
     app: "BSP"
   };
 
+
   useEffect(() => {
     if (qrCodeData !== undefined) {
       let obj = JSON.parse(qrCodeData);
@@ -45,20 +45,20 @@ const Home = () => {
         participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         serviceType: 'OPD',
         mobile: localStorage.getItem('mobile'),
-        payor: userInformation[0]?.payor_details[0]?.payorName,
-        insuranceId: userInformation[0]?.payor_details[0]?.insurance_id,
-        patientName: userInformation[0]?.name,
+        payor: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payorName,
+        insuranceId: userInformation?.payorDetails && userInformation?.payorDetails[0]?.insurance_id,
+        patientName: userInformation?.userName,
         app: "BSP",
         bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-        recipientCode: userInformation[0]?.payor_details[0]?.recipientCode
+        recipientCode: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payor
       };
 
       const sendCoverageEligibilityRequest = async () => {
         try {
           setLoading(true);
           let response = await generateOutgoingRequest(
-            'create/coverageeligibility/check',
+            'coverageeligibility/check',
             payload
           );
           if (response?.status === 202) {
@@ -75,17 +75,12 @@ const Home = () => {
     }
   }, [qrCodeData]);
 
-  const filter = {
-    entityType: ['Beneficiary'],
-    filters: {
-      mobile: { eq: getMobileFromLocalStorage },
-    },
-  };
+  
 
   const search = async () => {
     try {
-      const searchUser = await postRequest('/search', filter);
-      setUserInformation(searchUser.data);
+      let response: any = await searchUser("user/search", getMobileFromLocalStorage || location.state?.patientMobile)
+      setUserInformation(response?.data?.result);
     } catch (error) {
       console.log(error);
     }
@@ -110,22 +105,23 @@ const Home = () => {
 
       // Extract the status of the latest item
       if (latestItem) {
-        latestStatusByEntry[key] = latestItem.status;
+        latestStatusByEntry[key] = latestItem.status === "response.complete" ? "Approved" : latestItem.status;
       }
     }
   });
 
   useEffect(() => {
-    search();
-    getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
-  }, []);
+    search().then(() => {
+        getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+    });
+}, []);
 
   return (
     <div>
       <div className="flex justify-between">
         <div>
           <h1 className="text-1xl mb-3 font-bold text-black dark:text-white">
-            {strings.WELCOME_TEXT} {userInformation[0]?.name || '...'}
+            {strings.WELCOME_TEXT} {userInformation?.userName || '...'}
           </h1>
         </div>
       </div>
@@ -156,6 +152,7 @@ const Home = () => {
             </a>
           </div>
         </div>
+        { loading ? (<></>) : <></>}
       </div>
       <div className="mt-6">
         {loading ? (
@@ -205,8 +202,47 @@ const Home = () => {
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
               let approvedAmount: any = "";
               if (ele?.type === 'claim') {
-                approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
+                // approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
+              const date = new Date(parseInt(ele.date));
+              const day = date.getDate().toString().padStart(2, "0");
+              const month = (date.getMonth() + 1).toString().padStart(2, "0");
+              const year = date.getFullYear();
+
+              const formattedDate = `${day}-${month}-${year}`;
+              const data: any = [
+                {
+                  key: "Beneficiary name",
+                  value: ele.patientName,
+                },
+                {
+                  key: "Initiation date",
+                  value: formattedDate,
+                },
+                {
+                  key: "Insurance ID",
+                  value: `${ele.insurance_id || "null"}`,
+                },
+                {
+                  key: "ServiceType",
+                  value: `${ele.claimType}`,
+                },
+                {
+                  key: "Status",
+                  value: (
+                    <span
+                      className={`${latestStatusByEntry[ele.workflow_id] === "Pending"
+                        ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
+                        : latestStatusByEntry[ele.workflow_id] === "Rejected"
+                          ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
+                          : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
+                        }`}
+                    >
+                      {latestStatusByEntry[ele.workflow_id]}
+                    </span>
+                  ),
+                },
+              ];
               return (
                 <div className="mt-2" key={index}>
                   <ActiveClaimCycleCard
@@ -221,8 +257,9 @@ const Home = () => {
                     mobile={location.state}
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
-                    patientName={ele.patientName}
+                    patientName={ userInformation?.userName || ele.patientName }
                     approvedAmount={approvedAmount}
+                    data={data}
                   />
                 </div>
               );

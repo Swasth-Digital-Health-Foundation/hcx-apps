@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { handleFileChange } from "../../utils/attachmentSizeValidation";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
+import { generateOutgoingRequest, getActivePlans, getCoverageEligibilityRequestList, handleUpload, searchUser } from "../../services/hcxMockService";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import axios from "axios";
-import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import useDebounce from '../../hooks/useDebounce';
 
 import * as _ from "lodash";
+import DocumentsList from "../../components/DocumentsList";
 
 const InitiateNewClaimRequest = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -48,21 +47,7 @@ const InitiateNewClaimRequest = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
 
-  const insuranceOptions = [
-    { label: "Select", value: "" },
-    {
-      label: displayedData[0]?.insurance_id,
-      value: displayedData[0]?.insurance_id,
-    },
-  ];
-
-  const serviceTypeOptions = [
-    { label: "Select", value: "" },
-    {
-      label: displayedData[0]?.claimType,
-      value: displayedData[0]?.claimType,
-    },
-  ];
+  const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
 
   const documentTypeOptions = [
     {
@@ -106,11 +91,11 @@ const InitiateNewClaimRequest = () => {
     insurancePlan: data?.insurancePlan || null,
     mobile:
       localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
-    patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
+    patientName: userInfo?.userName || localStorage.getItem("patientName"),
     participantCode:
       data?.participantCode || localStorage.getItem("senderCode") || email,
     payor: data?.payor || payorName,
-    providerName: _.isEmpty(searchResults) ? providerName : data?.providerName || localStorage.getItem("providerName"),
+    providerName: providerName || _.isEmpty(searchResults) ? providerName : data?.providerName || localStorage.getItem("providerName"),
     serviceType: serviceType || displayedData[0]?.claimType,
     billAmount: amount,
     workflowId: data?.workflowId || localStorage.getItem("workflowId"),
@@ -124,28 +109,25 @@ const InitiateNewClaimRequest = () => {
     ],
     type: serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode ||  data?.recipientCode,
+    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode || data?.recipientCode,
     app: "ABSP",
     date: selectedDate
   };
 
-  const filter = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: { eq: localStorage.getItem("mobile") },
-    },
+  console.log("initiateClaimRequestBody", initiateClaimRequestBody);
+
+
+  const userSearch = async () => {
+    try {
+      let registerResponse: any = await searchUser("user/search", localStorage.getItem("patientMobile") || location.state?.patientMobile)
+      setUserInformation(registerResponse?.data?.result);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
-    const search = async () => {
-      try {
-        const searchUser = await postRequest("/search", filter);
-        setUserInformation(searchUser.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    search();
+    userSearch();
   }, []);
 
   const payorCodePayload = {
@@ -186,24 +168,19 @@ const InitiateNewClaimRequest = () => {
     search();
   }, [displayedData]);
 
-  const handlePreAuthRequest = async () => {
-    const response = await generateOutgoingRequest("create/claim/submit", initiateClaimRequestBody);
-  };
 
   const submitClaim = async () => {
     try {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFile)) {
-        const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
-        // if (response?.status === 200) {
-        handlePreAuthRequest()
-        setSubmitLoading(false);
-        toast.success("Claim request initiated successfully!")
-        // }
+        await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
       }
-      else {
-        handlePreAuthRequest()
-        toast.success("Claim request initiated successfully!")
+      const claimResponse = await generateOutgoingRequest("claim/submit", initiateClaimRequestBody);
+      if (claimResponse?.status === 202) {
+        toast.success("Claim request initiated successfully!");
+      } else {
+        toast.error("Faild to submit claim, try again!");
+        throw new Error("Failed to submit claim, try again!");
       }
       setSubmitLoading(false);
       navigate("/home");
@@ -240,8 +217,8 @@ const InitiateNewClaimRequest = () => {
       // toast.error(_.get(error, 'response.data.error.message'))
     }
   };
-  
-  const debounce = useDebounce(providerName, 500);
+
+  useDebounce(providerName, 500);
 
   useEffect(() => {
     search();
@@ -252,6 +229,15 @@ const InitiateNewClaimRequest = () => {
   const filteredResults = searchResults.filter((result: any) =>
     result.participant_name.toLowerCase().includes(providerName.toLowerCase())
   );
+
+  const preauthOrClaimListPayload = {
+    workflow_id: data?.workflowId || '',
+    app: 'ABSP',
+  };
+
+  useEffect(() => {
+    getActivePlans({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }).catch((err: any) => console.log(err))
+  }, [])
 
   return (
     <>
@@ -307,55 +293,31 @@ const InitiateNewClaimRequest = () => {
                     </g>
                   </svg>
                 </span>
-                {/* {openDropdown && searchResults.length !== 0 ? (
+                {filteredResults.length !== 0 && openDropdown ? (
                   <div className="max-h-40 overflow-y-auto overflow-x-hidden">
                     <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                      {_.map(searchResults, (result: any, index: any) => (
+                      {_.map(filteredResults, (result: any, index: any) => (
                         <li
                           key={index}
-                          onClick={() =>
+                          onClick={() => {
+                            setOpenDropdown(!openDropdown)
                             handleSelect(
                               result?.participant_name,
                               result?.participant_code
                             )
                           }
+                          }
                           className="hover:bg-gray-200 cursor-pointer p-2"
                         >
                           {result?.participant_name +
-                            ` (${result?.participant_code})` || ''}
+                            `(${result?.participant_code})` || ''}
                         </li>
                       ))}
                     </ul>
                   </div>
                 ) : (
-                  <>
-                  </>
-                )} */}
-                {filteredResults.length !== 0 && openDropdown ? (
-                <div className="max-h-40 overflow-y-auto overflow-x-hidden">
-                  <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                    {_.map(filteredResults, (result: any, index: any) => (
-                      <li
-                        key={index}
-                        onClick={() => {
-                          setOpenDropdown(!openDropdown)
-                          handleSelect(
-                            result?.participant_name,
-                            result?.participant_code
-                          )
-                        }
-                        }
-                        className="hover:bg-gray-200 cursor-pointer p-2"
-                      >
-                        {result?.participant_name +
-                           `(${result?.participant_code})` || ''}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <></>
-              )}
+                  <></>
+                )}
               </div>
             </h2>
             <TextInputWithLabel
@@ -373,12 +335,6 @@ const InitiateNewClaimRequest = () => {
               disabled={true}
               type="text"
             />
-            {/* <TextInputWithLabel
-              label="Service type : "
-              value={displayedData[0]?.claimType || serviceType}
-              disabled={false}
-              type="text"
-            /> */}
             <SelectInput
               label="Service type : "
               value={serviceType}
@@ -519,6 +475,7 @@ const InitiateNewClaimRequest = () => {
               </div>
             )}
           </div>
+          {/* <DocumentsList preauthOrClaimList={preauthOrClaimList} /> */}
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
@@ -535,7 +492,7 @@ const InitiateNewClaimRequest = () => {
               <LoadingButton className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed" />
             )}
           </div>
-        </div>
+        </div >
       )}
     </>
   );

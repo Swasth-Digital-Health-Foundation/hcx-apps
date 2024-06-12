@@ -1,18 +1,15 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { handleFileChange } from "../../utils/attachmentSizeValidation";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList, handleUpload } from "../../services/hcxMockService";
+import { generateOutgoingRequest, getCoverageEligibilityRequestList, handleUpload, searchUser } from "../../services/hcxMockService";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
-import axios from "axios";
-import { postRequest } from "../../services/registryService";
 import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
-import useDebounce from "../../hooks/useDebounce";
 
 const PreAuthRequest = () => {
   const navigate = useNavigate();
@@ -33,7 +30,7 @@ const PreAuthRequest = () => {
 
   const [fileUrlList, setUrlList] = useState<any>([]);
   const [userInfo, setUserInformation] = useState<any>([]);
-  const [treatmentType,setTreatmentType] = useState("consultation");
+  const [treatmentType, setTreatmentType] = useState("consultation");
 
   const [activeRequests, setActiveRequests] = useState<any>([]);
   const [finalData, setFinalData] = useState<any>([]);
@@ -48,21 +45,6 @@ const PreAuthRequest = () => {
   const [searchResults, setSearchResults] = useState<any>([]);
   const [participantCode, setParticipantCode] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>("");
-
-  let FileLists: any;
-  if (selectedFile !== undefined) {
-    FileLists = Array.from(selectedFile);
-  }
-
-  const data = location.state?.requestDetails;
-  const handleDelete = (name: any) => {
-    if (selectedFile !== undefined) {
-      const updatedFilesList = selectedFile.filter(
-        (file: any) => file.name !== name
-      );
-      setSelectedFile(updatedFilesList);
-    }
-  };
 
   const documentTypeOptions = [
     {
@@ -79,25 +61,42 @@ const PreAuthRequest = () => {
     },
   ];
 
-  const treatmentOptions = [{ label: "Consultation", value: "Consultation" },
-  { label: "Drugs", value: "Drugs" },
-  { label: "Wellness", value: "Wellness" },
-  { label: "Diagnostics", value: "Diagnostics" },];
+  const treatmentOptions = [
+    { label: "Consultation", value: "Consultation" },
+    { label: "Drugs", value: "Drugs" },
+    { label: "Wellness", value: "Wellness" },
+    { label: "Diagnostics", value: "Diagnostics" },];
+
   const services = [{ label: "OPD", value: "OPD" }, { label: "IPD", value: "IPD" }];
+
+  let FileLists: any;
+  if (selectedFile !== undefined) {
+    FileLists = Array.from(selectedFile);
+  }
+
+  const data = location.state?.requestDetails;
+  const handleDelete = (name: any) => {
+    if (selectedFile !== undefined) {
+      const updatedFilesList = selectedFile.filter(
+        (file: any) => file.name !== name
+      );
+      setSelectedFile(updatedFilesList);
+    }
+  };
 
   const email = localStorage.getItem('email');
   const password = localStorage.getItem('password')
 
-  let initiateClaimRequestBody: any = {
+  let initiatePreauthRequestBody: any = {
     insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
     insurancePlan: data?.insurancePlan || null,
     mobile:
       localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
-    patientName: userInfo[0]?.name || localStorage.getItem("patientName"),
+    patientName: userInfo?.userName || localStorage.getItem("patientName"),
     participantCode:
       data?.participantCode || localStorage.getItem("senderCode") || email,
     payor: data?.payor || payorName,
-    providerName: data?.providerName || localStorage.getItem("providerName"),
+    providerName: providerName || data?.providerName || localStorage.getItem("providerName"),
     serviceType: data?.serviceType || displayedData[0]?.claimType,
     billAmount: amount,
     workflowId: data?.workflowId || localStorage.getItem("workflowId"),
@@ -111,28 +110,25 @@ const PreAuthRequest = () => {
     ],
     type: serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode ||  data?.recipientCode,
+    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode || data?.recipientCode,
     app: "ABSP",
     date: selectedDate
   };
 
-  const filter = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: { eq: localStorage.getItem("mobile") },
-    },
+  console.log("Initiate preauth request" ,initiatePreauthRequestBody);
+  
+
+  const userSearch = async () => {
+    try {
+      let registerResponse: any = await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))
+      setUserInformation(registerResponse?.data?.result);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
-    const searchUser = async () => {
-      try {
-        const searchUser = await postRequest("/search", filter);
-        setUserInformation(searchUser.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    searchUser();
+    userSearch();
   }, []);
 
   const payorCodePayload = {
@@ -149,25 +145,25 @@ const PreAuthRequest = () => {
     setProviderName(result);
   };
 
+  const participantSearch = async () => {
+    try {
+      const tokenResponse = await generateToken();
+      let token = tokenResponse.data?.access_token;
+      setToken(token);
+      const payorResponse = await searchParticipant(payorCodePayload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      let payorname = payorResponse.data?.participants[0]?.participant_name;
+      setPayorName(payorname);
+    } catch (err) {
+      console.log("error", err);
+    }
+  };
 
   useEffect(() => {
-    const search = async () => {
-      try {
-        const tokenResponse = await generateToken();
-        let token = tokenResponse.data?.access_token;
-        setToken(token);
-        const payorResponse = await searchParticipant(payorCodePayload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        let payorname = payorResponse.data?.participants[0]?.participant_name;
-        setPayorName(payorname);
-      } catch (err) {
-        console.log("error", err);
-      }
-    };
-    search();
+    participantSearch();
   }, [displayedData]);
 
   const requestPayload = {
@@ -181,34 +177,22 @@ const PreAuthRequest = () => {
 
   const mobile = localStorage.getItem("patientMobile")
 
-  const handlePreAuthRequest = async () => {
-    const response = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
-  };
 
-  const submitClaim = async () => {
+  const submitPreauth = async () => {
     try {
       setSubmitLoading(true);
-      if (!_.isEmpty(selectedFile)) {
-        const response = await handleUpload(mobile, FileLists, initiateClaimRequestBody, setUrlList);
-        if (response?.status === 200) {
-          // handlePreAuthRequest()
-          const preauthResponse = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
-          setSubmitLoading(false);
-          toast.success("Pre-auth request initiated successfully!")
+      const response = await handleUpload(mobile, FileLists, initiatePreauthRequestBody, setUrlList);
+      if (response?.status === 200 || _.isEmpty(selectedFile)) {
+        const preauthResponse = await generateOutgoingRequest("preauth/submit", initiatePreauthRequestBody);
+        if (preauthResponse?.status === 202) {
+          toast.success("Pre-auth request initiated successfully!");
           navigate("/home");
-        }
-      }
-      else {
-        const preauthResponse = await generateOutgoingRequest("create/preauth/submit", initiateClaimRequestBody);
-        if (preauthResponse.status === 202) {
-          toast.success("Pre-auth request initiated successfully!")
-          navigate("/home");
-          setSubmitLoading(false);
         }
       }
     } catch (err) {
+      toast.error("Failed to submit preauth, try again!");
+    } finally {
       setSubmitLoading(false);
-      toast.error("Faild to submit claim, try again!");
     }
   };
 
@@ -238,7 +222,8 @@ const PreAuthRequest = () => {
   useEffect(() => {
     search();
     const currentDate = new Date().toISOString().split('T')[0];
-    setSelectedDate(currentDate);  }, []);
+    setSelectedDate(currentDate);
+  }, []);
 
   const filteredResults = searchResults.filter((result: any) =>
     result.participant_name.toLowerCase().includes(providerName.toLowerCase())
@@ -299,30 +284,30 @@ const PreAuthRequest = () => {
                   </svg>
                 </span>
                 {filteredResults.length !== 0 && openDropdown ? (
-                <div className="max-h-40 overflow-y-auto overflow-x-hidden">
-                  <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                    {_.map(filteredResults, (result: any, index: any) => (
-                      <li
-                        key={index}
-                        onClick={() => {
-                          setOpenDropdown(!openDropdown)
-                          handleSelect(
-                            result?.participant_name,
-                            result?.participant_code
-                          )
-                        }
-                        }
-                        className="hover:bg-gray-200 cursor-pointer p-2"
-                      >
-                        {result?.participant_name +
-                           `(${result?.participant_code})` || ''}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : (
-                <></>
-              )}
+                  <div className="max-h-40 overflow-y-auto overflow-x-hidden">
+                    <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
+                      {_.map(filteredResults, (result: any, index: any) => (
+                        <li
+                          key={index}
+                          onClick={() => {
+                            setOpenDropdown(!openDropdown)
+                            handleSelect(
+                              result?.participant_name,
+                              result?.participant_code
+                            )
+                          }
+                          }
+                          className="hover:bg-gray-200 cursor-pointer p-2"
+                        >
+                          {result?.participant_name +
+                            `(${result?.participant_code})` || ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <></>
+                )}
               </div>
             </h2>
             <TextInputWithLabel
@@ -340,7 +325,7 @@ const PreAuthRequest = () => {
               disabled={true}
               type="text"
             />
-             <SelectInput
+            <SelectInput
               label="Service type : "
               value={serviceType}
               onChange={(e: any) => setServiceType(e.target.value)}
@@ -352,14 +337,14 @@ const PreAuthRequest = () => {
               onChange={(e: any) => setTreatmentType(e.target.value)}
               options={treatmentOptions}
             />
-           <h2 className="mt-3 text-1xl text-black font-bold bg-white dark:bg-form-input">
+            <h2 className="mt-3 text-1xl text-black font-bold bg-white dark:bg-form-input">
               {"Planned Treatment Date :"}
             </h2>
             <div className="relative">
               <input
                 type="date"
                 value={selectedDate}
-                onChange={(e: any) => 
+                onChange={(e: any) =>
                   setSelectedDate(e.target.value)}
                 className=" mt-3 custom-input-date custom-input-date-1 w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
               />
@@ -369,7 +354,7 @@ const PreAuthRequest = () => {
                 </svg>
               </div>
             </div>
-            
+
             <TextInputWithLabel
               label="Estimated bill amount : *"
               value={amount}
@@ -491,7 +476,7 @@ const PreAuthRequest = () => {
                 }
                 onClick={(event: any) => {
                   event.preventDefault();
-                  submitClaim();
+                  submitPreauth();
                 }}
                 type="submit"
                 className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"

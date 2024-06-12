@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import LogoIcon from '../images/swasth_logo.png';
 import DarkModeSwitcher from './DarkModeSwitcher';
 import { useEffect, useState } from 'react';
+import DropdownNotification from './DropdownNotification';
+import * as _ from "lodash"
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
@@ -17,6 +19,32 @@ const Header = (props: {
       setShowMenu(true)
     }
   }, [location.pathname])
+
+  // const [notificationData, setNotificationData] = useState<any>([]);
+  // const [notifying, setNotifying] = useState(false);
+
+  // const notificationPayload = {
+  //   "participant_role": "bsp"
+  // }
+
+  // const getNotificationsData = () => {
+  //   getNotifications(notificationPayload)
+  //     .then((response: any) => setNotificationData(_.get(response, 'data.result', [])))
+  //     .catch((err: any) => console.error(err));
+  // };
+
+  // useEffect(() => {
+  //   getNotificationsData();
+  //   const intervalId = setInterval(() => {
+  //     getNotifications(notificationPayload)
+  //       .then((response: any) => {
+  //         setNotifying(_.get(response, 'data.result', []).length > notificationData.length)
+  //       })
+  //       .catch((err: any) => console.error(err));
+  //   }, 5000);
+  //   return () => clearInterval(intervalId);
+  // }, []);
+
   return (
     <header className="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-1 shadow-2 md:px-6 2xl:px-11">
@@ -107,6 +135,7 @@ const Header = (props: {
 
         <div className="flex items-center gap-3 2xsm:gap-7">
           <ul className="flex items-center gap-2 2xsm:gap-4">
+            <DropdownNotification />
             <DarkModeSwitcher />
           </ul>
         </div>

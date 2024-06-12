@@ -1,16 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import TextInputWithLabel from "../../components/inputField";
 import SelectInput from "../../components/SelectInput";
 import CustomButton from "../../components/CustomButton";
-import { postRequest, updateRequest } from "../../services/registryService";
 import { toast } from "react-toastify";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { generateOutgoingRequest } from "../../services/hcxMockService";
+import { useLocation, useNavigate } from "react-router-dom";
+import { generateOutgoingRequest, searchUser, createUser } from "../../services/hcxMockService";
 import { generateToken, searchParticipant } from "../../services/hcxService";
 import * as _ from "lodash";
 import LoadingButton from "../../components/LoadingButton";
 import Accordion from "../../components/Accordion";
-import useDebounce from "../../hooks/useDebounce";
 
 
 const AddPatientAndInitiateCoverageEligibility = () => {
@@ -26,7 +24,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   const [loading, setLoading] = useState(false);
   const getEmailFromLocalStorage = localStorage.getItem("email");
   const [participantInfo, setParticipantInformation] = useState<any>([]);
-  const [patientInfo, seetPatientInfo] = useState<any>([]);
+  const [patientInfo, setPatientInfo] = useState<any>([]);
   const [isEditable, setIsEditable] = useState<any>(false);
   const [isPatientExists, setIsPatientExists] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -58,29 +56,22 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     { label: "Medication", value: "Medication" },
     { label: "Cosmatic", value: "Cosmatic" },
   ];
-  const payorOptions = [
-    {
-      label: `${patientInfo[0]?.payor_details[0]?.payorName || "Select"}`,
-      value: patientInfo[0]?.payor_details[0]?.payorName || "",
-    },
-    { label: "Swasth-reference payor", value: "Swast-reference payor" },
-  ];
 
   const patientDataFromState: any = location.state?.obj;
 
+
   const payload = {
-    name: patientDataFromState?.patientName || name || patientInfo[0]?.name,
+    name: patientInfo?.userName || name || patientInfo[0]?.name,
     mobile: mobile || patientDataFromState?.mobile || patientInfo[0]?.mobile,
     address:
       address || patientDataFromState?.address || patientInfo[0]?.address,
-    medical_history: [
-      {
-        allergies: allergies,
-        bloodGroup: bloodGroup,
-      },
-    ],
-    payor_details: [
-      {
+    medical_history:
+    {
+      allergies: allergies,
+      blood_group: bloodGroup,
+    },
+    payor_details:
+      [{
         insurance_id:
           insuranceID ||
           patientDataFromState?.payorName ||
@@ -89,14 +80,14 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           payorName ||
           patientDataFromState?.insuranceId ||
           patientInfo[0]?.payor_details[0]?.insurance_id,
-      },
-    ],
+        payor: payorParticipantCode || ""
+      }]
   };
 
   const patientDetails = [
     {
       key: "Name :",
-      value: patientDataFromState?.patientName,
+      value: patientInfo?.userName || patientDataFromState?.patientName,
     },
     {
       key: "Mobile no. :",
@@ -104,17 +95,19 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     },
     {
       key: "Address :",
-      value: patientDataFromState?.address,
+      value: patientInfo?.address || patientDataFromState?.address,
     },
     {
       key: "Payor name :",
-      value: patientDataFromState?.payorName,
+      value: payorName || patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payorName : ""
     },
     {
       key: "Insurance ID :",
-      value: patientDataFromState?.insuranceId,
-    },
+      value: insuranceID || patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.insurance_id : ""
+    }
+    ,
   ];
+
 
   const userSearchPayload = {
     entityType: ["Beneficiary"],
@@ -126,7 +119,8 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   };
 
   const medicalHistoryComponent = () => {
-    return (<div className="rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+    return (
+    <div className="rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
       <SelectInput
         label="Blood group :"
         value={bloodGroup || patientInfo[0]?.medical_history?.blood_group}
@@ -172,60 +166,53 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     search();
   }, []);
 
-  const patientSearchPayload = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: { eq: patientDataFromState?.mobile || mobile },
-    },
-  };
 
   const registerUser = async () => {
     try {
-      let registerResponse: any = await postRequest("invite", payload);
-      setLoading(false);
-      toast.success(
-        "Patient added successfully, initiating coverage eligibility",
-        {
-          position: toast.POSITION.TOP_CENTER,
-        }
-      );
+      let response: any = await createUser("user/create", payload)
+      if (response?.status === 202) {
+        setLoading(false);
+        toast.success(
+          "Patient added successfully, initiating coverage eligibility",
+          {
+            position: toast.POSITION.TOP_CENTER,
+          }
+        );
+      }
     } catch (error: any) {
+      setLoading(false);
       toast.info("Patient already exists,  initiating coverage eligibility", {
         position: toast.POSITION.TOP_CENTER,
       });
     }
   };
 
-  const updateMedicalhistory = {
-    medical_history: payload?.medical_history,
-  };
+  // const updateMedicalhistory = {
+  //   medical_history: payload?.medical_history,
+  // };
 
-  const updateMedicalHistory = async () => {
-    try {
-      let registerResponse: any = await updateRequest(
-        `${patientInfo[0]?.osid}`,
-        updateMedicalhistory
-      );
-    } catch (err) {
-      toast.error("Faild to update medical history!", {
-        position: toast.POSITION.TOP_CENTER,
-      });
-    }
-  };
+  // const updateMedicalHistory = async () => {
+  //   try {
+  //     let registerResponse: any = await updateRequest(
+  //       `${patientInfo[0]?.osid}`,
+  //       updateMedicalhistory
+  //     );
+  //   } catch (err) {
+  //     toast.error("Faild to update medical history!", {
+  //       position: toast.POSITION.TOP_CENTER,
+  //     });
+  //   }
+  // };
 
-  const patientSearch = async () => {
+  const patientSearch = async (mobile: any) => {
     try {
       setSearchLoading(true);
-      let registerResponse: any = await postRequest(
-        "search",
-        patientSearchPayload
-      );
+      let responseData: any = await searchUser("user/search", mobile || patientDataFromState?.mobile)
       setIsEditable(true);
-      const responseData = registerResponse.data;
-      seetPatientInfo(responseData);
+      setPatientInfo(responseData?.data?.result);
       setSearchLoading(false);
-      if (responseData.length === 0) {
-        toast.error("Patient not found!");
+      if (_.isEmpty(responseData?.data?.result)) {
+        toast.error("Patient does not exist!");
         setIsEditable(false);
       } else {
         toast.success("Patient already exists!");
@@ -234,7 +221,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     } catch (error: any) {
       setIsEditable(false);
       setSearchLoading(false);
-      toast.error("patient not found!", {
+      toast.error("Patient not found!", {
         position: toast.POSITION.TOP_CENTER,
       });
     }
@@ -243,35 +230,27 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   localStorage.setItem("patientMobile", mobile || patientDataFromState?.mobile);
   const email = localStorage.getItem('email')
   const passowrd = localStorage.getItem('password')
-  localStorage.setItem('patientInsuranceId', patientDataFromState?.insuranceId);
-  localStorage.setItem('patientPayorName', patientDataFromState?.payorName)
+  localStorage.setItem('mobile', mobile || patientDataFromState?.mobile)  
 
   const coverageeligibilityPayload = {
-    insuranceId:
-      insuranceID ||
-      patientDataFromState?.insuranceId ||
-      patientInfo[0]?.payor_details[0]?.insurance_id,
+    insuranceId: insuranceID ||  (patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.insurance_id : ""),
     mobile: mobile || patientDataFromState?.mobile,
-    payor:
-      payorName ||
-      patientDataFromState?.payorName ||
-      patientInfo[0]?.payor_details[0]?.payorName,
+    payor: payorName || (patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payorName : ""),
     providerName: localStorage.getItem("providerName"),
     participantCode:
       participantInfo[0]?.participant_code || email,
     serviceType: "OPD",
-    patientName:
-      name || patientDataFromState?.patientName || patientInfo[0]?.name,
+    patientName: patientInfo[0]?.name || patientInfo?.userName || name || patientDataFromState?.patientName,
     app: "OPD",
-    password: passowrd,
-    recipientCode: patientDataFromState?.hcxPayorCode || payorParticipantCode
+    password: passowrd, 
+    recipientCode: payorParticipantCode || (patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payor : "")
   };
 
   const sendCoverageEligibilityRequest = async () => {
     try {
       setLoading(true);
       let response = await generateOutgoingRequest(
-        "create/coverageeligibility/check",
+        "coverageeligibility/check",
         coverageeligibilityPayload
       );
       setLoading(false);
@@ -279,7 +258,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
         toast.success("Coverage eligibility initiated.");
         navigate("/add-consultation", {
           state: {
-            patientMobile: patientDataFromState?.mobile,
+            patientMobile: patientDataFromState?.mobile || localStorage.getItem("patientMobile"),
             workflowId: response.data?.workflowId,
             recipientCode: response.data?.recipientCode
           },
@@ -343,10 +322,10 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   useEffect(() => {
     if (mobile !== "") {
-      patientSearch()
+      patientSearch(mobile)
     }
     if (patientDataFromState?.mobile) {
-      patientSearch()
+      patientSearch(mobile)
     }
   }, [patientDataFromState?.mobileNumber])
 
@@ -395,7 +374,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             <div className="absolute right-4 -mt-10">
               <a
                 onClick={() => {
-                  if (isValid && mobile !== "") patientSearch();
+                  if (isValid && mobile !== "") patientSearch(mobile);
                   else toast.info("Enter 10 digit mobile number!");
                 }}
                 className="w-20 cursor-pointer py-2 font-medium text-black underline"
@@ -406,7 +385,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           </div>
           <TextInputWithLabel
             label="Name :"
-            value={name || patientInfo[0]?.name}
+            value={patientInfo?.userName || name}
             onChange={(e: any) => setName(e.target.value)}
             placeholder="Enter patient name"
             disabled={false || isEditable}
@@ -414,7 +393,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           />
           <TextInputWithLabel
             label="Address :"
-            value={address || patientInfo[0]?.address}
+            value={patientInfo?.address || address}
             onChange={(e: any) => setAddress(e.target.value)}
             placeholder="Enter address"
             disabled={false || isEditable}
@@ -422,7 +401,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           />
         </div>
       )}
-      <div className="mt-3">
+      {_.isEmpty(patientInfo) ? <div className="mt-3">
         {medicalHistory.map((item: any) => {
           return (
             <Accordion
@@ -433,7 +412,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             />
           );
         })}
-      </div>
+      </div> : <></>}
       {patientDataFromState ? (
         <></>
       ) : (
@@ -442,88 +421,112 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             <label className="text-1xl mb-2.5 mt-2 block text-left font-bold text-black dark:text-white">
               Insurance details : *
             </label>
-            <div>
-              <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                Payor name:
-                <div className="relative">
-                  <input
+            {
+              !_.isEmpty(patientInfo) ?
+                <div className="text-bold text-base font-bold text-black dark:text-white">
+                  <TextInputWithLabel
+                    label="Payor Name :"
+                    value={
+                      payorName || patientInfo?.payorDetails[0]?.payorName || ""
+                    }
+                    disabled={false || isEditable}
                     type="text"
-                    placeholder="Search..."
-                    value={payorName}
-                    onChange={(e) => {
-                      const inputText = e.target.value;
-                      setPayorName(inputText)
-                      const hasMatchingRecords = searchResults.some((result: any) =>
-                        result.participant_name.toLowerCase().includes(inputText.toLowerCase())
-                      );
-                      setOpenDropdown(hasMatchingRecords);
-                    }
-                    }
-                    className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
-                  <span
-                    className="absolute top-8 right-4 z-30 -translate-y-1/2"
-                    onClick={() => {
-                      setOpenDropdown(!openDropdown);
-                    }}
-                  >
-                    <svg
-                      className="fill-current"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g opacity="0.8">
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
-                          fill=""
-                        ></path>
-                      </g>
-                    </svg>
-                  </span>
-                  {filteredResults.length !== 0 && openDropdown ? (
-                    <div className="max-h-40 overflow-y-auto overflow-x-hidden">
-                      <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
-                        {_.map(filteredResults, (result: any, index: any) => (
-                          <li
-                            key={index}
-                            onClick={() => {
-                              setOpenDropdown(!openDropdown)
-                              handleSelect(
-                                result?.participant_name,
-                                result?.participant_code
-                              )
-                            }
-                            }
-                            className="hover:bg-gray-200 cursor-pointer p-2"
-                          >
-                            {result?.participant_name +
-                              ` (${result?.participant_code})` || ''}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <></>
-                  )}
+                  <TextInputWithLabel
+                    label="Participant Code :"
+                    value={
+                      payorParticipantCode || patientInfo?.payorDetails[0].payor || ""
+                    }
+                    disabled={false || isEditable}
+                    type="text"
+                  />
                 </div>
-              </h2>
-              <div className='items-center'>
-                <h2 className="text-bold mt-3 text-base font-bold text-black dark:text-white">
-                  {/* {strings.PARTICIPANT_CODE} */}
-                  Participant code :
-                </h2>
-                <span className='mt-3'>{payorName ? payorParticipantCode : 'Search above for participant code'}</span>
-              </div>
-            </div>
+                :
+                <div>
+                  <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                    Payor name:
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={payorName}
+                        onChange={(e) => {
+                          const inputText = e.target.value;
+                          setPayorName(inputText)
+                          const hasMatchingRecords = searchResults.some((result: any) =>
+                            result.participant_name.toLowerCase().includes(inputText.toLowerCase())
+                          );
+                          setOpenDropdown(hasMatchingRecords);
+                        }
+                        }
+                        // onChange={(e) => setPayorName(e.target.value)}
+                        className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+                      />
+                      <span
+                        className="absolute top-8 right-4 z-30 -translate-y-1/2"
+                        onClick={() => {
+                          setOpenDropdown(!openDropdown);
+                        }}
+                      >
+                        <svg
+                          className="fill-current"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g opacity="0.8">
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
+                              fill=""
+                            ></path>
+                          </g>
+                        </svg>
+                      </span>
+                      {filteredResults.length !== 0 && openDropdown ? (
+                        <div className="max-h-40 overflow-y-auto overflow-x-hidden">
+                          <ul className="border-gray-300 left-0 w-full rounded-lg bg-gray px-2 text-black">
+                            {_.map(filteredResults, (result: any, index: any) => (
+                              <li
+                                key={index}
+                                onClick={() => {
+                                  setOpenDropdown(!openDropdown)
+                                  handleSelect(
+                                    result?.participant_name,
+                                    result?.participant_code
+                                  )
+                                }
+                                }
+                                className="hover:bg-gray-200 cursor-pointer p-2"
+                              >
+                                {result?.participant_name +
+                                  `(${result?.participant_code})` || ''}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+
+                    </div>
+                  </h2>
+                  <div className='items-center'>
+                    <h2 className="text-bold mt-3 text-base font-bold text-black dark:text-white">
+                      {/* {strings.PARTICIPANT_CODE} */}
+                      Participant code :
+                    </h2>
+                    <span className='mt-3'>{payorName ? payorParticipantCode : 'Search above for participant code'}</span>
+                  </div>
+                </div>
+            }
             <TextInputWithLabel
               label="Insurance ID :"
               value={
-                insuranceID || patientInfo[0]?.payor_details[0]?.insurance_id
+                insuranceID || patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.insurance_id : ""
               }
               onChange={(e: any) => setInsuranceID(e.target.value)}
               placeholder="Enter Insurance ID"
@@ -542,9 +545,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             onClick={() => {
               if (isPatientExists === false) {
                 registerUser();
-              }
-              if (payload.medical_history[0]?.allergies !== '' || payload.medical_history[0]?.bloodGroup !== '') {
-                updateMedicalHistory();
               }
               sendCoverageEligibilityRequest();
             }}

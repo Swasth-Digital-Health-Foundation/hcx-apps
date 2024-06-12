@@ -1,25 +1,20 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import strings from "../../utils/strings";
 import { generateToken, searchParticipant } from "../../services/hcxService";
 import {
-  generateOutgoingRequest,
-  getConsultationDetails,
-  isInitiated,
+  generateOutgoingRequest, searchUser
 } from "../../services/hcxMockService";
 import TransparentLoader from "../../components/TransparentLoader";
-import LoadingButton from '../../components/LoadingButton';
 import { toast } from "react-toastify";
-import { postRequest } from "../../services/registryService";
-import { isEmpty } from "lodash";
-import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
+import { isEmpty } from "lodash";
 
 const ViewPatientDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const details = location.state;
   const [token, setToken] = useState<string>();
   const [providerName, setProviderName] = useState<string>();
   const [payorName, setPayorName] = useState<string>("");
@@ -29,36 +24,23 @@ const ViewPatientDetails = () => {
   const [coverageEligibilityStatus, setcoverageStatus] = useState<any>([]);
   const [apicallIdForClaim, setApicallID] = useState<any>();
   const [patientDetails, setPatientDetails] = useState<any>([]);
-  const [refresh, setRefresh] = useState<any>(false);
   const [loading, setLoading] = useState<any>(false);
-  const [initiated, setInitiated] = useState(false);
   const requestDetails = {
     ...location.state,
     providerName: providerName,
     billAmount: location.state?.billAmount || preauthOrClaimList[0]?.billAmount,
     apiCallId: apicallIdForClaim,
   };
-
-  
+  const [isRejected, setIsRejected] = useState<boolean>(false)
 
   const [type, setType] = useState<string[]>([]);
 
-  const payload = {
-    entityType: ["Beneficiary"],
-    filters: {
-      mobile: {
-        eq: `${location.state?.patientMobile || localStorage.getItem("patientMobile")
-          }`,
-      },
-    },
-  };
 
   const getPatientDetails = async () => {
     try {
       setLoading(true);
-      let registerResponse: any = await postRequest("search", payload);
-      const patientDetails = registerResponse.data;
-      setPatientDetails(patientDetails);
+      let registerResponse: any = await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))
+      setPatientDetails(registerResponse?.data?.result);
     } catch (error: any) {
       toast.error(error.response.data.params.errmsg, {
         position: toast.POSITION.TOP_CENTER,
@@ -66,42 +48,24 @@ const ViewPatientDetails = () => {
     }
   };
 
-  localStorage.setItem("patientMobile", patientDetails[0]?.mobile);
-  localStorage.setItem("patientName", patientDetails[0]?.name);
+  localStorage.setItem("patientMobile", patientDetails?.mobile);
+  localStorage.setItem("patientName", patientDetails?.userName);
 
   const personalDeatails = [
     {
       key: "Beneficiary name",
-      value: patientDetails[0]?.name,
+      value: patientDetails?.userName,
     },
     {
       key: "Mobile no",
-      value: patientDetails[0]?.mobile || location.state?.patientMobile,
+      value: patientDetails?.mobile || location.state?.patientMobile,
     },
     {
       key: "Address",
-      value: patientDetails[0]?.address,
+      value: patientDetails?.address,
     },
   ];
 
-  // const consultationDetailsData = [
-  //   {
-  //     key: "Treatment type",
-  //     value: consultationDetail?.service_type,
-  //   },
-  //   {
-  //     key: "Service type",
-  //     value: consultationDetail?.treatment_type,
-  //   },
-  //   {
-  //     key: "Symptom",
-  //     value: consultationDetail?.symptoms,
-  //   },
-  // ];
-
-  // let urls: string = consultationDetail?.supporting_documents_url;
-  // const trimmedString: string = urls?.slice(1, -1);
-  // const urlArray: any[] = trimmedString?.split(",");
 
   const participantCodePayload = {
     filters: {
@@ -132,6 +96,17 @@ const ViewPatientDetails = () => {
     }
   };
 
+  const getSupportingDocuments = (supportingDocuments: any) => {
+    try {
+      let urls: string = supportingDocuments;
+      const trimmedString: string = urls?.slice(1, -1);
+      const urlArray: any[] = trimmedString?.split(",");
+      return urlArray;
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   const search = async () => {
     const response = await searchParticipant(participantCodePayload, config);
     setProviderName(response.data?.participants[0]?.participant_name);
@@ -155,7 +130,7 @@ const ViewPatientDetails = () => {
     app: "ABSP",
   };
 
-  const patientMobile = localStorage.getItem("patientMobile");
+  const patientMobile = location.state?.patientMobile;
 
   const coverageEligibilityPayload = {
     mobile:
@@ -167,11 +142,11 @@ const ViewPatientDetails = () => {
     try {
       setLoading(true);
       let statusCheckCoverageEligibility = await generateOutgoingRequest(
-        "bsp/request/list",
+        "request/list",
         coverageEligibilityPayload
       );
       let response = await generateOutgoingRequest(
-        "bsp/request/list",
+        "request/list",
         preauthOrClaimListPayload
       );
       let preAuthAndClaimList = response.data?.entries;
@@ -184,6 +159,8 @@ const ViewPatientDetails = () => {
       }
       setType(
         response.data?.entries.map((ele: any) => {
+          if ((ele.type === 'claim' && ele.status === 'Rejected') || ele.type === 'preauth' && ele.status === 'Rejected' || ele.type === 'coverageeligibility' && ele.status === 'Rejected') setIsRejected(true)
+          else setIsRejected(false);
           return ele.type;
         })
       );
@@ -224,7 +201,6 @@ const ViewPatientDetails = () => {
         break;
       }
     }
-    // getConsultation();
   }, []);
 
 
@@ -258,34 +234,11 @@ const ViewPatientDetails = () => {
   }, [location.state?.patientMobile]);
 
   const hasClaimApproved = preauthOrClaimList.some(
-    (entry: any) => entry.type === 'claim' && entry.status === 'Approved'
+    (entry: any) => entry.type === 'claim' && entry.status === 'response.complete'
   );
 
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
-  const patient_Insurance_Id = patientInsuranceId || (patientDetails[0]?.payor_details[0]?.insurance_id)
-
-  const getVerificationPayload = {
-    type: 'otp_verification',
-    request_id: details?.apiCallId,
-  };
-
-  const getVerification = async () => {
-    try {
-      setRefresh(true);
-      let res = await isInitiated(getVerificationPayload);
-      setRefresh(false);
-      if (res.status === 200) {
-        setInitiated(true);
-      }
-    } catch (err) {
-      setRefresh(false);
-      console.log(err);
-      toast.error('Communication is not initiated.');
-    }
-  };
-
-
 
   return (
     <>
@@ -295,6 +248,7 @@ const ViewPatientDetails = () => {
             <ArrowPathIcon
               onClick={() => {
                 getActivePlans();
+                getPatientDetails()
               }}
               className={
                 loading ? "animate-spin h-7 w-7 absolute right-0" : "h-7 w-7 absolute right-0"
@@ -305,10 +259,10 @@ const ViewPatientDetails = () => {
           </div>
           <div className="flex items-center justify-between">
             <label className="block text-left text-2xl font-bold text-black dark:text-white">
-            Beneficiary Details
+              Beneficiary Details
             </label>
             <h2 className="sm:text-title-xl1 text-end font-semibold text-success dark:text-success">
-              {coverageEligibilityStatus === "Approved" ? (
+              {coverageEligibilityStatus === "response.complete" ? (
                 <div className="text-success">&#10004; Eligible</div>
               ) : (
                 <div className="mr-3 text-warning">Pending</div>
@@ -333,42 +287,6 @@ const ViewPatientDetails = () => {
                 );
               })}
             </div>
-            {/* {patientDetails[0]?.medical_history && (
-              <>
-                <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
-                  Medical history
-                </label>
-                <div className="items-center justify-between"></div>
-                <div>
-                  {_.map(patientDetails[0]?.medical_history,
-                    (ele: any, index: any) => {
-                      return (
-                        <div key={index} className="mb-2">
-                          <div className="mb-2 flex gap-2">
-                            <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Allergies
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.allergies}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <h2 className=" text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                              Blood group
-                            </h2>
-                            <div className="mr-6">:</div>
-                            <span className="text-base font-medium">
-                              {ele?.bloodGroup}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
-                </div>
-              </>
-            )} */}
             <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
               Insurance details
             </label>
@@ -383,7 +301,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                  {patientInsuranceId === "undefined" ? (patientDetails[0]?.payor_details[0]?.insurance_id) : patientInsuranceId}                  </span>
+                    {patientInsuranceId === "undefined" ? (patientDetails?.payorDetails?.insurance_id) : patientInsuranceId}                  </span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
@@ -391,13 +309,12 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                  {patientPayorName === "undefined" ? (patientDetails[0]?.payor_details[0]?.payorName) : patientPayorName}                  </span>
+                    {patientPayorName === "undefined" ? (patientDetails?.payorDetails?.payorName) : patientPayorName}                  </span>
                 </div>
               </div>
             </div>
           </div>
           {_.map(preauthOrClaimList, (ele: any, index: any) => {
-             const additionalInfo = JSON.parse(ele?.additionalInfo)
             return (
               <>
                 <div className=" flex items-center justify-between">
@@ -405,9 +322,13 @@ const ViewPatientDetails = () => {
                     {ele?.type.charAt(0).toUpperCase() + ele?.type.slice(1)}{" "}
                     details :
                   </h2>
-                  {ele?.status === "Approved" ? (
+                  {ele?.status === "response.complete" ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
                       &#10004; Approved
+                    </div>
+                  ) : ele?.status === "Rejected" ? (
+                    <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-danger dark:text-danger">
+                      Rejected
                     </div>
                   ) : (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-warning dark:text-success">
@@ -441,70 +362,73 @@ const ViewPatientDetails = () => {
                           INR {ele.billAmount}
                         </span>
                       </div>
-                      { additionalInfo?.financial?.approved_amount &&
+                      {ele.status === "response.complete" ? (
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
                             Approved amount
                           </h2>
                           <div className="mr-6">:</div>
                           <span className="text-base font-medium">
-                            INR {additionalInfo?.financial?.approved_amount}
+                            INR {ele.approvedAmount}
                           </span>
-                        </div>}
+                        </div>) : <></>
+                      }
+                      {ele.status === "response.complete" && ele.type === 'claim' ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
+                              Policy consent :
+                              <span className='text-success , ml-10'>&#10004; Approved</span>
+                            </h2>
+                          </div>
+                          <div className="flex gap-2">
+                            <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
+                              Beneficiary bank details :
+                            </h2>
+                          </div>
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              Account Number
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              {ele.accountNumber}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
+                              IFSC code
+                            </h2>
+                            <div className="mr-6">:</div>
+                            <span className="text-base font-medium">
+                              {ele.ifscCode}
+                            </span>
+                          </div>
+                        </>
+                      ) : <></>}
+
                     </div>
                   </div>
-                  {_.isEmpty(ele.supportingDocuments) ? null : <>
-                    <h2 className="text-bold mb-3 text-base font-bold text-black dark:text-white">
+
+                  {Object.keys(ele?.supportingDocuments).length === 0 ? <>
+                    <h2 className="text-bold text-base font-medium text-black dark:text-white">
                       Supporting documents :
                     </h2>
-                    {Object.entries(ele.supportingDocuments).map(([key, values]) => (
-                      <div key={key}>
-                        <h3 className='text-base font-bold text-black dark:text-white'>Document type : <span className='text-base font-medium'>{key}</span></h3>
-                        <div className='flex'>
-                          {Array.isArray(values) &&
-                            values.map((imageUrl, index) => {
-                              const parts = imageUrl.split('/');
-                              const fileName = parts[parts.length - 1];
-                              return (
-                                <a href={imageUrl} download>
-                                  <div className='text-center'>
-                                    <img key={index} height={150} width={150} src={thumbnail} alt={`${key} ${index + 1}`} />
-                                    <span>{fileName}</span>
-                                  </div>
-                                </a>
-                              )
-                            })}
-                        </div>
-                      </div>
-                    ))}
-                  </>}
-                  {
-                    ele?.accountNumber === '1234' ? <></> :
-                      <div className='mt-2'>
-                        <div className="flex items-center justify-between">
-                          <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-1 font-semibold text-black dark:text-white">
-                            Beneficiary bank details :
-                          </h2>
-                        </div>
-                        <div>
-                          <div>
-                            <div className='flex gap-2'>
-                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                                Account number :
-                              </h2>
-                              <span className="text-base font-medium">{ele.accountNumber}</span>
+                    <div className="flex flex-wrap gap-2">
+                      {_.map(getSupportingDocuments(ele?.supportingDocuments), (ele: string, index: number) => {
+                        const parts = ele.split('/');
+                        const fileName = parts[parts.length - 1];
+                        return (
+                          <a href={ele} download>
+                            <div className='text-center'>
+                              <img key={index} height={150} width={150} src={thumbnail} alt='image' />
+                              <span>{decodeURIComponent(fileName)}</span>
                             </div>
-                            <div className='flex gap-2'>
-                              <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                                IFSC code :
-                              </h2>
-                              <span className="text-base font-medium">{ele.ifscCode}</span>                        </div>
-                          </div>
-                        </div>
-                      </div>
-                  }
+                          </a>
+                        );
+                      })}
+                    </div></> : null}
                 </div>
-
               </>
             );
           })}
@@ -512,25 +436,31 @@ const ViewPatientDetails = () => {
           <div>
             {preauthOrClaimList.length === 0 && (
               <>
-                <div>
-                  <button
-                    onClick={() => navigate("/initiate-claim-request", {
-                      state: { requestDetails: requestDetails },
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-                  >
-                    Initiate claim
-                  </button>
-                  <button
-                    onClick={() => navigate("/initiate-preauth-request", {
-                      state: { requestDetails: requestDetails },
-                    })}
-                    className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
-                  >
-                    Initiate pre-auth
-                  </button>
-                </div>
-
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> :
+                  <div>
+                    <button
+                      onClick={() => navigate("/initiate-claim-request", {
+                        state: { requestDetails: requestDetails },
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                    >
+                      Initiate claim
+                    </button>
+                    <button
+                      onClick={() => navigate("/initiate-preauth-request", {
+                        state: { requestDetails: requestDetails },
+                      })}
+                      className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
+                    >
+                      Initiate pre-auth
+                    </button>
+                  </div>
+                }
               </>
             )}
 
@@ -538,14 +468,19 @@ const ViewPatientDetails = () => {
               <></>
             ) : type.includes("preauth") ? (
               <>
-                <button
+                {isRejected ? <button
+                  onClick={() => navigate("/home")}
+                  className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
+                >
+                  Home
+                </button> : <button
                   onClick={() => navigate("/initiate-claim-request", {
                     state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
                   })}
                   className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                 >
                   Initiate new claim request
-                </button>
+                </button>}
               </>
             ) : null}
           </div>

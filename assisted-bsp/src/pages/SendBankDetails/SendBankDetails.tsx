@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import {
@@ -23,8 +23,8 @@ const SendBankDetails = () => {
   const [loading, setLoading] = useState<any>(false);
   const [isConsentVerified, setIsConsentVerified] = useState<boolean>()
   const beneficiaryBankDetails: any[] = location.state?.bankDetails;
-
-  console.log(location.state);
+  const [bankStatus , setBankStatus] = useState<boolean>(false);
+  const [bankDetails , setBankDetails] = useState<any>();
 
   const claimRequestDetails: any = [
     {
@@ -71,30 +71,28 @@ const SendBankDetails = () => {
     },
   ];
 
-  const [bankDetails, setBankDetails] = useState(false);
-
   const getVerificationPayloadForBank = {
     type: 'bank_details',
     request_id: details?.sendInfo?.apiCallId,
-  };
-
+  };  
 
   const getVerificationForBank = async () => {
     try {
       setRefresh(true);
       let res = await isInitiated(getVerificationPayloadForBank);
+      setBankDetails(res.data?.result)
       setRefresh(false);
-      if (res.status === 200 && _.includes(["Pending"], res.data?.result?.bankStatus)) {
-
-        // toast.success('succes');
-        toast.error('Bank details request is not initiated');
-      }
-      else {
-        setBankDetails(true);
-        toast.success('Bank details request is initiated');
-      }
-      if (res.data?.result?.otpStatus === 'successful' && res.status === 200) {
-        setIsConsentVerified(true)
+      if (res.status === 200) {
+        if (_.includes(["Pending"], res.data?.result?.bankStatus)) {
+          toast.error('Bank details request is not initiated');
+          setBankStatus(false);
+        } else if (_.includes(["initiated"], res.data?.result?.bankStatus)) {
+          setBankStatus(true);
+          toast.success('Bank details request is initiated');
+        }
+        if (res.data?.result?.otpStatus === 'successful') {
+          setIsConsentVerified(true);
+        }
       }
     } catch (err) {
       setRefresh(false);
@@ -102,11 +100,11 @@ const SendBankDetails = () => {
       console.log(err);
     }
   };
+  
 
   const recipientCode = details?.sendInfo?.recipientCode;
 
-  console.log("List of the location storage")
-console.log(localStorage)
+
   const bankDetailsPayload = {
     request_id: details?.sendInfo?.apiCallId,
     type: 'bank_details',
@@ -123,7 +121,7 @@ console.log(localStorage)
       let res = await createCommunicationOnRequest(bankDetailsPayload);
       setLoading(false);
       if (res.status === 202) {
-        toast.success('Bank deatils submitted successfully!');
+        toast.success('Bank details submitted successfully!');
         navigate('/home');
       }
     } catch (err) {
@@ -131,8 +129,8 @@ console.log(localStorage)
       toast.error('Faild to submit, please try again');
       console.log(err);
     }
-  };
-  console.log(beneficiaryBankDetails[0]?.bankStatus);
+  };   
+  
 
   return (
     <div>   
@@ -199,7 +197,8 @@ console.log(localStorage)
         : <></>
       }
       {
-        beneficiaryBankDetails[0]?.accountNumber === '1234' ? <></> : <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+        beneficiaryBankDetails[0]?.bankStatus === 'successful' ? ( 
+        <div className="mt-2 pb-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <h2 className="sm:text-title-xl1 text-1xl mt-2 mb-4 font-semibold text-black dark:text-white">
               Beneficiary bank details :
@@ -217,7 +216,7 @@ console.log(localStorage)
               );
             })}
           </div>
-        </div>
+        </div>) : <></> 
       }
       {beneficiaryBankDetails[0]?.bankStatus === 'successful' ? <button
         onClick={(event: any) => {
@@ -231,26 +230,8 @@ console.log(localStorage)
       </button> :
         <></>
       }
-      {/* <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex items-center justify-between">
-          <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
-            Policy consent : <span className='text-success'>&#10004; Approved</span>
-          </h2>
-        </div>
 
-      </div> */}
-      {/* <button
-        className="align-center mt-3 mb-3 flex w-20 justify-center rounded bg-primary py-1 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
-        onClick={() => getVerificationForBank()}
-      >
-        {!refresh ? (
-          <span className="cursor-pointer">Refresh</span>
-        ) : (
-          <LoadingButton className="align-center flex w-20 justify-center rounded bg-primary font-medium text-gray disabled:cursor-not-allowed" />
-        )}
-      </button> */}
-
-      {bankDetails ? (
+      {bankStatus ? (
         <>
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <h2 className="mt-2 text-bold text-base font-bold text-black dark:text-white">
@@ -313,7 +294,6 @@ console.log(localStorage)
                   disabled={accountNumber === '' || ifscCode === ''}
                   onClick={(event: any) => {
                     event.preventDefault();
-                    //   verifyOTP();
                     submit();
                   }}
                   type="submit"

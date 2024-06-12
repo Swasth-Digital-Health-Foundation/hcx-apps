@@ -3,15 +3,14 @@ import Html5QrcodePlugin from "../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from "react";
 import ActiveClaimCycleCard from "../../components/ActiveClaimCycleCard";
 import strings from "../../utils/strings";
-import { generateOutgoingRequest, getCoverageEligibilityRequestList } from "../../services/hcxMockService";
+import { generateOutgoingRequest, getCoverageEligibilityRequestList , searchUser} from "../../services/hcxMockService";
 import * as _ from "lodash";
 import TransparentLoader from "../../components/TransparentLoader";
 import { generateToken, searchParticipant } from "../../services/hcxService";
 import CustomButton from "../../components/CustomButton";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
-import { ArrowPathIcon, CurrencyBangladeshiIcon } from "@heroicons/react/24/outline";
-import { postRequest } from "../../services/registryService";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -26,13 +25,13 @@ const Home = () => {
   const [isValid, setIsValid] = useState(true);
   const [finalData, setFinalData] = useState<any>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [patientInfo, seetPatientInfo] = useState<any>([]);
+  const [patientInfo, setPatientInfo] = useState<any>([]);
   const [workflowId, setWorkflowId] = useState<any>("");
   const [isPatientPresent,setIsPatientPresent] = useState(true);
 
   const getEmailFromLocalStorage = localStorage.getItem("email");
 
-  const onNewScanResult = (decodedText: any, decodedResult: any) => {
+  const onNewScanResult = (decodedText: any) => {
     setQrCodeData(decodedText);
     setInitialized(false);
   };
@@ -47,25 +46,14 @@ const Home = () => {
       console.log(obj,"obj");
       
       localStorage.setItem("patientInsuranceId", obj.insuranceId)
-      const patientSearchPayload = {
-        entityType: ["Beneficiary"],
-        filters: {
-          mobile: { eq: obj?.mobile },
-        },
-      };
 
       const patientSearch = async () => {
         try {
           setSearchLoading(true);
-          let registerResponse: any = await postRequest(
-            "search",
-            patientSearchPayload
-          );
-          const responseData = registerResponse.data;
-          seetPatientInfo(responseData);
+          let registerResponse: any = await searchUser("user/search", obj?.mobile || location.state?.patientMobile)
+          setPatientInfo(registerResponse?.data?.result);
           setSearchLoading(false);
-          if (responseData.length === 0) {
-            // toast.error("Patient not found!");
+          if (registerResponse?.data?.result.length === 0) {
             navigate("/add-patient", { state: { obj: obj, mobile: location.state } })
           } else {
             toast.success("Beneficiary already exists!");
@@ -103,7 +91,7 @@ const Home = () => {
         try {
           setLoading(true);
           let response = await generateOutgoingRequest(
-            'create/coverageeligibility/check',
+            'coverageeligibility/check',
             payload
           );
           if (response?.status === 202) {
@@ -128,14 +116,6 @@ const Home = () => {
       if (_.isEmpty(patientInfo)) {
         navigate("/coverage-eligibility", { state: { patientMobile: obj?.mobile, workflowId: workflowId, patientInsuranceId: obj?.insuranceId, patientPayorName: obj?.payorName } })
       }
-      // else{
-      //   navigate("/add-patient", {state: { obj: obj, mobile: location.state }})
-      // }
-
-
-      // navigate("/add-patient", {
-      //   state: { obj: obj, mobile: location.state },
-      // });
     }
   }, [qrCodeData])
 
@@ -220,7 +200,7 @@ const Home = () => {
 
       // Extract the status of the latest item
       if (latestItem) {
-        latestStatusByEntry[key] = latestItem.status;
+        latestStatusByEntry[key] = latestItem.status === "response.complete" ? "Approved" : "Pending";
       }
     }
   });

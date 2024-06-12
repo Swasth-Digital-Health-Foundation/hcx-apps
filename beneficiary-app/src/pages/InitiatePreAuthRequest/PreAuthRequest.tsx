@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import LoadingButton from '../../components/LoadingButton';
-import { generateOutgoingRequest, handleUpload } from '../../services/hcxMockService';
+import { generateOutgoingRequest, handleUpload, searchUser } from '../../services/hcxMockService';
 import { toast } from 'react-toastify';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import * as _ from 'lodash';
-import { postRequest } from '../../services/registryService';
 import SupportingDocuments from '../../components/SupportingDocuments';
+import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
 
 const PreAuthRequest = () => {
   const navigate = useNavigate();
@@ -55,22 +55,17 @@ const PreAuthRequest = () => {
     },
   ];
 
-  const filter = {
-    entityType: ['Beneficiary'],
-    filters: {
-      mobile: { eq: localStorage.getItem('mobile') },
-    },
+
+  const search = async () => {
+    try {
+      let response: any = await searchUser("user/search", localStorage.getItem('mobile'))
+      setUserInformation(response?.data?.result);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
-    const search = async () => {
-      try {
-        const searchUser = await postRequest('/search', filter);
-        setUserInformation(searchUser.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     search();
   }, []);
 
@@ -82,7 +77,7 @@ const PreAuthRequest = () => {
     insuranceId: dataFromCard?.insuranceId,
     mobile: localStorage.getItem('mobile'),
     billAmount: estimatedAmount,
-    patientName: userInfo[0]?.name,
+    patientName: userInfo?.userName,
     workflowId: dataFromCard?.workflowId,
     supportingDocuments: [
       {
@@ -95,9 +90,12 @@ const PreAuthRequest = () => {
     type: 'OPD',
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: userInfo[0]?.payor_details[0]?.recipientCode,
+    recipientCode: userInfo?.payorDetails?.payor,
     app: "BSP"
   };
+
+  console.log("Preauth request body", requestBody);
+
 
   const participantCodePayload = {
     filters: {
@@ -111,9 +109,8 @@ const PreAuthRequest = () => {
     },
   };
 
-  useEffect(() => {
+  const searchParticipants = async () => {
     try {
-      const search = async () => {
         const tokenResponse = await generateToken();
         let token = tokenResponse.data?.access_token;
         const response = await searchParticipant(participantCodePayload, {
@@ -129,11 +126,12 @@ const PreAuthRequest = () => {
           },
         });
         setPayorName(payorResponse.data?.participants[0].participant_name);
-      };
-      search();
     } catch (err) {
       console.log(err);
     }
+  }
+  useEffect(() => {
+    searchParticipants();
   }, []);
 
   const submitPreauth = async () => {
@@ -141,22 +139,23 @@ const PreAuthRequest = () => {
       setLoading(true);
       handleUpload(mobile, FileLists, requestBody, setUrlList);
       setTimeout(async () => {
-        let submitPreauth = await generateOutgoingRequest(
-          'create/preauth/submit',
-          requestBody
-        );
-        setLoading(false);
-        toast.success("Pre-auth request initiated successfully!")
-        navigate('/home', {
-          state: {
-            text: 'preauth',
-            mobileNumber: localStorage.getItem('mobile'),
-          },
-        });
+        let submitPreauthResponse = await generateOutgoingRequest(
+          'preauth/submit', requestBody
+        )
+        if (submitPreauthResponse.status === 202) {
+          setLoading(false);
+          toast.success("Pre-auth request initiated successfully!")
+          navigate('/home', {
+            state: {
+              text: 'preauth',
+              mobileNumber: localStorage.getItem('mobile'),
+            },
+          });
+        }
       }, 2000);
     } catch (err) {
       setLoading(false);
-      toast.error('Faild to submit claim, try again!');
+      toast.error('Faild to submit preauth, try again!');
     }
   };
 
@@ -249,7 +248,9 @@ const PreAuthRequest = () => {
         isSuccess={isSuccess}
         FileLists={FileLists}
         fileErrorMessage={fileErrorMessage}
-        selectedFile={selectedFile} />
+        selectedFile={selectedFile}
+        dropdownOptions={supportingDocumentsOptions} />
+
       <div className="mb-5 mt-4">
         {!loading ? (
           <button

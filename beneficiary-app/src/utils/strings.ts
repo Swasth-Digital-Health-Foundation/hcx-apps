@@ -10,7 +10,7 @@ export default {
   VERIFY_OTP_BUTTON: 'Verify OTP',
   RESEND_OTP_BUTTON: 'Resend OTP',
   ADD_PROFILE_DETAILS: 'Add profile details :',
-  USERS_NAME: "User's name",
+  USERS_NAME: "User's name *",
   ENTER_YOUR_NAME: 'Enter your name',
   MOBILE: 'Mobile number *',
   ENTER_MOBILE: 'Enter mobile number',

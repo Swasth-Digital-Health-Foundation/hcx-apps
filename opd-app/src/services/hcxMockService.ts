@@ -10,39 +10,17 @@ async function generateOutgoingRequest(url: any, payload: any) {
   return response;
 }
 
-async function isInitiated(payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/check/communication/request`,
-    payload
+async function searchUser(url: any, payload: any) {
+  const response = await axios.get(
+    `${process.env.hcx_mock_service}/${url}/${payload}`
   );
   return response;
 }
 
-async function createCommunicationOnRequest(payload: any) {
+async function createUser(url: any,payload: any) {
   const response = await axios.post(
-    `${process.env.hcx_mock_service}/create/communication/on_request`,
-    payload
-  );
-  return response;
-}
-
-async function sendOTP(payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/send/otp`,
-    payload,
-    {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-      },
-    }
-  );
-  return response;
-}
-
-async function verifyOTP(payload: any) {
-  const response = await axios.post(
-    `${process.env.hcx_mock_service}/verify/otp`,
-    payload
+    `${process.env.hcx_mock_service}/${url}`,
+        payload
   );
   return response;
 }
@@ -54,11 +32,19 @@ async function getConsultationDetails(workflow_id: any) {
   return response;
 }
 
+async function userUpdate(url: any, payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/${url}`,
+    payload
+  );
+  return response;
+}
+
 const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload: any, setActiveRequests: any, setFinalData: any, setDisplayedData: any) => {
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      "bsp/request/list",
+      "request/list",
       requestPayload
     );
     const data = response.data.entries;
@@ -96,7 +82,8 @@ const getCoverageEligibilityRequestList = async (setLoading: any, requestPayload
   }
 };
 
-const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any, setUrlList: any) => {
+const handleUpload = async (mobileNumber: any, FileLists: any) => {
+  toast.info('Uploading documents please wait...!');
   try {
     const formData = new FormData();
     formData.append('mobile', mobileNumber);
@@ -104,34 +91,44 @@ const handleUpload = async (mobileNumber: any, FileLists: any, requestBody: any,
     FileLists.forEach((file: any) => {
       formData.append(`file`, file);
     });
-    toast.info('Uploading documents please wait...!');
     const response = await axios({
       url: `${process.env.hcx_mock_service}/upload/documents`,
       method: 'POST',
       data: formData,
     });
-    let obtainedResponse = response.data;
-    const uploadedUrls = _.map(obtainedResponse, (ele: any) => ele.url);
-    // Update the payload with the new URLs
-    requestBody.supportingDocuments[0].urls = uploadedUrls;
-    setUrlList((prevFileUrlList: any) => [
-      ...prevFileUrlList,
-      ...obtainedResponse,
-    ]);
-    toast.info('Documents uploaded successfully!');
+    if(response.status === 200){
+      toast.dismiss();
+      toast.success('Documents uploaded successfully!');
+    }
     return response;
   } catch (error) {
     console.error('Error in uploading file', error);
   }
 };
 
+const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreauthOrClaimList }: any) => {
+  try {
+    setLoading(true);
+    let response = await generateOutgoingRequest(
+      'request/list',
+      preauthOrClaimListPayload
+    );
+    let preAuthAndClaimList = response.data?.entries;
+    setpreauthOrClaimList(preAuthAndClaimList);
+    setLoading(false);
+  } catch (err) {
+    setLoading(false);
+    console.log(err);
+  }
+};
+
 export {
   generateOutgoingRequest,
-  sendOTP,
-  verifyOTP,
-  isInitiated,
-  createCommunicationOnRequest,
+  createUser,
   getConsultationDetails,
   getCoverageEligibilityRequestList,
-  handleUpload
+  handleUpload,
+  getActivePlans,
+  searchUser,
+  userUpdate
 };
