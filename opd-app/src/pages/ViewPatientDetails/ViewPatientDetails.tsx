@@ -36,10 +36,10 @@ const ViewPatientDetails = () => {
 
 
 
-  const getPatientDetails =async () => {
+  const getPatientDetails = async () => {
     try {
       setisLoading(true);
-      let registerResponse: any =await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))      
+      let registerResponse: any = await searchUser("user/search", location.state?.patientMobile || localStorage.getItem("patientMobile"))
       setPatientDetails(registerResponse?.data?.result);
       setisLoading(false)
     } catch (error: any) {
@@ -196,7 +196,7 @@ const ViewPatientDetails = () => {
   };
 
   useEffect(() => {
-    tokenGeneration().then(() =>  getActivePlans());
+    tokenGeneration().then(() => getActivePlans());
   }, [preauthOrClaimListPayload.workflow_id, patientMobile]);
 
   const getConsultation = async () => {
@@ -356,7 +356,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName || (!_.isEmpty(patientDetails)  ? patientDetails?.payorDetails[0]?.payorName : "")}
+                    {patientPayorName || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.payorName : "")}
                   </span>
                 </div>
               </div>

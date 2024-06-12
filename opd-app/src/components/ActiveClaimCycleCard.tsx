@@ -36,22 +36,17 @@ const ActiveClaimCycleCard = (Props: any) => {
       }
     } catch (err: any) {
       console.log(err);
-      // toast.error()
       navigate("/add-consultation", { state: information })
     }
   };
 
-  // useEffect(() => {
-  //   getConsultation()
-  // }, [])
-
   const data: any = [
     {
-      key: "PatientName",
+      key: "Patient Name",
       value: Props.patientName,
     },
     {
-      key: "Initiation date",
+      key: "Initiation Date",
       value: formattedDate,
     },
     {
@@ -59,7 +54,7 @@ const ActiveClaimCycleCard = (Props: any) => {
       value: `${Props.insurance_id || "null"}`,
     },
     {
-      key: "ServiceType",
+      key: "Service Type",
       value: `${Props.claimType}`,
     },
     {
