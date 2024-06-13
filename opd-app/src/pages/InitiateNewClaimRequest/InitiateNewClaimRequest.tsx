@@ -13,7 +13,6 @@ import * as _ from "lodash";
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [fileErrorMessage, setFileErrorMessage]: any = useState();
 
   const [amount, setAmount] = useState<string>("");
   const [serviceType, setServiceType] = useState<string>();
@@ -401,7 +400,7 @@ const InitiateNewClaimRequest = () => {
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
-                disabled={amount === "" || fileErrorMessage}
+                disabled={amount === ""}
                 onClick={() => {
                   submitClaim();
                 }}
