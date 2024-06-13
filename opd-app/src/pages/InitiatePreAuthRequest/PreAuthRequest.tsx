@@ -209,8 +209,10 @@ const PreAuthRequest = () => {
       if (!_.isEmpty(selectedFiles)) {
         const response = await handleUpload(mobile, files);
         if (response?.status === 200) {
-          const supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
-          addConsultationUrls(supportingDocs, consultationDocs)
+          var supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
+          if (urls != "{}") {
+            addConsultationUrls(supportingDocs, consultationDocs);
+          }
           _.set(initiatePreAuthRequestBody, "supportingDocuments", supportingDocs)
           const preauthResponse = await generateOutgoingRequest("preauth/submit", initiatePreAuthRequestBody);
           setSubmitLoading(false);
@@ -220,8 +222,9 @@ const PreAuthRequest = () => {
         }
       }
       else {
-        const supportingDocs = addConsultationUrls([], consultationDocs);
-        _.set(initiatePreAuthRequestBody, "supportingDocuments", supportingDocs);
+        if (urls != "{}") {
+          _.set(initiatePreAuthRequestBody, "supportingDocuments", addConsultationUrls([], consultationDocs));
+        }
         const preauthResponse = await generateOutgoingRequest("preauth/submit", initiatePreAuthRequestBody);
         if (preauthResponse.status === 202) {
           toast.dismiss()

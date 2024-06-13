@@ -193,8 +193,10 @@ const InitiateNewClaimRequest = () => {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFiles)) {
         const response = await handleUpload(mobile, files);
-        const supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
-        addConsultationUrls(supportingDocs, consultationDocs)
+        var supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
+        if (urls != "{}") {
+          addConsultationUrls(supportingDocs, consultationDocs);
+        }
         _.set(initiateClaimRequestBody, "supportingDocuments", supportingDocs)
         if (response?.status === 200) {
           handleClaimRequest()
@@ -204,7 +206,9 @@ const InitiateNewClaimRequest = () => {
         }
       } else {
         toast.dismiss()
-        _.set(initiateClaimRequestBody, "supportingDocuments", addConsultationUrls([], consultationDocs));
+        if (urls != "{}") {
+          _.set(initiateClaimRequestBody, "supportingDocuments", addConsultationUrls([], consultationDocs));
+        }
         const response = await generateOutgoingRequest("claim/submit", initiateClaimRequestBody);
         if (response?.status === 200) {
           toast.success("Claim request initiated successfully!");
