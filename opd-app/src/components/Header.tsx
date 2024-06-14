@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import LogoIcon from '../images/swasth_logo.png';
-import DarkModeSwitcher from './DarkModeSwitcher';
+// import DarkModeSwitcher from './DarkModeSwitcher';
+import { DarkModeSwitcher } from "@developersourav/darkmodeswitter";
 import { useEffect, useState } from 'react';
 
 const Header = (props: {
