@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getConsultationDetails } from "../services/hcxMockService";
+import _ from "lodash";
 
 const ActiveClaimCycleCard = (Props: any) => {
   const navigate = useNavigate();
@@ -46,15 +47,15 @@ const ActiveClaimCycleCard = (Props: any) => {
       value: Props.patientName,
     },
     {
-      key: "Initiation Date",
+      key: "Treatment Date",
       value: formattedDate,
     },
     {
-      key: "Insurance ID",
+      key: "Insurance No.",
       value: `${Props.insurance_id || "null"}`,
     },
     {
-      key: "Service Type",
+      key: "Diagnosis",
       value: `${Props.claimType}`,
     },
     {
@@ -77,15 +78,15 @@ const ActiveClaimCycleCard = (Props: any) => {
   return (
     <div>
       <div className="relative rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex flex-col p-4">
+        <div className="p-4">
           {data.map((ele: any, index: any) => {
             return (
-              <div className="flex items-center">
+              <div className="flex items-center gap-2">
                 <h2
                   key={index}
                   className="font-small mt-1 block text-left text-black dark:text-white"
                 >
-                  <b className="inline-block w-30">{ele.key}</b>{" "}
+                  <b className="inline-block w-35 flex gap-10">{ele.key}</b>{" "}
                 </h2>
                 <span>: {ele.value}</span>
               </div>
@@ -98,7 +99,7 @@ const ActiveClaimCycleCard = (Props: any) => {
             }
           >
             <div className="flex items-center justify-end gap-2">
-              <p>View details</p>
+              <p>View Details</p>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
