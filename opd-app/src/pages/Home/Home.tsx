@@ -164,7 +164,7 @@ const Home = () => {
   const patientProfile = [
     {
       "key": "Patient ID ",
-      "value": userInfo && userInfo.beneficiaryId ? `OP/${userInfo.beneficiaryId.toString().slice(0, 6)}` : ""    
+      "value": userInfo && userInfo.beneficiaryId ? `OP/${userInfo.beneficiaryId.toString().slice(0, 6)}` : ""
     },
     {
       "key": "Patient Name ",
@@ -202,18 +202,20 @@ const Home = () => {
               />
             </div>
           </div>
-          <p className="mt-3 text-center font-bold text-black dark:text-gray">
-            OR
-          </p>
-          <div className="mt-3 text-center">
-            <a
-              className="cursor-pointer underline"
-              onClick={() => {
-                navigate("/add-patient");
-              }}
-            >
-              {strings.ADD_NEW_PATIENT}
-            </a>
+          <div className="">
+            <p className="text-center font-bold text-black dark:text-gray">
+              OR
+            </p>
+            <div className="mt-3 text-center">
+              <a
+                className="cursor-pointer underline"
+                onClick={() => {
+                  navigate("/add-patient");
+                }}
+              >
+                {strings.ADD_NEW_PATIENT}
+              </a>
+            </div>
           </div>
         </div>
       </div>
