@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import strings from '../../utils/strings';
 import LoadingButton from '../../components/LoadingButton';
-import { generateOutgoingRequest, handleUpload } from '../../services/hcxMockService';
+import { generateOutgoingRequest, handleUpload, searchUser } from '../../services/hcxMockService';
 import { toast } from 'react-toastify';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import * as _ from 'lodash';
-import { postRequest } from '../../services/registryService';
 import SupportingDocuments from '../../components/SupportingDocuments';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
 
@@ -56,22 +55,17 @@ const PreAuthRequest = () => {
     },
   ];
 
-  const filter = {
-    entityType: ['Beneficiary'],
-    filters: {
-      mobile: { eq: localStorage.getItem('mobile') },
-    },
+
+  const search = async () => {
+    try {
+      let response: any = await searchUser("user/search", localStorage.getItem('mobile'))
+      setUserInformation(response?.data?.result);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
-    const search = async () => {
-      try {
-        const searchUser = await postRequest('/search', filter);
-        setUserInformation(searchUser.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     search();
   }, []);
 
@@ -83,7 +77,7 @@ const PreAuthRequest = () => {
     insuranceId: dataFromCard?.insuranceId,
     mobile: localStorage.getItem('mobile'),
     billAmount: estimatedAmount,
-    patientName: userInfo[0]?.name,
+    patientName: userInfo?.userName,
     workflowId: dataFromCard?.workflowId,
     supportingDocuments: [
       {
@@ -96,9 +90,12 @@ const PreAuthRequest = () => {
     type: 'OPD',
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: userInfo[0]?.payor_details[0]?.recipientCode,
+    recipientCode: userInfo?.payorDetails?.payor,
     app: "BSP"
   };
+
+  console.log("Preauth request body", requestBody);
+
 
   const participantCodePayload = {
     filters: {
@@ -112,29 +109,29 @@ const PreAuthRequest = () => {
     },
   };
 
-  useEffect(() => {
+  const searchParticipants = async () => {
     try {
-      const search = async () => {
         const tokenResponse = await generateToken();
         let token = tokenResponse.data?.access_token;
         const response = await searchParticipant(participantCodePayload, {
           headers: {
-            Authorization: `Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1OWQ0M2Y5Yi00MmU3LTQ0ODAtOWVjMi1hYTZiZDk1Y2NiNWYiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImlzcyI6Imh0dHA6XC9cL2tleWNsb2FrLmtleWNsb2FrLnN2Yy5jbHVzdGVyLmxvY2FsOjgwODBcL2F1dGhcL3JlYWxtc1wvc3dhc3RoLWhjeC1wYXJ0aWNpcGFudHMiLCJ0eXAiOiJCZWFyZXIiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJoY3hnYXRld2F5QHN3YXN0aC5vcmciLCJhdWQiOiJhY2NvdW50IiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJISUVcL0hJTy5IQ1giLCJkZWZhdWx0LXJvbGVzLW5kZWFyIl19LCJhenAiOiJyZWdpc3RyeS1mcm9udGVuZCIsInBhcnRpY2lwYW50X2NvZGUiOiJoY3hnYXRld2F5LnN3YXN0aEBzd2FzdGgtaGN4LWRldiIsInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImV4cCI6MTcwODQwNDY2MCwic2Vzc2lvbl9zdGF0ZSI6ImY0NWVhYzJlLWI3MTMtNDgwNS1iYWViLWNiMGM5MTJkNTkzNyIsImlhdCI6MTcwNjY3NjY2MCwianRpIjoiOTFiNWYzMzgtNjYxYS00MjQ0LWJlZTEtYWEzY2FhYmJkNGIyIiwiZW50aXR5IjpbIk9yZ2FuaXNhdGlvbiJdLCJlbWFpbCI6ImhjeGdhdGV3YXlAc3dhc3RoLm9yZyJ9.DeNugZb3jQH70Ayf9vieFxSZT0mHZ70eZCmMjxF6iVZiO_GVlDx6eDOYcVZqqnZmdk9Se749UdeDa4UmV43CoAZ2ISEZehBpS8KCyju33_9lB_TxNV2490zaZkEjSiCmWYO6UZmnBkAptyzfbrZzuZYNbgzjQ4pL_PXq9kN5hvE6q_9BeKegtI36Y9vG_iKP8t9JWpi2Xb4leUmC-rrg6UGK50EbplOzLugFdv4qCCFRH7byttCb6NYt-oyI1ha8pVezA9V6pGHou4kQVJh38C3WiAs_altjYRiRIkT13_74cXX5FVO9cg0J3VE7_6X-MvUFN9L0Lhl3qcn6AEbziQ`,
+            Authorization: `Bearer ${token}`,
           },
         });
         setProviderName(response.data?.participants[0].participant_name);
 
         const payorResponse = await searchParticipant(payorCodePayload, {
           headers: {
-            Authorization: `Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1OWQ0M2Y5Yi00MmU3LTQ0ODAtOWVjMi1hYTZiZDk1Y2NiNWYiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImlzcyI6Imh0dHA6XC9cL2tleWNsb2FrLmtleWNsb2FrLnN2Yy5jbHVzdGVyLmxvY2FsOjgwODBcL2F1dGhcL3JlYWxtc1wvc3dhc3RoLWhjeC1wYXJ0aWNpcGFudHMiLCJ0eXAiOiJCZWFyZXIiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJoY3hnYXRld2F5QHN3YXN0aC5vcmciLCJhdWQiOiJhY2NvdW50IiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJISUVcL0hJTy5IQ1giLCJkZWZhdWx0LXJvbGVzLW5kZWFyIl19LCJhenAiOiJyZWdpc3RyeS1mcm9udGVuZCIsInBhcnRpY2lwYW50X2NvZGUiOiJoY3hnYXRld2F5LnN3YXN0aEBzd2FzdGgtaGN4LWRldiIsInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsImV4cCI6MTcwODQwNDY2MCwic2Vzc2lvbl9zdGF0ZSI6ImY0NWVhYzJlLWI3MTMtNDgwNS1iYWViLWNiMGM5MTJkNTkzNyIsImlhdCI6MTcwNjY3NjY2MCwianRpIjoiOTFiNWYzMzgtNjYxYS00MjQ0LWJlZTEtYWEzY2FhYmJkNGIyIiwiZW50aXR5IjpbIk9yZ2FuaXNhdGlvbiJdLCJlbWFpbCI6ImhjeGdhdGV3YXlAc3dhc3RoLm9yZyJ9.DeNugZb3jQH70Ayf9vieFxSZT0mHZ70eZCmMjxF6iVZiO_GVlDx6eDOYcVZqqnZmdk9Se749UdeDa4UmV43CoAZ2ISEZehBpS8KCyju33_9lB_TxNV2490zaZkEjSiCmWYO6UZmnBkAptyzfbrZzuZYNbgzjQ4pL_PXq9kN5hvE6q_9BeKegtI36Y9vG_iKP8t9JWpi2Xb4leUmC-rrg6UGK50EbplOzLugFdv4qCCFRH7byttCb6NYt-oyI1ha8pVezA9V6pGHou4kQVJh38C3WiAs_altjYRiRIkT13_74cXX5FVO9cg0J3VE7_6X-MvUFN9L0Lhl3qcn6AEbziQ`,
+            Authorization: `Bearer ${token}`,
           },
         });
         setPayorName(payorResponse.data?.participants[0].participant_name);
-      };
-      search();
     } catch (err) {
       console.log(err);
     }
+  }
+  useEffect(() => {
+    searchParticipants();
   }, []);
 
   const submitPreauth = async () => {
@@ -142,21 +139,23 @@ const PreAuthRequest = () => {
       setLoading(true);
       handleUpload(mobile, FileLists, requestBody, setUrlList);
       setTimeout(async () => {
-        let submitPreauth = await generateOutgoingRequest(
-          'create/preauth/submit', requestBody
+        let submitPreauthResponse = await generateOutgoingRequest(
+          'preauth/submit', requestBody
         )
-        setLoading(false);
-        toast.success("Pre-auth request initiated successfully!")
-        navigate('/home', {
-          state: {
-            text: 'preauth',
-            mobileNumber: localStorage.getItem('mobile'),
-          },
-        });
+        if (submitPreauthResponse.status === 202) {
+          setLoading(false);
+          toast.success("Pre-auth request initiated successfully!")
+          navigate('/home', {
+            state: {
+              text: 'preauth',
+              mobileNumber: localStorage.getItem('mobile'),
+            },
+          });
+        }
       }, 2000);
     } catch (err) {
       setLoading(false);
-      toast.error('Faild to submit claim, try again!');
+      toast.error('Faild to submit preauth, try again!');
     }
   };
 
