@@ -1,5 +1,6 @@
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect, useState } from 'react';
+import Logo from "../../../public/qr-code-scan-icon.png";
 
 interface Html5QrcodePluginProps {
   fps?: number;
@@ -93,20 +94,24 @@ const Html5QrcodePlugin: React.FC<Html5QrcodePluginProps> = (props) => {
 
   return (
     <>
-      <div className='text-center pb-2'>
+      <div className='text-center'>
         Scan the provider QR code to initiate the claim cycle
       </div>
       {!isScanning && (
-        <div className='m-auto bg-primary p-3 text-center w-30 rounded'>
-          <button onClick={startScanner} className='text-white'>
-            Start Scanner
-          </button>
-        </div>
+        <>
+          <div className='m-auto p-1 text-center w-30 rounded'>
+            <button onClick={startScanner} className='text-white mt-3'>
+              <div>
+                <img className="inline w-15 h-15 m-auto" src={Logo} alt="Logo" />
+              </div>
+              Start Scanner
+            </button>
+          </div>
+        </>
       )}
-      <div id={qrcodeRegionId} className='mt-3' />
+      <div id={qrcodeRegionId} className='mt-1' />
     </>
   );
 };
 
 export default Html5QrcodePlugin;
-

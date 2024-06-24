@@ -164,7 +164,7 @@ const Home = () => {
   const patientProfile = [
     {
       "key": "Patient ID ",
-      "value": userInfo && userInfo.beneficiaryId ? `OP/${userInfo.beneficiaryId.toString().slice(0, 6)}` : ""    
+      "value": userInfo && userInfo.beneficiaryId ? `OP/${userInfo.beneficiaryId.toString().slice(0, 6)}` : ""
     },
     {
       "key": "Patient Name ",
@@ -202,18 +202,20 @@ const Home = () => {
               />
             </div>
           </div>
-          <p className="mt-3 text-center font-bold text-black dark:text-gray">
-            OR
-          </p>
-          <div className="mt-3 text-center">
-            <a
-              className="cursor-pointer underline"
-              onClick={() => {
-                navigate("/add-patient");
-              }}
-            >
-              {strings.ADD_NEW_PATIENT}
-            </a>
+          <div className="">
+            <p className="text-center font-bold text-black dark:text-gray">
+              OR
+            </p>
+            <div className="mt-3 text-center">
+              <a
+                className="cursor-pointer underline"
+                onClick={() => {
+                  navigate("/add-patient");
+                }}
+              >
+                {strings.ADD_NEW_PATIENT}
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -236,7 +238,7 @@ const Home = () => {
           <input
             onChange={handleMobileNumberChange}
             type="text"
-            placeholder="Enter beneficiary mobile to search"
+            placeholder="Enter Patient Mobile no. or UID to search"
             className={`border ${isValid ? "border-stroke" : "border-red"
               } w-full rounded-lg py-4 pl-6 pr-10 outline-none focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary`}
           />
@@ -290,7 +292,7 @@ const Home = () => {
             {isSearched ? (
               <div className="mt-2 relative">
                 <label className="block mb-2 text-left text-2xl font-bold text-black dark:text-white">
-                  {"Patient details"}
+                  {"Patient Details"}
                 </label>
                 <div className="relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
                   {patientProfile.map((ele: any, index: any) => {
@@ -300,7 +302,7 @@ const Home = () => {
                           key={index}
                           className="font-small mt-1 block text-left text-black dark:text-white"
                         >
-                          <b className="inline-block w-40">{ele.key}</b>{" "}
+                          <b className="inline-block w-30">{ele.key}</b>{" "}
                         </h2>
                         <span>: {ele.value}</span>
                       </div>
@@ -314,7 +316,7 @@ const Home = () => {
                     }}
                   >
                     <div className="flex items-center justify-end gap-2">
-                      <p>View details</p>
+                      <p>View Details</p>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
