@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { searchUser, userUpdate } from '../../services/hcxMockService';
 import { toast } from 'react-toastify';
 import InsuranceDetailsForm from '../../components/InsuranceDetailsForm';
@@ -71,6 +71,7 @@ const userProfile = () => {
 
     const updatePayload = {
         mobile: searchedMobileNumber,
+        beneficiary_id: location?.state?.userInfo?.beneficiaryId,
         name: editedUserName || location?.state?.userInfo?.userName,
         address: editedAddress || location?.state?.userInfo?.address,
         medical_history: {
@@ -78,7 +79,7 @@ const userProfile = () => {
             allergies: editedAllergies || location?.state?.userInfo?.medicalHistory?.allergies
         }
     }
-
+    console.log("update payload", updatePayload)
 
     const handleSaveClick = async () => {
         try {
@@ -87,7 +88,9 @@ const userProfile = () => {
             if (response.status === 200) {
                 setTimeout(async () => {
                     let searchResponse: any = await searchUser("user/search", searchedMobileNumber);
-                    setUserInformation(searchResponse?.data?.result);
+                    const beneficiary_id = location?.state?.userInfo?.beneficiaryId
+                    let filteredResults = searchResponse?.data?.filter((user: any) => user.beneficiaryId === beneficiary_id);
+                    setUserInformation(filteredResults[0]);
                 }, 2000);
                 toast.success("Details updated successfully.");
             } else {
@@ -247,7 +250,7 @@ const userProfile = () => {
                     </h2>
                     <div className="relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
                         <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                           Patient Name :
+                            Patient Name :
                         </h2>
                         {isEditing ? (
                             <input
@@ -260,7 +263,7 @@ const userProfile = () => {
                             <span className="text-base font-medium">{userInfo?.userName}</span>
                         )}
                         <h2 className="mt-2 text-bold text-base font-bold text-black dark:text-white">
-                          Patient Mobile :
+                            Patient Mobile :
                         </h2>
                         <span className="text-base font-medium">{searchedMobileNumber}</span>
                         <h2 className="mt-2 text-bold text-base font-bold text-black dark:text-white">
@@ -381,7 +384,7 @@ const userProfile = () => {
                                         </div>
                                         <div className="gap-2 mt-1.5">
                                             <h2 className="text-bold text-base font-bold text-black dark:text-white">
-                                            Insurer Name:
+                                                Insurer Name:
                                             </h2>
                                             <span className="text-  base font-medium">{detail.payorName}</span>
                                         </div>

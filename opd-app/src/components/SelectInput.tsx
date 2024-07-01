@@ -1,4 +1,3 @@
-import React from 'react';
 
 const SelectInput = ({ label, value, onChange, options, disabled }: any) => {
   return (
