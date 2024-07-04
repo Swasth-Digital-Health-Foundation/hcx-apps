@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ModalConfirmBack = (props: any) => {
-    const { show, userInfo, setSelectedProfile } = props;
+    const navigate = useNavigate();
+    const { show, userInfo, setSelectedProfile,setPatientInfo } = props;
     const [modalOpen, setModalOpen] = useState(show);
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
@@ -30,7 +32,7 @@ const ModalConfirmBack = (props: any) => {
 
     return (
         <div
-            className={`fixed top-0 left-0 z-999999 flex h-full min-h-screen w-full items-center justify-center bg-black/90 px-2 py-2 ${modalOpen ? 'block' : 'hidden'
+            className={`fixed top-0 left-0 z-999999 flex h   min-h-screen w-full items-center justify-center bg-black/90 px-2 py-2 ${modalOpen ? 'block' : 'hidden'
                 }`} >
             <div
                 ref={modal}
@@ -81,7 +83,6 @@ const ModalConfirmBack = (props: any) => {
                         <button
                             onClick={() => {
                                 setModalOpen(false);
-
                             }}
                             className="block w-full rounded border border-stroke bg-gray p-3 text-center font-medium text-black transition hover:border-meta-1 hover:bg-meta-1 hover:text-white dark:border-strokedark dark:bg-meta-4 dark:text-white dark:hover:border-meta-1 dark:hover:bg-meta-1"
                         >

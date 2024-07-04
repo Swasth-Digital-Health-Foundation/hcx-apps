@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState } from "react";
 import TextInputWithLabel from "../../components/inputField";
 import SelectInput from "../../components/SelectInput";
 import CustomButton from "../../components/CustomButton";
@@ -33,6 +33,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   const [payorParticipantCode, setPayorParticipantCode] = useState<string>('');
   const [gender, setGender] = useState<string>("")
   const [age, setAge] = useState<string>("");
+  const [isCheck, setIsCheck] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string>("")
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(undefined);
@@ -106,36 +107,30 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   const patientDetails = [
     {
-      key: "Name :",
+      key: "Name ",
       value: selectedProfile?.userName || patientInfo?.userName || patientDataFromState?.patientName,
     },
     {
-      key: "Mobile no. :",
-      value: patientDataFromState?.mobile,
+      key: "Mobile no. ",
+      value: mobile || patientDataFromState?.mobile,
     },
     {
-      key: "Address :",
-      value: patientInfo?.address || patientDataFromState?.address,
+      key: "Address ",
+      value: selectedProfile?.address || patientInfo?.address || patientDataFromState?.address,
     },
     {
-      key: "Payor name :",
-      value: payorName || patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payorName : ""
+      key: "Gender ",
+      value: gender || selectedProfile?.gender
     },
     {
-      key: "Insurance ID :",
-      value: insuranceID || patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.insurance_id : ""
+      key: "Age ",
+      value: age || selectedProfile?.age
+    },
+    {
+      key: "Email ",
+      value: userEmail || selectedProfile?.email
     }
-    ,
   ];
-
-  // const handleSubmitClick = (user: any) => {
-  //   console.log('Submit clicked, selected user:', user);
-  //   setNewUser(user);
-  //   console.log('Location state:', location?.state);
-  //   setModalVisible(false);
-  // };
-
-  console.log(selectedProfile)
 
   const userSearchPayload = {
     entityType: ["Beneficiary"],
@@ -248,22 +243,23 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   localStorage.setItem('mobile', mobile || patientDataFromState?.mobile)
 
   const coverageeligibilityPayload = {
-    insuranceId: insuranceID || (patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.insurance_id : ""),
+    insuranceId: insuranceID || selectedProfile && selectedProfile?.payorDetails?.[0]?.insurance_id,
     mobile: mobile || patientDataFromState?.mobile,
-    payor: payorName || (patientInfo && patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payorName : ""),
+    payor: payorName || (selectedProfile && selectedProfile.length !== 0 ? selectedProfile?.payorDetails?.[0]?.payorName : ""),
     providerName: localStorage.getItem("providerName"),
     participantCode:
       participantInfo[0]?.participant_code || email,
     serviceType: "OPD",
-    patientName: patientInfo[0]?.name || patientInfo?.userName || name || patientDataFromState?.patientName,
+    patientName: selectedProfile?.userName || name || patientDataFromState?.patientName,
     app: "OPD",
     password: passowrd,
-    recipientCode: payorParticipantCode || (patientInfo.length !== 0 ? patientInfo?.payorDetails?.[0]?.payor : "")
+    recipientCode: payorParticipantCode || (patientInfo.length !== 0 ? selectedProfile?.payorDetails?.[0]?.payor : "")
   };
 
   const sendCoverageEligibilityRequest = async () => {
     try {
       setLoading(true);
+      console.log("coverageeligibilityPayload", coverageeligibilityPayload)
       let response = await generateOutgoingRequest(
         "coverageeligibility/check",
         coverageeligibilityPayload
@@ -273,6 +269,9 @@ const AddPatientAndInitiateCoverageEligibility = () => {
         toast.success("Coverage eligibility initiated.");
         navigate("/add-consultation", {
           state: {
+            patientName: selectedProfile?.userName,
+            address: selectedProfile?.address,
+            insuranceId: insuranceID || selectedProfile && selectedProfile?.payorDetails?.[0]?.insurance_id,
             patientMobile: patientDataFromState?.mobile || localStorage.getItem("patientMobile"),
             workflowId: response.data?.workflowId,
             recipientCode: response.data?.recipientCode
@@ -287,10 +286,10 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   const handleMobileNumberChange = (e: any) => {
     const inputValue = e.target.value;
-    // Check if the input contains exactly 10 numeric characters
     const isValidInput = /^\d{10}$/.test(inputValue);
     setIsValid(isValidInput);
     setMobile(inputValue);
+    checkForExistingPatient(e.target.value, age, gender);
   };
 
   useEffect(() => {
@@ -351,6 +350,28 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   console.log("selectedProfile", selectedProfile)
 
+  useEffect(() => {
+    checkForExistingPatient(mobile, age, gender)
+  }, [mobile, age])
+
+  const checkForExistingPatient = (mobile: any, age: any, gender: any) => {
+    console.log({ mobile, name, age })
+    const existingPatient = patientInfo.find((patient: { mobile: any; age: any; gender: any; }) =>
+      patient.age === age && patient.gender === gender
+    );
+    console.log("existingPatient", existingPatient)
+    if (existingPatient) {
+      setPatientInfo(existingPatient);
+      setModalVisible(true);
+    } else {
+      setModalVisible(false);
+    }
+  };
+
+
+  console.log("patient info", patientInfo)
+  console.log("model visible", modalVisible)
+
   const handleSelect = (result: any, participantCode: any) => {
     setOpenDropdown(false);
     setPayorParticipantCode(participantCode);
@@ -368,16 +389,19 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   return (
     <div>
       <label className="mb-2.5 block text-left text-2xl font-bold text-black dark:text-white">
-        New Patient Details
+        {modalVisible ? "Patient Details" : "New Patient Details"}
       </label>
       {selectedProfile ? (
         <div className='dark:bg-boxdark" rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark'>
+          <label className="text-1xl mb-2.5 mt-2 block text-left font-bold text-black dark:text-white">
+            Personal Details
+          </label>
           {patientDetails.map((ele: any) => {
             return (
               <div className="mb-2 flex gap-2">
-                <h2 className="text-bold text-base font-bold text-black dark:text-white">
+                <h2 className="text-bold text-base font-bold inline-block w-30 text-black dark:text-white">
                   {ele.key}
-                </h2>
+                </h2>:
                 <span className="text-base font-medium">{ele.value}</span>
               </div>
             );
@@ -389,51 +413,52 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             Personal details : *
           </label>
           <div className="relative">
+
             <TextInputWithLabel
               label="Mobile no. :"
               value={mobile}
               onChange={handleMobileNumberChange}
               placeholder="Enter mobile number"
-              disabled={false}
+              // disabled={false}
               type="number"
             />
           </div>
           <TextInputWithLabel
             label="Name :"
-            value={name || patientInfo[0]?.userName}
+            value={name}
             onChange={(e: any) => setName(e.target.value)}
             placeholder="Enter patient name"
-            disabled={isEditable}
+            // disabled={isEditable}
             type="text"
           />
           <TextInputWithLabel
             label="Address :"
-            value={address || patientInfo[0]?.address}
+            value={address}
             onChange={(e: any) => setAddress(e.target.value)}
             placeholder="Enter address"
-            disabled={isEditable}
+            // disabled={isEditable}
             type="text"
           />
           <TextInputWithLabel
             label="Email :"
-            value={userEmail || patientInfo[0]?.email}
+            value={userEmail}
             onChange={(e: any) => setUserEmail(e.target.value)}
             placeholder="Enter email"
-            disabled={false || isEditable}
+            // disabled={false || isEditable}
             type="email"
           />
           <SelectInput
             label="Gender : "
-            value={gender || patientInfo[0]?.gender}
+            value={gender}
             onChange={(e: any) => setGender(e.target.value)}
-            disabled={false || isEditable}
+            // disabled={false || isEditable}
             options={genderOptions}
           />
           <SelectInput
             label="Age : "
-            value={age || patientInfo[0]?.age}
-            onChange={(e: any) => setAge(e.target.value)}
-            disabled={false || isEditable}
+            value={age}
+            onChange={(e : any) => setAge(e.target.value)}
+            // disabled={false || isEditable}
             options={generateAgeOptions()}
           />
           {
@@ -443,45 +468,74 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   show={modalVisible}
                   userInfo={patientInfo}
                   setSelectedProfile={setSelectedProfile}
+                  setPatientInfo={setPatientInfo}
                 />
               </div>
               : <></>}
         </div>
       )}
-      <div className="mt-3">
-        {medicalHistory.map((item: any) => {
-          return (
-            <Accordion
-              key={item.id}
-              active={active}
-              handleToggle={handleToggle}
-              faq={item}
-            />
-          );
-        })}
-      </div>
+      {
+        modalVisible && selectedProfile ?
+          <div className="mt-3">
+            <div className='relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark'>
+              <label className="text-1xl mb-2.5 mt-2 block text-left font-bold text-black dark:text-white">
+                Medical History
+              </label>
+              <div className="mb-2 flex gap-2">
+                <h2 className="text-bold text-base font-bold inline-block w-30 text-black dark:text-white">
+                  Allergies
+                </h2>:
+                <span className="text-base font-medium">{selectedProfile && selectedProfile?.medicalHistory?.allergies}</span>
+              </div>
+              <div className="mb-2 flex gap-2">
+                <h2 className="text-bold text-base font-bold inline-block w-30 text-black dark:text-white">
+                  Blood Group
+                </h2>:
+                <span className="text-base font-medium">{selectedProfile && selectedProfile?.medicalHistory?.blood_group}</span>
+              </div>
+            </div>
+          </div> :
+          <div className="mt-3">
+            {medicalHistory.map((item: any) => {
+              return (
+                <Accordion
+                  key={item.id}
+                  active={active}
+                  handleToggle={handleToggle}
+                  faq={item}
+                />
+              );
+            })}
+          </div>
+      }
       <div className="mt-3">
         <div className="rounded-lg border border-stroke bg-white px-3 pb-3 shadow-default dark:border-strokedark dark:bg-boxdark">
           <label className="text-1xl mb-2.5 mt-2 block text-left font-bold text-black dark:text-white">
             Insurance details : *
           </label>
           {
-            (_.isEmpty(patientDataFromState)) ?
+            selectedProfile ?
               <div className="text-bold text-base font-bold text-black dark:text-white">
                 <TextInputWithLabel
                   label="Payor Name :"
                   value={
-                    payorName || patientInfo[0]?.payorDetails[0]?.payorName || ""
+                    payorName || selectedProfile && selectedProfile?.payorDetails[0].payorName
                   }
-                  disabled={isEditable}
+                  disabled
                   type="text"
                 />
                 <TextInputWithLabel
                   label="Participant Code :"
                   value={
-                    payorParticipantCode || patientInfo[0]?.payorDetails[0].payor || ""
+                    payorParticipantCode || selectedProfile && selectedProfile?.payorDetails[0].payor
                   }
-                  disabled={isEditable}
+                  disabled
+                  type="text"
+                />
+                <TextInputWithLabel
+                  label="Insurance ID :"
+                  value={insuranceID || selectedProfile && selectedProfile?.payorDetails[0].insurance_id}
+                  disabled
                   type="text"
                 />
               </div>
@@ -503,7 +557,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                         setOpenDropdown(hasMatchingRecords);
                       }
                       }
-                      // onChange={(e) => setPayorName(e.target.value)}
                       className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
                     <span
@@ -564,17 +617,15 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   </h2>
                   <span className='mt-3'>{payorName ? payorParticipantCode : 'Search above for participant code'}</span>
                 </div>
+                <TextInputWithLabel
+                  label="Insurance ID :"
+                  value={insuranceID}
+                  onChange={(e: any) => setInsuranceID(e.target.value)}
+                  placeholder="Enter Insurance ID"
+                  type="text"
+                />
               </div>
           }
-          <TextInputWithLabel
-            label="Insurance ID :"
-            value={insuranceID || patientInfo[0]?.payorDetails[0].insurance_id
-            }
-            onChange={(e: any) => setInsuranceID(e.target.value)}
-            placeholder="Enter Insurance ID"
-            disabled={isEditable}
-            type="text"
-          />
         </div>
       </div>
       {loading ? (
@@ -584,7 +635,9 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           <CustomButton
             text="Add patient & Initiate consultation"
             onClick={() => {
-              registerUser();
+              if (!modalVisible) {
+                registerUser();
+              }
               sendCoverageEligibilityRequest();
             }}
             disabled={false}

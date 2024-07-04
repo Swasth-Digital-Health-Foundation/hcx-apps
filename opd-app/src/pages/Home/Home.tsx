@@ -11,6 +11,7 @@ import CustomButton from "../../components/CustomButton";
 import LoadingButton from "../../components/LoadingButton";
 import { toast } from "react-toastify";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import SelectInput from "../../components/SelectInput";
 
 const Home = () => {
   const navigate = useNavigate();

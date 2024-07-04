@@ -24,6 +24,9 @@ const ViewPatientDetails = () => {
   const [patientDetails, setPatientDetails] = useState<any>([]);
   const [consultationDetail, setConsultationDetails] = useState<any>();
   const [isRejected, setIsRejected] = useState<boolean>(false)
+  const [patientName , setPatientName] = useState<string>("");
+  const [insuranceId , setInsuranceId] = useState<string>("")
+  const [payorCode , setPayorCode] = useState<string>("")
 
   const requestDetails = {
     providerName: providerName,
@@ -55,7 +58,7 @@ const ViewPatientDetails = () => {
   const personalDeatails = [
     {
       key: "Patient Name",
-      value: patientDetails?.userName,
+      value: patientDetails?.userName || patientName,
     },
     {
       key: "Patient Mobile No.",
@@ -64,7 +67,7 @@ const ViewPatientDetails = () => {
     {
       key: "Address",
       value: patientDetails?.address,
-    },
+    },  
   ];
 
   const consultationDetailsData = [
@@ -94,7 +97,7 @@ const ViewPatientDetails = () => {
 
   const payorCodePayload = {
     filters: {
-      participant_code: { eq: location.state?.payorCode },
+      participant_code: { eq: payorCode },
     },
   };
 
@@ -131,7 +134,7 @@ const ViewPatientDetails = () => {
     } catch (err) {
       console.log(err);
     }
-  }, [token]);
+  }, [token, payorCode]);
 
   const preauthOrClaimListPayload = {
     workflow_id: requestDetails?.workflowId || location.state?.workflowId,
@@ -206,7 +209,6 @@ const ViewPatientDetails = () => {
       setConsultationDetails(data);
     } catch (err: any) {
       console.log(err);
-      // toast.error()
     }
   };
 
@@ -237,6 +239,9 @@ const ViewPatientDetails = () => {
         (obj: any) => obj.type === "coverageeligibility"
       );
       const status = eligibilityObject.status;
+      setPatientName(eligibilityObject?.patientName);
+      setInsuranceId(eligibilityObject?.insurance_id);
+      setPayorCode(eligibilityObject?.recipient_code)
       setcoverageStatus(status);
     } else {
       console.log(
@@ -347,7 +352,7 @@ const ViewPatientDetails = () => {
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
 
-                    {patientInsuranceId || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.insurance_id : "")}
+                    {patientInsuranceId || insuranceId}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -356,7 +361,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.payorName : "")}
+                    {patientDetails?.payorName || payorName}
                   </span>
                 </div>
               </div>
@@ -549,7 +554,7 @@ const ViewPatientDetails = () => {
                   Home
                 </button> : <button
                   onClick={() => navigate("/initiate-claim-request", {
-                    state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
+                    state: { requestDetails: requestDetails, recipientCode: payorCode },
                   })}
                   className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                 >
