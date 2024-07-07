@@ -1,4 +1,4 @@
-import {useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import TextInputWithLabel from "../../components/inputField";
 import SelectInput from "../../components/SelectInput";
 import CustomButton from "../../components/CustomButton";
@@ -9,7 +9,7 @@ import { generateToken, searchParticipant } from "../../services/hcxService";
 import * as _ from "lodash";
 import LoadingButton from "../../components/LoadingButton";
 import Accordion from "../../components/Accordion";
-import ModalConfirmBack from "../../components/DialogBoxComponent";
+import ModelConfirmBack from "../../components/DialogBoxComponent";
 
 
 const AddPatientAndInitiateCoverageEligibility = () => {
@@ -33,9 +33,8 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   const [payorParticipantCode, setPayorParticipantCode] = useState<string>('');
   const [gender, setGender] = useState<string>("")
   const [age, setAge] = useState<string>("");
-  const [isCheck, setIsCheck] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string>("")
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modelVisible, setModelVisible] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(undefined);
 
   const bloodGroupOptions = [
@@ -128,7 +127,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     },
     {
       key: "Email ",
-      value: userEmail || selectedProfile?.email
+      value: selectedProfile?.email || userEmail
     }
   ];
 
@@ -170,13 +169,11 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     }
   ];
 
-  const search = async () => {
+  const searchProviderName = async (token: any) => {
     try {
-      const loginResponse = await generateToken();
-      const token = loginResponse.data?.access_token;
       const response = await searchParticipant(userSearchPayload, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token?.data?.access_token}`,
         },
       });
       let userRes = response.data.participants;
@@ -185,10 +182,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       console.log(error);
     }
   };
-
-  useEffect(() => {
-    search();
-  }, []);
 
 
   const registerUser = async () => {
@@ -215,7 +208,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     try {
       setSearchLoading(true);
       let responseData: any = await searchUser("user/search", mobile || patientDataFromState?.mobile)
-      setIsEditable(true);
       setPatientInfo(responseData?.data);
       setSearchLoading(false);
       if (_.isEmpty(responseData?.data)) {
@@ -224,9 +216,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
         }
         setIsEditable(false);
       } else {
-        setModalVisible(true);
-        // toast.success("Patient already exists!");
-        // setIsPatientExists(true);
+        setModelVisible(true);
       }
     } catch (error: any) {
       setIsEditable(false);
@@ -289,8 +279,11 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     const isValidInput = /^\d{10}$/.test(inputValue);
     setIsValid(isValidInput);
     setMobile(inputValue);
-    checkForExistingPatient(e.target.value, age, gender);
   };
+
+  const handleAgeChange = (e: any) => {
+    setAge(e.target.value)
+  }
 
   useEffect(() => {
     if (isValid) {
@@ -328,13 +321,11 @@ const AddPatientAndInitiateCoverageEligibility = () => {
 
   const [openDropdown, setOpenDropdown] = useState(false);
 
-  let searchPayorForPatient = async () => {
+  let searchPayorForPatient = async (token: any) => {
     try {
-      const tokenResponse = await generateToken();
-      const token = tokenResponse.data.access_token;
       const response = await searchParticipant(searchPayload, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token.data.access_token}`,
         },
       });
       setSearchResults(response.data?.participants);
@@ -344,33 +335,44 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     }
   };
 
+  const executeSearch = async () => {
+    const token = await generateToken();
+    await searchPayorForPatient(token);
+    await searchProviderName(token);
+  };
+
   useEffect(() => {
-    searchPayorForPatient();
+    executeSearch()
   }, []);
 
   console.log("selectedProfile", selectedProfile)
 
-  useEffect(() => {
-    checkForExistingPatient(mobile, age, gender)
-  }, [mobile, age])
 
-  const checkForExistingPatient = (mobile: any, age: any, gender: any) => {
-    console.log({ mobile, name, age })
+  const userInput = {
+    gender: gender,
+    age: parseInt(age),
+    mobile: mobile
+  }
+
+  const checkForExistingPatient = () => {
+    console.log("user input", userInput)
+    console.log("patient infot", patientInfo)
+    console.log("check ", patientInfo[0].gender === gender && patientInfo[0].age === parseInt(age))
     const existingPatient = patientInfo.find((patient: { mobile: any; age: any; gender: any; }) =>
-      patient.age === age && patient.gender === gender
+      patient.gender === _.get(userInput, 'gender') && patient.age === _.get(userInput, 'age')
     );
     console.log("existingPatient", existingPatient)
     if (existingPatient) {
-      setPatientInfo(existingPatient);
-      setModalVisible(true);
-    } else {
-      setModalVisible(false);
+      setPatientInfo([existingPatient]);
+      setModelVisible(true);
     }
   };
 
-
-  console.log("patient info", patientInfo)
-  console.log("model visible", modalVisible)
+  useEffect(() => {
+    if (age && gender) {
+      checkForExistingPatient()
+    }
+  }, [age, gender])
 
   const handleSelect = (result: any, participantCode: any) => {
     setOpenDropdown(false);
@@ -381,15 +383,18 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   useEffect(() => {
   }, [setSelectedProfile])
 
+  useEffect(() => {
+    setModelVisible
+  }, [setModelVisible])
+
   const filteredResults = searchResults.filter((result: any) =>
     result.participant_name.toLowerCase().includes(payorName.toLowerCase())
   );
 
-
   return (
     <div>
       <label className="mb-2.5 block text-left text-2xl font-bold text-black dark:text-white">
-        {modalVisible ? "Patient Details" : "New Patient Details"}
+        {modelVisible ? "Patient Details" : "New Patient Details"}
       </label>
       {selectedProfile ? (
         <div className='dark:bg-boxdark" rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark'>
@@ -457,25 +462,25 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           <SelectInput
             label="Age : "
             value={age}
-            onChange={(e : any) => setAge(e.target.value)}
+            onChange={handleAgeChange}
             // disabled={false || isEditable}
             options={generateAgeOptions()}
           />
           {
-            modalVisible ?
+            modelVisible ?
               <div>
-                <ModalConfirmBack
-                  show={modalVisible}
+                <ModelConfirmBack
+                  modelVisible={modelVisible}
                   userInfo={patientInfo}
                   setSelectedProfile={setSelectedProfile}
-                  setPatientInfo={setPatientInfo}
+                  setModelVisible={setModelVisible}
                 />
               </div>
               : <></>}
         </div>
       )}
       {
-        modalVisible && selectedProfile ?
+        modelVisible && selectedProfile ?
           <div className="mt-3">
             <div className='relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark'>
               <label className="text-1xl mb-2.5 mt-2 block text-left font-bold text-black dark:text-white">
@@ -635,7 +640,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
           <CustomButton
             text="Add patient & Initiate consultation"
             onClick={() => {
-              if (!modalVisible) {
+              if (!modelVisible) {
                 registerUser();
               }
               sendCoverageEligibilityRequest();

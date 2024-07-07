@@ -27,6 +27,7 @@ const userProfile = () => {
     const [searchedMobileNumber, setSearchedMobileNumber] = useState<any>('');
     const location = useLocation();
     const [popup, setPopup] = useState(false);
+    const [beneficiaryId, setBeneficiaryId] = useState<any>("");
 
     const bloodGroupOptions = [
         {
@@ -65,15 +66,17 @@ const userProfile = () => {
     useEffect(() => {
         setSearchedMobileNumber(location.state?.searchedMobileNumber)
         setUserInformation(location?.state?.userInfo)
+        setBeneficiaryId(location?.state?.userInfo?.beneficiaryId)
         console.log('user info', location?.state?.userInfo);
     }, []);
 
 
     const updatePayload = {
         mobile: searchedMobileNumber,
-        beneficiary_id: location?.state?.userInfo?.beneficiaryId,
+        beneficiary_id: beneficiaryId,
         name: editedUserName || location?.state?.userInfo?.userName,
         address: editedAddress || location?.state?.userInfo?.address,
+        email: editedEmail || location?.state?.userInfo?.email,
         medical_history: {
             blood_group: editedBloodGroup || location?.state?.userInfo?.medicalHistory?.blood_group,
             allergies: editedAllergies || location?.state?.userInfo?.medicalHistory?.allergies
@@ -88,8 +91,7 @@ const userProfile = () => {
             if (response.status === 200) {
                 setTimeout(async () => {
                     let searchResponse: any = await searchUser("user/search", searchedMobileNumber);
-                    const beneficiary_id = location?.state?.userInfo?.beneficiaryId
-                    let filteredResults = searchResponse?.data?.filter((user: any) => user.beneficiaryId === beneficiary_id);
+                    let filteredResults = searchResponse?.data?.filter((user: any) => user.beneficiaryId === beneficiaryId);
                     setUserInformation(filteredResults[0]);
                 }, 2000);
                 toast.success("Details updated successfully.");
@@ -117,13 +119,15 @@ const userProfile = () => {
             let filteredData = userInfo?.payorDetails.filter((ele: any) => ele.payor !== payorCode);
             const updatePayload = {
                 mobile: searchedMobileNumber,
+                beneficiary_id: beneficiaryId,
                 payor_details: filteredData,
             };
             const response: any = await userUpdate("user/update", updatePayload);
             if (response.status === 200) {
                 setTimeout(async () => {
                     let searchResponse: any = await searchUser("user/search", searchedMobileNumber);
-                    setUserInformation(searchResponse?.data?.result);
+                    let filteredResults = searchResponse?.data?.filter((user: any) => user.beneficiaryId === beneficiaryId);
+                    setUserInformation(filteredResults[0]);
                     setLoading(false)
                     toast.success("Details updated successfully..!");
                 }, 2000);
@@ -157,13 +161,15 @@ const userProfile = () => {
             const updatePayorDetails = [...existPayorDetails, newPayorDetails]
             const updatePayload = {
                 mobile: searchedMobileNumber,
-                payor_details: updatePayorDetails
+                payor_details: updatePayorDetails,
+                beneficiary_id: beneficiaryId,
             }
             const response: any = await userUpdate("user/update", updatePayload);
             if (response.status === 200) {
                 setTimeout(async () => {
                     let searchResponse: any = await searchUser("user/search", searchedMobileNumber);
-                    setUserInformation(searchResponse?.data?.result);
+                    let filteredResults = searchResponse?.data?.filter((user: any) => user.beneficiaryId === beneficiaryId);
+                    setUserInformation(filteredResults[0]);
                     setLoading(false)
                     toast.success("Details updated successfully.");
                 }, 2000);
