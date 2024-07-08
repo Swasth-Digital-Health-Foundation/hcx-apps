@@ -32,6 +32,8 @@ const InitiateNewClaimRequest = () => {
   const [popup, setPopup] = useState(false);
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [payorDetails, setPayorDetails] = useState<any>({});
+  const [treatementType , setTreatmentType] = useState<string>("")
+
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -68,6 +70,7 @@ const InitiateNewClaimRequest = () => {
     serviceType: cliamDetails?.serviceType || '',
     billAmount: amount,
     workflowId: cliamDetails?.workflowId,
+    treatementType : treatementType,
     supportingDocuments: [
       {
         documentType: documentType,
@@ -192,7 +195,7 @@ const InitiateNewClaimRequest = () => {
         </label>
         <div className="relative z-20 bg-white dark:bg-form-input">
           <select
-            onChange={(e: any) => setServiceType(e.target.value)}
+            onChange={(e: any) => setTreatmentType(e.target.value)}
             required
             className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent bg-transparent py-4 px-6 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
           >
@@ -200,6 +203,7 @@ const InitiateNewClaimRequest = () => {
             <option value="Drugs">Drugs</option>
             <option value="Wellness">Wellness</option>
             <option value="Diagnostics">Diagnostics</option>
+            <option value="Teleconsultation">Teleconsultation</option>
           </select>
           <span className="absolute top-1/2 right-4 z-10 -translate-y-1/2">
             <svg

@@ -10,9 +10,7 @@ import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import useDebounce from '../../hooks/useDebounce';
-
 import * as _ from "lodash";
-import DocumentsList from "../../components/DocumentsList";
 
 const InitiateNewClaimRequest = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
@@ -46,6 +44,9 @@ const InitiateNewClaimRequest = () => {
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [treatementType, setTreatmentType] = useState<string>("")
+  const [entererName, setEntererName] = useState<string>("")
+  const [entererRole, setEntererRole] = useState<string>("")
 
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
 
@@ -64,7 +65,7 @@ const InitiateNewClaimRequest = () => {
     },
   ];
 
-  const treatmentOptions = [{ label: "Consultation", value: "Consultation" }];
+  const treatmentOptions = [{ label: "Consultation", value: "Consultation" }, { label: "Teleconsultation", value: "Teleconsultation" }];
 
   const services = [{ label: "OPD", value: "OPD" }, { label: "IPD", value: "IPD" }];
 
@@ -99,6 +100,9 @@ const InitiateNewClaimRequest = () => {
     serviceType: serviceType || displayedData[0]?.claimType,
     billAmount: amount,
     workflowId: data?.workflowId || localStorage.getItem("workflowId"),
+    treatementType: treatementType,
+    entererName : entererName,
+    entererRole : entererRole,
     supportingDocuments: [
       {
         documentType: documentType,
@@ -343,8 +347,23 @@ const InitiateNewClaimRequest = () => {
             />
             <SelectInput
               label="Service/Treatment category :"
-              value={"consultation"}
+              value={treatementType}
+              onChange={(e: any) => setTreatmentType(e.target.value)}
               options={treatmentOptions}
+            />
+            <TextInputWithLabel
+              label="Enterer Name :"
+              placeholder="Enter enterer name"
+              value={entererName}
+              onChange={(e: any) => setEntererName(e.target.value)}
+              type="text"
+            />
+            <TextInputWithLabel
+              label="Enterer Role :"
+              placeholder="Enter enterer role"
+              value={entererRole}
+              onChange={(e: any) => setEntererRole(e.target.value)}
+              type="text"
             />
             <h2 className="mt-3 text-1xl text-black font-bold z-20 bg-white dark:bg-form-input">
               {"Treatment date :"}
@@ -479,7 +498,7 @@ const InitiateNewClaimRequest = () => {
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
-                disabled={amount === "" || fileErrorMessage}
+                disabled={amount === "" || treatementType === "" || entererName === "" || entererRole === "" || fileErrorMessage}
                 onClick={() => {
                   submitClaim();
                 }}

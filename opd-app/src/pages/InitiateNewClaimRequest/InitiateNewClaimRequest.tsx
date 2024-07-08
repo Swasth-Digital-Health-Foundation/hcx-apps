@@ -33,13 +33,14 @@ const InitiateNewClaimRequest = () => {
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File[] }>({});
   const [files, setFiles] = useState<File[]>([]);
+  const [treatementType , setTreatmentType] = useState<string>("")
 
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
 
   const documentTypeOptions = [{ label: "Prescription", value: "Prescription", }, { label: "Payment Receipt", value: "Payment Receipt", }, { label: "Medical Bill/invoice", value: "Medical Bill/invoice", },];
 
-  const treatmentOptions = [{ label: "Consultation", value: "Consultation" }];
+  const treatmentOptions = [{ label: "Consultation", value: "Consultation" } , {label : "Teleconsultation" , value : "Teleconsultation"}];
 
 
   const [data] = useState(location.state);
@@ -128,6 +129,7 @@ const InitiateNewClaimRequest = () => {
     type: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
     app: "OPD",
     password: password,
+    treatementType : treatementType,
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
 
@@ -173,7 +175,7 @@ const InitiateNewClaimRequest = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        let payorname = payorResponse.data?.participants[0]?.participant_name;
+        let payorname = payorResponse?.data?.participants[0]?.participant_name;
         setPayorName(payorname);
       } catch (err) {
         console.log("error", err);
@@ -268,8 +270,8 @@ const InitiateNewClaimRequest = () => {
             />
             <SelectInput
               label="Service/Treatment given : "
-              value={"consultation"}
-              onChange={(e: any) => setServiceType(e.target.value)}
+              value={treatementType}
+              onChange={(e: any) => setTreatmentType(e.target.value)}
               options={treatmentOptions}
             />
             <TextInputWithLabel
