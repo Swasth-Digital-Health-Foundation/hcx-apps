@@ -44,7 +44,7 @@ const InitiateNewClaimRequest = () => {
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [treatementType, setTreatmentType] = useState<string>("")
+  const [treatmentType, setTreatmentType] = useState<string>("")
   const [entererName, setEntererName] = useState<string>("")
   const [entererRole, setEntererRole] = useState<string>("")
 
@@ -100,7 +100,7 @@ const InitiateNewClaimRequest = () => {
     serviceType: serviceType || displayedData[0]?.claimType,
     billAmount: amount,
     workflowId: data?.workflowId || localStorage.getItem("workflowId"),
-    treatementType: treatementType,
+    treatmentType: treatmentType,
     entererName : entererName,
     entererRole : entererRole,
     supportingDocuments: [
@@ -347,7 +347,7 @@ const InitiateNewClaimRequest = () => {
             />
             <SelectInput
               label="Service/Treatment category :"
-              value={treatementType}
+              value={treatmentType}
               onChange={(e: any) => setTreatmentType(e.target.value)}
               options={treatmentOptions}
             />
@@ -498,7 +498,7 @@ const InitiateNewClaimRequest = () => {
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
-                disabled={amount === "" || treatementType === "" || entererName === "" || entererRole === "" || fileErrorMessage}
+                disabled={amount === "" || treatmentType === "" || entererName === "" || entererRole === "" || fileErrorMessage}
                 onClick={() => {
                   submitClaim();
                 }}

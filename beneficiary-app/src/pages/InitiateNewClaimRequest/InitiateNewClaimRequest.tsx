@@ -32,7 +32,7 @@ const InitiateNewClaimRequest = () => {
   const [popup, setPopup] = useState(false);
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [payorDetails, setPayorDetails] = useState<any>({});
-  const [treatementType , setTreatmentType] = useState<string>("")
+  const [treatmentType , setTreatmentType] = useState<string>("")
 
 
   let FileLists: any;
@@ -70,7 +70,7 @@ const InitiateNewClaimRequest = () => {
     serviceType: cliamDetails?.serviceType || '',
     billAmount: amount,
     workflowId: cliamDetails?.workflowId,
-    treatementType : treatementType,
+    treatmentType : treatmentType,
     supportingDocuments: [
       {
         documentType: documentType,
@@ -255,7 +255,7 @@ const InitiateNewClaimRequest = () => {
       <div className="mb-5 mt-4">
         {!loading ? (
           <button
-            disabled={amount === '' || fileErrorMessage}
+            disabled={amount === '' || treatmentType === '' || fileErrorMessage}
             onClick={(event: any) => {
               event.preventDefault();
               submitClaim();

@@ -33,7 +33,7 @@ const InitiateNewClaimRequest = () => {
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File[] }>({});
   const [files, setFiles] = useState<File[]>([]);
-  const [treatementType , setTreatmentType] = useState<string>("")
+  const [treatmentType , setTreatmentType] = useState<string>("")
 
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
@@ -129,7 +129,7 @@ const InitiateNewClaimRequest = () => {
     type: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
     app: "OPD",
     password: password,
-    treatementType : treatementType,
+    treatmentType : treatmentType,
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
 
@@ -270,7 +270,7 @@ const InitiateNewClaimRequest = () => {
             />
             <SelectInput
               label="Service/Treatment given : "
-              value={treatementType}
+              value={treatmentType}
               onChange={(e: any) => setTreatmentType(e.target.value)}
               options={treatmentOptions}
             />
@@ -402,7 +402,7 @@ const InitiateNewClaimRequest = () => {
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
-                disabled={amount === ""}
+                disabled={amount === "" || treatmentType === ''}
                 onClick={() => {
                   submitClaim();
                 }}
