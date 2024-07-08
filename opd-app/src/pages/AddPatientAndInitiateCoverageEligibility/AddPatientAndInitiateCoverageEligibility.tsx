@@ -212,7 +212,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       setSearchLoading(false);
       if (_.isEmpty(responseData?.data)) {
         if (isValid) {
-          toast.error("Patient does not exist!");
+          toast.error("No active patients registered on this mobile number!");
         }
         setIsEditable(false);
       } else {
