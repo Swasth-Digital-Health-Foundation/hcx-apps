@@ -187,12 +187,8 @@ const ViewPatientDetails = () => {
   };
 
   useEffect(() => {
-    tokenGeneration();
-  }, [preauthOrClaimListPayload.workflow_id]);
-
-  useEffect(() => {
-    getActivePlans();
-  }, [patientMobile])
+    tokenGeneration().then(() => getActivePlans());
+  }, [preauthOrClaimListPayload.workflow_id, patientMobile]);
 
   useEffect(() => {
     for (const entry of preauthOrClaimList) {
@@ -239,6 +235,8 @@ const ViewPatientDetails = () => {
 
   const patientInsuranceId = localStorage.getItem('patientInsuranceId');
   const patientPayorName = localStorage.getItem('patientPayorName');
+
+console.log("patientDetails", patientDetails)
 
   return (
     <>
@@ -301,7 +299,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId === "undefined" ? (patientDetails?.payorDetails?.insurance_id) : patientInsuranceId}                  </span>
+                    {(patientDetails.length !== 0 ? patientDetails?.payorDetails?.[0]?.insurance_id : "") || patientInsuranceId} </span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
@@ -309,7 +307,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName === "undefined" ? (patientDetails?.payorDetails?.payorName) : patientPayorName}                  </span>
+                    {(patientDetails.length !== 0 ? patientDetails?.payorDetails?.[0]?.payorName : "") || patientPayorName} </span>
                 </div>
               </div>
             </div>
