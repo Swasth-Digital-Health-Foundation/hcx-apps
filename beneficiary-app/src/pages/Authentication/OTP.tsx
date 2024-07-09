@@ -31,7 +31,7 @@ const OTP = () => {
       }
     } catch (err: any) {
       setLoading(false);
-      toast.error(_.get(err, 'response.data.error.message'));
+      toast.error(_.get(err, 'Please enter valid 6 digit OTP sent to your mobile number '));
     }
   };
 

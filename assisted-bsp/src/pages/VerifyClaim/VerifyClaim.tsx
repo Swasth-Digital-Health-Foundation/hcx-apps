@@ -185,7 +185,7 @@ const VerifyClaim = () => {
       // navigate('/bank-details', { state: { sendInfo: sendInfo, bankDetails: bankDetails } });
     } catch (err) {
       setLoading(false);
-      toast.error('Enter valid OTP!');
+      toast.error('Please enter valid 6 digit OTP sent to your mobile number !');
       console.log(err);
     }
   };

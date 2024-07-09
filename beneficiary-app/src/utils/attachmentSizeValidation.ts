@@ -21,7 +21,7 @@ export const handleFileChange: any = (
   });
   setErrorMsg(
     hasInvalidFileSize
-      ? 'File size is greater than the maximum limit (1MB)'
+      ? 'Attached format and size of the documentation is not supported'
       : ''
   );
   setIsSuccess(!hasInvalidFileSize);

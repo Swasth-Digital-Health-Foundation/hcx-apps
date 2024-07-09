@@ -33,7 +33,7 @@ const Login = () => {
       }
     } catch (err: any) {
       setLoading(false);
-      toast.error("Please check user credentials!");
+      toast.error("Please enter valid user credentials!");
     }
   };
 

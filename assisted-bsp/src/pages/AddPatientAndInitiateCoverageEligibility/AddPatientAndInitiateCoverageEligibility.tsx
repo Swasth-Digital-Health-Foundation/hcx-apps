@@ -173,7 +173,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
       setIsEditable(true);
       setSearchLoading(false);
       if (registerResponse?.data?.result.length === 0) {
-        toast.error("Beneficiary not found!");
+        toast.error("No active beneficiary registered on this mobile number!");
         setIsEditable(false);
       } else {
         toast.success("Beneficiary already exists!");
@@ -182,7 +182,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     } catch (error: any) {
       setIsEditable(false);
       setSearchLoading(false);
-      toast.error("Beneficiary not found!", {
+      toast.error("No active beneficiary registered on this mobile number!", {
         position: toast.POSITION.TOP_CENTER,
       });
     }

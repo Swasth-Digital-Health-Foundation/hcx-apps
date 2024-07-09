@@ -50,7 +50,7 @@ const VerifyOTP = () => {
     } catch (error: any) {
       setLoading(false);
       if (error.response?.status === 400) {
-        toast.error('Enter valid OTP!');
+        toast.error('Please enter valid 6 digit OTP sent to your mobile number!');
       } else {
         toast.error('Request timed out,try again!');
       }

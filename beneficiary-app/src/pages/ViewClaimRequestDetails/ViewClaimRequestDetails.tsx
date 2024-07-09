@@ -157,7 +157,7 @@ const ViewClaimRequestDetails = () => {
       }
     } catch (err) {
       setLoading(false);
-      toast.error('Enter valid OTP!');
+      toast.error('Please enter valid 6 digit OTP sent to your mobile number!');
     }
   };
 
