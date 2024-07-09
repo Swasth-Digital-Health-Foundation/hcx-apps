@@ -21,6 +21,7 @@ const InitiateNewClaimRequest = () => {
   const [loading, setLoading] = useState(false);
   const [payorName, setPayorName] = useState<string>("");
 
+  const [userInfo, setUserInformation] = useState<any>([]);
   const [activeRequests, setActiveRequests] = useState<any>([]);
   const [finalData, setFinalData] = useState<any>([]);
   const [displayedData, setDisplayedData] = useState<any>(
@@ -115,13 +116,13 @@ const InitiateNewClaimRequest = () => {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
     mobile: displayedData[0]?.mobile || localStorage.getItem("mobile"),
-    patientName: displayedData[0]?.patientName || location?.state?.userName || localStorage.getItem("patientName") || data?.requestDetails?.patientName,
+    patientName: displayedData[0]?.patientName || userInfo[0]?.name || localStorage.getItem("patientName") || data?.requestDetails?.patientName,
     participantCode:
       _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
     payor: _.get(data, 'requestDetails.payor', '') || payorName,
     providerName: _.get(data, 'requestDetails.providerName', '') || localStorage.getItem("providerName"),
     serviceType: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
-    billAmount: amount, 
+    billAmount: amount,
     workflowId: _.get(data, 'requestDetails.workflowId', ''),
     supportingDocuments: [],
     type: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
@@ -130,6 +131,18 @@ const InitiateNewClaimRequest = () => {
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
 
+  const search = async () => {
+    try {
+      let responseData: any = await searchUser("user/search", mobile || localStorage.getItem("mobile") || data?.requestDetails?.patientMobile);
+      setUserInformation(responseData?.data?.result);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    search();
+  }, []);
 
   const payorCodePayload = {
     filters: {

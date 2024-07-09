@@ -8,7 +8,6 @@ import { generateToken, searchParticipant } from "../../services/hcxService";
 import * as _ from "lodash";
 import LoadingButton from "../../components/LoadingButton";
 import useDebounce from "../../hooks/useDebounce";
-import SelectInput from "../../components/SelectInput";
 
 
 const AddPatientAndInitiateCoverageEligibility = () => {
@@ -31,8 +30,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   const [isValid, setIsValid] = useState(true);
   const [searchResults, setSearchResults] = useState<any>([]);
   const [payorParticipantCode, setPayorParticipantCode] = useState<string>('');
-  const [gender, setGender] = useState<string>("")
-  const [age, setAge] = useState<number>(1);
 
   const bloodGroupOptions = [
     {
@@ -65,24 +62,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     },
     { label: "Swasth-reference payor", value: "Swast-reference payor" },
   ];
-
-  const genderOptions = [
-    {
-      label: "Select",
-      value: "",
-    },
-    { label: "Male", value: "Male" },
-    { label: "Female", value: "Female" },
-    { label: "Others", value: "Others" }
-  ]
-
-  const generateAgeOptions = (): any => {
-    const options: any = [];
-    for (let i = 1; i <= 100; i++) {
-      options.push({ value: i.toString(), label: `${i.toString()} yrs` });
-    }
-    return options;
-  };
 
   const patientDataFromState: any = location.state?.obj;
 
@@ -165,13 +144,13 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     search();
   }, []);
 
-
+ 
 
   const registerUser = async () => {
     try {
       let registerResponse: any = await createUser("user/create", payload);
-      console.log("Registry create  Response ----" + registerResponse);
-      sendCoverageEligibilityRequest();
+      console.log("Registry create  Response ----"  + registerResponse);
+            sendCoverageEligibilityRequest();
       toast.success(
         "Patient added successfully",
         {
@@ -189,7 +168,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   const patientSearch = async () => {
     try {
       setSearchLoading(true);
-      let registerResponse: any = await searchUser("user/search", patientDataFromState?.mobile || mobile)
+      let registerResponse: any = await searchUser("user/search", patientDataFromState?.mobile || mobile )
       setPatientInfo(registerResponse?.data?.result);
       setIsEditable(true);
       setSearchLoading(false);
@@ -219,12 +198,12 @@ const AddPatientAndInitiateCoverageEligibility = () => {
     insuranceId:
       patientInfo?.payorDetails?.insurance_id ||
       insuranceID ||
-      patientDataFromState?.insuranceId,
+      patientDataFromState?.insuranceId ,
     mobile: mobile || patientDataFromState?.mobile,
     payor:
       patientInfo?.payorDetails?.payorName ||
       payorName ||
-      patientDataFromState?.payorName,
+      patientDataFromState?.payorName ,
     providerName: localStorage.getItem("providerName"),
     participantCode:
       participantInfo[0]?.participant_code || email,
@@ -236,7 +215,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   };
 
   console.log(coverageeligibilityPayload);
-
+  
 
   const sendCoverageEligibilityRequest = async () => {
     try {
@@ -396,20 +375,6 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             disabled={false || isEditable}
             type="text"
           />
-          <SelectInput
-            label="Gender : "
-            value={gender}
-            onChange={(e: any) => setGender(e.target.value)}
-            disabled={false}
-            options={genderOptions}
-          />
-          <SelectInput
-            label="Age : "
-            value={age}
-            onChange={(e: any) => setAge(e.target.value)}
-            disabled={false}
-            options={generateAgeOptions()}
-          />
         </div>
       )}
       {patientDataFromState ? (
@@ -434,7 +399,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
                   <TextInputWithLabel
                     label="Recipient Code :"
                     value={
-                      patientInfo?.payorDetails?.payor || payorParticipantCode || ""
+                        patientInfo?.payorDetails?.payor || payorParticipantCode || ""
                     }
                     disabled={false || isEditable}
                     type="text"
@@ -525,7 +490,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
             <TextInputWithLabel
               label="Insurance ID :"
               value={
-                patientInfo?.payorDetails?.insurance_id || insuranceID
+                 patientInfo?.payorDetails?.insurance_id || insuranceID
               }
               onChange={(e: any) => setInsuranceID(e.target.value)}
               placeholder="Enter Insurance ID"
