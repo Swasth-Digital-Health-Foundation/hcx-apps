@@ -49,13 +49,13 @@ const ActiveClaimCycleCard = (Props: any) => {
       value: (
         <span
           className={`${Props.status === "Pending"
-              ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
-              : Props.status === "Rejected"
-                ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
-                : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
+            ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
+            : Props.status === "Rejected"
+              ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
+              : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
             }`}
         >
-          {Props.status}
+          {Props.status === "response.complete" ? "Approved" : Props.status}
         </span>
       ),
     },

@@ -300,7 +300,7 @@ const Home = () => {
                       <h2 className="font-small mt-1 block text-left text-black dark:text-white">
                         <b className="inline-block w-30">{"Patient ID"}</b>
                       </h2>
-                      <span>: {user?.beneficiaryId}</span>
+                      <span>: {`OP/${user?.beneficiaryId.toString().slice(0, 6)}`}</span>
                     </div>
                     <div key={userIndex} className="flex items-center">
                       <h2 className="font-small mt-1 block text-left text-black dark:text-white">
