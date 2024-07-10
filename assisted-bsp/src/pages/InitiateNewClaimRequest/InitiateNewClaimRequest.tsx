@@ -44,7 +44,7 @@ const InitiateNewClaimRequest = () => {
   const [selectedInsurance, setSelectedInsurance] = useState<string>("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [treatmentType, setTreatmentType] = useState<string>("")
+  const [treatmentType, setTreatmentType] = useState<string>("Consultation")
   const [entererName, setEntererName] = useState<string>("")
   const [entererRole, setEntererRole] = useState<string>("Helathcare Professional")
 
@@ -113,7 +113,7 @@ const InitiateNewClaimRequest = () => {
     ],
     type: serviceType || displayedData[0]?.claimType,
     password: password,
-    recipientCode: localStorage.getItem("recipientCode") || location.state?.recipientCode || data?.recipientCode,
+    recipientCode: location.state?.recipientCode || data?.recipientCode || localStorage.getItem("recipientCode"),
     app: "ABSP",
     date: selectedDate
   };
