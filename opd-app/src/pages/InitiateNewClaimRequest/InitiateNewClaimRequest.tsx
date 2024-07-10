@@ -33,14 +33,18 @@ const InitiateNewClaimRequest = () => {
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [selectedFiles, setSelectedFiles] = useState<{ [key: string]: File[] }>({});
   const [files, setFiles] = useState<File[]>([]);
-  const [treatmentType , setTreatmentType] = useState<string>("")
+  const [treatmentType, setTreatmentType] = useState<string>("")
+  const [entererName, setEntererName] = useState<string>("")
+  const [entererRole, setEntererRole] = useState<string>("Helathcare Professional")
 
   const password = localStorage.getItem('password');
   const email = localStorage.getItem('email');
 
   const documentTypeOptions = [{ label: "Prescription", value: "Prescription", }, { label: "Payment Receipt", value: "Payment Receipt", }, { label: "Medical Bill/invoice", value: "Medical Bill/invoice", },];
 
-  const treatmentOptions = [{ label: "Consultation", value: "Consultation" } , {label : "Teleconsultation" , value : "Teleconsultation"}];
+  const treatmentOptions = [{ label: "Consultation", value: "Consultation" }, { label: "Teleconsultation", value: "Teleconsultation" }];
+
+  const entererRoleOptions = [{ label: "Helathcare Professional", value: "Helathcare Professional" }, { label: "Public Health Nurse", value: "Public Health Nurse" }, { label: "Consultant Physician", value: "Consultant Physician" }, { label: "Insurance Agent", value: "Insurance Agent" }];
 
 
   const [data] = useState(location.state);
@@ -128,8 +132,10 @@ const InitiateNewClaimRequest = () => {
     supportingDocuments: [],
     type: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
     app: "OPD",
+    entererName: entererName,
+    entererRole: entererRole,
     password: password,
-    treatmentType : treatmentType,
+    treatmentType: treatmentType,
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
   };
 
@@ -281,6 +287,24 @@ const InitiateNewClaimRequest = () => {
               placeholder="Enter amount"
               disabled={false}
               type="number"
+            />
+          </div>
+          <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <h2 className="text-1xl mb-4 font-bold text-black dark:text-white sm:text-title-xl1">
+              {"Claim Enterer Information"}
+            </h2>
+            <TextInputWithLabel
+              label="Enterer Name :"
+              placeholder="Enter enterer name"
+              value={entererName}
+              onChange={(e: any) => setEntererName(e.target.value)}
+              type="text"
+            />
+            <SelectInput
+              label="Enterer Role :"
+              value={entererRole}
+              onChange={(e: any) => setEntererRole(e.target.value)}
+              options={entererRoleOptions}
             />
           </div>
           <div className="mt-4 rounded-lg border border-stroke bg-white p-5 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">

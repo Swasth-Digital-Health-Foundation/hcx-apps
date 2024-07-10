@@ -10,7 +10,6 @@ import { toast } from "react-toastify";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
-import { isEmpty } from "lodash";
 
 const ViewPatientDetails = () => {
   const navigate = useNavigate();
@@ -269,14 +268,14 @@ console.log("patientDetails", patientDetails)
           </div>
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
-              Personal details
+              Personal Details
             </label>
             <div className="items-center justify-between"></div>
             <div>
               {_.map(personalDeatails, (ele: any, index: any) => {
                 return (
                   <div key={index} className="mb-2 flex gap-2">
-                    <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
+                    <h2 className="text-bold inline-block w-40 text-base font-medium text-black dark:text-white">
                       {ele.key}
                     </h2>
                     <div className="mr-6">:</div>
@@ -307,7 +306,8 @@ console.log("patientDetails", patientDetails)
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {(patientDetails.length !== 0 ? patientDetails?.payorDetails?.[0]?.payorName : "") || patientPayorName} </span>
+                    {(patientDetails.length !== 0 ? patientDetails?.payorDetails?.[0]?.payorName : "") || patientPayorName}
+                     </span>
                 </div>
               </div>
             </div>

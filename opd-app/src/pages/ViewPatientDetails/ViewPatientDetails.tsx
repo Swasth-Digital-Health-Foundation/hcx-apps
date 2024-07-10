@@ -346,9 +346,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-
-                    {patientInsuranceId || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.insurance_id : "")}
-                  </span>
+                    {(patientDetails.length !== 0 ? patientDetails?.payorDetails?.[0]?.insurance_id : "") || patientInsuranceId} </span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
@@ -356,7 +354,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.payorName : "")}
+                    {(patientDetails.length !== 0 ? patientDetails?.payorDetails?.[0]?.payorName : "") || patientPayorName}
                   </span>
                 </div>
               </div>

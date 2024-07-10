@@ -46,7 +46,7 @@ const InitiateNewClaimRequest = () => {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [treatmentType, setTreatmentType] = useState<string>("")
   const [entererName, setEntererName] = useState<string>("")
-  const [entererRole, setEntererRole] = useState<string>("")
+  const [entererRole, setEntererRole] = useState<string>("Helathcare Professional")
 
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
 
@@ -66,6 +66,8 @@ const InitiateNewClaimRequest = () => {
   ];
 
   const treatmentOptions = [{ label: "Consultation", value: "Consultation" }, { label: "Teleconsultation", value: "Teleconsultation" }];
+
+  const entererRoleOptions = [{ label: "Helathcare Professional", value: "Helathcare Professional" }, { label: "Public Health Nurse", value: "Public Health Nurse" }, { label: "Consultant Physician", value: "Consultant Physician" }, { label: "Insurance Agent", value: "Insurance Agent" }];
 
   const services = [{ label: "OPD", value: "OPD" }, { label: "IPD", value: "IPD" }];
 
@@ -90,19 +92,17 @@ const InitiateNewClaimRequest = () => {
   let initiateClaimRequestBody: any = {
     insuranceId: data?.insuranceId || displayedData[0]?.insurance_id,
     insurancePlan: data?.insurancePlan || null,
-    mobile:
-      localStorage.getItem("mobile") || localStorage.getItem("patientMobile"),
+    mobile: data?.patientMobile || localStorage.getItem("mobile") || location.state?.patientMobile,
     patientName: userInfo?.userName || localStorage.getItem("patientName"),
-    participantCode:
-      data?.participantCode || localStorage.getItem("senderCode") || email,
+    participantCode: data?.participantCode || localStorage.getItem("senderCode") || email,
     payor: data?.payor || payorName,
     providerName: providerName || _.isEmpty(searchResults) ? providerName : data?.providerName || localStorage.getItem("providerName"),
     serviceType: serviceType || displayedData[0]?.claimType,
     billAmount: amount,
     workflowId: data?.workflowId || localStorage.getItem("workflowId"),
     treatmentType: treatmentType,
-    entererName : entererName,
-    entererRole : entererRole,
+    entererName: entererName,
+    entererRole: entererRole,
     supportingDocuments: [
       {
         documentType: documentType,
@@ -119,7 +119,6 @@ const InitiateNewClaimRequest = () => {
   };
 
   console.log("initiateClaimRequestBody", initiateClaimRequestBody);
-
 
   const userSearch = async () => {
     try {
@@ -351,20 +350,6 @@ const InitiateNewClaimRequest = () => {
               onChange={(e: any) => setTreatmentType(e.target.value)}
               options={treatmentOptions}
             />
-            <TextInputWithLabel
-              label="Enterer Name :"
-              placeholder="Enter enterer name"
-              value={entererName}
-              onChange={(e: any) => setEntererName(e.target.value)}
-              type="text"
-            />
-            <TextInputWithLabel
-              label="Enterer Role :"
-              placeholder="Enter enterer role"
-              value={entererRole}
-              onChange={(e: any) => setEntererRole(e.target.value)}
-              type="text"
-            />
             <h2 className="mt-3 text-1xl text-black font-bold z-20 bg-white dark:bg-form-input">
               {"Treatment date :"}
             </h2>
@@ -389,6 +374,24 @@ const InitiateNewClaimRequest = () => {
               placeholder="Enter amount"
               disabled={false}
               type="number"
+            />
+          </div>
+          <div className="rounded-lg border border-stroke bg-white mt-5 p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <h2 className="text-1xl mb-4 font-bold text-black dark:text-white sm:text-title-xl1">
+              {"Claim Enterer Information"}
+            </h2>
+            <TextInputWithLabel
+              label="Enterer Name :"
+              placeholder="Enter enterer name"
+              value={entererName}
+              onChange={(e: any) => setEntererName(e.target.value)}
+              type="text"
+            />
+            <SelectInput
+              label="Enterer Role :"
+              value={entererRole}
+              onChange={(e: any) => setEntererRole(e.target.value)}
+              options={entererRoleOptions}
             />
           </div>
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">

@@ -37,6 +37,7 @@ const AddConsultation = () => {
     { label: "Drugs", value: "Drugs" },
     { label: "Wellness", value: "Wellness" },
     { label: "Diagnostics", value: "Diagnostics" },
+    { label: "Teleconsultation", value: "Teleconsultation" }
   ];
   const symptomsOptions = [
     { label: "Select", value: "" },
