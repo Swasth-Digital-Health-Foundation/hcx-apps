@@ -28,7 +28,7 @@ const NewClaim = () => {
     },
   };
 
-  let search = async () => {
+  let providerSearch = async () => {
     try {
       const tokenResponse = await generateToken();
       const token = tokenResponse.data.access_token;
@@ -45,7 +45,7 @@ const NewClaim = () => {
   };
 
   useEffect(() => {
-    search();
+    providerSearch();
   }, [])
 
   const handleSelect = (result: any, participantCode: any) => {
@@ -67,7 +67,7 @@ const NewClaim = () => {
         : insurancePlanInputRef,
     mobile: localStorage.getItem('mobile'),
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: userInfo[0]?.payor_details[0]?.recipientCode
+    // recipientCode: userInfo[0]?.payor_details[0]?.recipientCode
   };
 
   const getMobileFromLocalStorage = localStorage.getItem('mobile');
@@ -84,22 +84,21 @@ const NewClaim = () => {
     registrySearch
   }, [])
 
-
-  const getPayorName = () => {
-    if (userInfo) {
-      const matchingPayor = userInfo[0]?.payor_details.find(
-        (detail: any) => detail.insurance_id === insurancePlanInputRef
-      );
-      setpayorFromInsuranceId(
-        matchingPayor ? matchingPayor.payorName : 'Payor not found'
-      );
-    }
-    return 'User info not available';
-  };
+  // const getPayorName = () => {
+  //   if (userInfo) {
+  //     const matchingPayor = userInfo[0]?.payor_details.find(
+  //       (detail: any) => detail.insurance_id === insurancePlanInputRef
+  //     );
+  //     setpayorFromInsuranceId(
+  //       matchingPayor ? matchingPayor.payorName : 'Payor not found'
+  //     );
+  //   }
+  //   return 'User info not available';
+  // };
 
   useEffect(() => {
     registrySearch();
-    getPayorName();
+    // getPayorName();
   }, [insurancePlanInputRef]);
 
   const filteredResults = searchResults.filter((result: any) =>

@@ -18,6 +18,8 @@ import SendBankDetails from './pages/SendBankDetails/SendBankDetails';
 import Success from './pages/SendBankDetails/Success';
 import CoverageEligibilitySuccessPage from './components/CoverageEligibilitySuccessPage';
 import Notification from './pages/Notification/Notification';
+import LinkedBeneficiaries from './pages/linkedBeneficiaries/LinkedBeneficiaries';
+import BeneficiaryProfiles from './pages/beneficiary-profiles/BeneficiaryProfiles';
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -71,11 +73,16 @@ const App = () => {
             element={<CoverageEligibilitySuccessPage />}
           />
           <Route
+            path="/beneficiary-profiles"
+            element={<BeneficiaryProfiles />}
+          />
+          <Route
             path="/notification"
             element={<Notification />}
           />
           <Route path="/request-success" element={<RequestSuccess />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/linked-beneficiaries" element={<LinkedBeneficiaries />} />
           <Route path="/bank-details" element={<SendBankDetails />} />
           <Route path="/success" element={<Success />} />
         </Route>

@@ -9,7 +9,7 @@ export default {
   SIX_DIGIT: 'Enter 6-digit OTP',
   VERIFY_OTP_BUTTON: 'Verify OTP',
   RESEND_OTP_BUTTON: 'Resend OTP',
-  ADD_PROFILE_DETAILS: 'Add profile details :',
+  ADD_PROFILE_DETAILS: 'Add Profile Details :',
   USERS_NAME: "User's name *",
   ENTER_YOUR_NAME: 'Enter your name',
   MOBILE: 'Mobile number *',

@@ -121,7 +121,7 @@ const Home = () => {
       <div className="flex justify-between">
         <div>
           <h1 className="text-1xl mb-3 font-bold text-black dark:text-white">
-            {strings.WELCOME_TEXT} {userInformation?.userName || '...'}
+            {strings.WELCOME_TEXT} {getMobileFromLocalStorage || '...'}
           </h1>
         </div>
       </div>

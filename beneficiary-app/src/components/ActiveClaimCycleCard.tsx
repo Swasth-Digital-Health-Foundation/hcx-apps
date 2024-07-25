@@ -28,19 +28,19 @@ const ActiveClaimCycleCard = (Props: any) => {
   localStorage.setItem('recipientCode', information?.payorCode)
   const data: any = [
     {
-      key: 'Patient name :',
+      key: 'Patient Name',
       value: `${Props.patientName}`,
     },
     {
-      key: 'Initiation date :',
+      key: 'Initiation Date',
       value: formattedDate,
     },
     {
-      key: 'Insurance ID :',
+      key: 'Insurance ID',
       value: `${Props.insurance_id || 'null'}`,
     },
     {
-      key: 'Treatment/ServiceType :',
+      key: 'Treatment Type',
       value: `${Props.claimType}`,
     },
     // {
@@ -48,7 +48,7 @@ const ActiveClaimCycleCard = (Props: any) => {
     //   value: `${Props.apiCallId}`,
     // },
     {
-      key: 'Status :',
+      key: 'Status',
       value: (
         <span
           className={`${Props.status === "Pending"
@@ -67,15 +67,18 @@ const ActiveClaimCycleCard = (Props: any) => {
   return (
     <div>
       <div className="relative rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex flex-col p-4">
+        <div className="p-4">
           {data.map((ele: any, index: any) => {
             return (
-              <h2
-                key={index}
-                className="font-small mt-1 block text-left text-black dark:text-white"
-              >
-                <b>{ele.key}</b> <span>{ele.value}</span>
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2
+                  key={index}
+                  className="font-small mt-1 block text-left text-black dark:text-white"
+                >
+                  <b className="inline-block w-35 flex gap-10">{ele.key}</b>{" "}
+                </h2>
+                <span>: {ele.value}</span>
+              </div>
             );
           })}
           <span

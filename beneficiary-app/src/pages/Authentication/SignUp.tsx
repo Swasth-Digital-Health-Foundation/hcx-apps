@@ -4,7 +4,6 @@ import { toast } from 'react-toastify';
 import LoadingButton from '../../components/LoadingButton';
 import strings from '../../utils/strings';
 import { createUser } from '../../services/hcxMockService'
-import SelectInput from '../../components/SelectInput'
 import * as _ from "lodash";
 import InsuranceDetailsForm from '../../components/InsuranceDetailsForm';
 
@@ -21,38 +20,11 @@ const SignUp = () => {
   const [address, setAddress] = useState<string>("");
   const [payorParticipantCode, setPayorParticipantCode] = useState<string>('');
   const [payorParticipantCode1, setPayorParticipantCode1] = useState<string>('');
-  const [bloodGroup, setBloodGroup] = useState<string>("");
-  const [allergies, setAllergies] = useState<string>("");
   const [beneficiaryName, setBeneficiaryName] = useState<string>('');
   const [beneficiaryName1, setBeneficiaryName1] = useState<string>('');
   const [isOpen, setOpen] = useState<boolean>(false)
+  const [mobile, setMobile] = useState<string>("")
 
-
-  const bloodGroupOptions = [
-    {
-      label: "Select",
-      value: "",
-    },
-    { label: "O+", value: "O+" },
-    { label: "O-", value: "O-" },
-    { label: "A-", value: "A-" },
-    { label: "A+", value: "A+" },
-    { label: "B-", value: "B-" },
-    { label: "B+", value: "B+" },
-    { label: "AB+", value: "AB+" },
-    { label: "AB-", value: "AB-" },
-  ];
-
-  const allergiesOptions = [
-    {
-      label: "Select",
-      value: "",
-    },
-    { label: "Food", value: "Food" },
-    { label: "Dust", value: "Dust" },
-    { label: "Medication", value: "Medication" },
-    { label: "Cosmatic", value: "Cosmatic" },
-  ];
 
   const insuranceDetails = {
     insurance_id: insuranceId,
@@ -75,15 +47,10 @@ const SignUp = () => {
 
   let payload = {
     email: email,
-    mobile: getMobileFromLocalStorage,
+    mobile: getMobileFromLocalStorage || mobile,
     name: userName,
     payor_details: insuranceList,
-    address : address,
-    medical_history:
-    {
-      blood_group: bloodGroup,
-      allergies: allergies
-    }
+    address: address,
   };
 
 
@@ -94,11 +61,11 @@ const SignUp = () => {
       if (registerResponse?.status === 200) {
         setLoading(false);
         toast.success('User registered successfully!');
-        navigate('/home', { state: getMobileFromLocalStorage });
+        navigate('/home', { state: getMobileFromLocalStorage || mobile });
       }
       setLoading(false);
       toast.success('User registered successfully!');
-      navigate('/home', { state: getMobileFromLocalStorage });
+      navigate('/home', { state: getMobileFromLocalStorage || mobile });
     } catch (error: any) {
       setLoading(false);
       toast.error(error.response.data.params.errmsg);
@@ -109,7 +76,6 @@ const SignUp = () => {
     setOpen(!isOpen); // Toggle isOpen state
   };
 
-  // insurance details 
   return (
     <div >
       <h2 className="sm:text-title-xl1 mb-2 text-2xl font-bold text-black dark:text-white">
@@ -120,7 +86,7 @@ const SignUp = () => {
           <div className="mb-3">
             <div>
               <label className="mb-3  block text-left font-medium text-black dark:text-white">
-                {strings.USERS_NAME}
+                {"Beneficiary Name"}
               </label>
               <div className="relative">
                 <input
@@ -143,11 +109,13 @@ const SignUp = () => {
               </label>
               <div className="relative">
                 <input
-                  disabled
-                  value={getMobileFromLocalStorage}
-                  placeholder={strings.ENTER_MOBILE_NUMBER}
+                  onChange={(e: any) => setMobile(e.target.value)}
+                  value={mobile}
+                  placeholder={"Enter mobile number"}
+                  type='number'
                   className={
-                    'w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'}
+                    'w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary'
+                  }
                 />
               </div>
             </div>
@@ -185,25 +153,6 @@ const SignUp = () => {
           </div>
         </form>
       </div>
-      <h2 className="mt-2 sm:text-title-xl1 mb-2 text-2xl font-bold text-black dark:text-white">
-        {"Medical Details"}
-      </h2>
-      <div className="relative rounded-lg border border-stroke bg-white p-3 mt-1 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <SelectInput
-          label="Blood group :"
-          value={bloodGroup}
-          onChange={(e: any) => setBloodGroup(e.target.value)}
-          disabled={false}
-          options={bloodGroupOptions}
-        />
-        <SelectInput
-          label="Allergies :"
-          value={allergies}
-          onChange={(e: any) => setAllergies(e.target.value)}
-          disabled={false}
-          options={allergiesOptions}
-        />
-      </div>
       <InsuranceDetailsForm
         beneficiaryName={beneficiaryName} setBeneficiaryName={setBeneficiaryName}
         insuranceId={insuranceId} setInsuranceId={setInsuranceId}
@@ -217,12 +166,12 @@ const SignUp = () => {
             className="mt-2 text-blue-500 underline cursor-pointer justify-center"
           >
             {isOpen ? (
-              "Remove"       
+              "Remove"
             ) : (
-             "Add Another"
+              "Add Another"
             )}
           </button>
-       
+
         </div>
 
         {isOpen && (
@@ -242,7 +191,7 @@ const SignUp = () => {
               registerUser();
             }}
             type="submit"
-            disabled= {bloodGroup !== ""|| allergies !== ""}
+            disabled={userName !== "" || email !== "" || mobile !== ""}
             className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
           >
             {strings.SAVE_PROFILE_DETAILS}
