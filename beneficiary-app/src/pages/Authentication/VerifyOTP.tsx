@@ -6,6 +6,7 @@ import LoadingButton from '../../components/LoadingButton';
 import { sendOTP, verifyOTP, searchUser } from '../../services/hcxMockService';
 import strings from '../../utils/strings';
 import maskMobileNumber from '../../utils/maskMobileNumber';
+import _ from 'lodash';
 
 
 
@@ -37,9 +38,11 @@ const VerifyOTP = () => {
       if (otpResponse.status === 200) {
         try {
           let response: any = await searchUser("user/search", mobileNumber)
-          if (response.status === 200) {
+          if (response.status === 200 && response.data.length !== 0) {
             toast.success('OTP verified successfully!');
             navigate('/home', { state: filter });
+          } else {
+            navigate('/signup');
           }
         } catch (error) {
           console.log(error);
