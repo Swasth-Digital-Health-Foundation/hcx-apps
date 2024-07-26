@@ -9,6 +9,8 @@ import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
+import MultiSelectSearch, { Option } from "../../components/MultiSelectSearch";
+import { MultiValue } from "react-select";
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
@@ -26,6 +28,9 @@ const InitiateNewClaimRequest = () => {
   const [displayedData, setDisplayedData] = useState<any>(
     finalData.slice(0, 5)
   );
+  const [diagnosis, setDiagnosis] = useState<MultiValue<Option>>([]);
+  const [procedures, setProcedures] = useState<MultiValue<Option>>([]);
+  const [items, setItems] = useState<MultiValue<Option>>([]);
 
   const [submitLoading, setSubmitLoading] = useState(false);
   const [consultationDetails, setConsultationDetails] = useState<any>();
@@ -128,6 +133,9 @@ const InitiateNewClaimRequest = () => {
     app: "OPD",
     password: password,
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
+    diagnosis: diagnosis,
+    procedures:procedures,
+    items:items
   };
 
 
@@ -138,6 +146,7 @@ const InitiateNewClaimRequest = () => {
       },
     },
   };
+  
 
   const requestPayload = {
     sender_code: localStorage.getItem("senderCode"),
@@ -259,6 +268,9 @@ const InitiateNewClaimRequest = () => {
               onChange={(e: any) => setServiceType(e.target.value)}
               options={treatmentOptions}
             />
+            <MultiSelectSearch label="Diagnosis :" onSelect={(value: MultiValue<Option>) => setDiagnosis(value)}></MultiSelectSearch>
+            <MultiSelectSearch label="Procedures performed:" onSelect={(value) => setProcedures(value)}></MultiSelectSearch>
+            <MultiSelectSearch label="Billing Items :" onSelect={(value) => setItems(value)}></MultiSelectSearch>
             <TextInputWithLabel
               label="Bill amount : *"
               value={amount}
