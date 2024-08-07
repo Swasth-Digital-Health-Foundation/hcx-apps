@@ -191,7 +191,7 @@ const SignUp = () => {
               registerUser();
             }}
             type="submit"
-            disabled={userName !== "" || email !== "" || mobile !== ""}
+            disabled={userName === "" || email === "" || mobile === ""}
             className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
           >
             {strings.SAVE_PROFILE_DETAILS}

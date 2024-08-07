@@ -38,7 +38,7 @@ const InitiateNewClaimRequest = () => {
     FileLists = Array.from(selectedFile);
   }
 
-  const [cliamDetails, setClaimDetails] = useState(location.state);
+  const [cliamDetails, setClaimDetails] = useState(location.state || {});
   const claimRequestDetails: any = [
     {
       key: 'Provider :',
@@ -50,13 +50,13 @@ const InitiateNewClaimRequest = () => {
     },
     {
       key: 'Payor name :',
-      value: payorDetails[0]?.payorName || cliamDetails?.payor || payorName,
+      value: payorDetails[0]?.payorName || cliamDetails?.payor || payorName || '',
     },
     {
       key: 'Insurance ID :',
       value: cliamDetails?.insuranceId || 'null',
     },
-  ];  
+  ];
 
   let requestBody: any = {
     insuranceId: cliamDetails?.insuranceId || '',
@@ -92,7 +92,7 @@ const InitiateNewClaimRequest = () => {
 
   const payorCodePayload = {
     filters: {
-      participant_code: { eq: payorDetails[0]?.payor },
+      participant_code: { eq: cliamDetails?.selectedpayor },
     },
   };
 
@@ -148,7 +148,8 @@ const InitiateNewClaimRequest = () => {
     try {
       let response: any = await searchUser("user/search", mobileNumber || location.state?.patientMobile)
       setUserInformation(response?.data?.result);
-      setPayorDetails(response?.data?.result?.payorDetails && response?.data?.result?.payorDetails.filter((ele: any) => ele.insurance_id === cliamDetails?.insuranceId))
+      setPayorDetails(cliamDetails?.selectedpayor)
+      // setPayorDetails(response?.data?.result?.payorDetails && response?.data?.result?.payorDetails.filter((ele: any) => ele.insurance_id === cliamDetails?.insuranceId))
     } catch (error) {
       console.log(error);
     }
