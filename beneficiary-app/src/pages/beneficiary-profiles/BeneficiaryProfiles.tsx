@@ -157,10 +157,10 @@ const userProfile = () => {
                     </h2>
                     {beneficiaryId && (
                         <div className="mb-3 text-base font-medium text-black dark:text-white">
-                            <h3 className="text-lg font-semibold">Beneficiary ID: {beneficiaryId}</h3>
+                            <h3 className="text-lg font-semibold">Beneficiary ID: {`BSP/${beneficiaryId.slice(0, 6)}`}
+                            </h3>
                         </div>
                     )}
-                    {/* {{beneficiaryId}} */}
                     <div className="relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
                         <h2 className="text-bold text-base font-bold text-black dark:text-white">
                             Beneficiary Name :

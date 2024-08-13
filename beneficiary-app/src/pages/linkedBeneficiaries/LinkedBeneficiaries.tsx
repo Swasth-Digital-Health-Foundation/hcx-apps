@@ -57,25 +57,25 @@ const LinkedBeneficiaries = () => {
                         )}
                         <div className="flex items-center">
                             <h2 className="font-small mt-1 block text-left text-black dark:text-white">
-                                <b className="inline-block w-30">{"ID"}</b>
+                                <b className="inline-block w-35">{"Beneficiary ID"}</b>
                             </h2>
                             <span>: {`BSP/${user?.beneficiaryId.toString().slice(0, 6)}`}</span>
                         </div>
                         <div className="flex items-center">
                             <h2 className="font-small mt-1 block text-left text-black dark:text-white">
-                                <b className="inline-block w-30">{"Name"}</b>
+                                <b className="inline-block w-35">{"Beneficiary Name"}</b>
                             </h2>
                             <span>: {user?.userName}</span>
                         </div>
                         <div className="flex items-center">
                             <h2 className="font-small mt-1 block text-left text-black dark:text-white">
-                                <b className="inline-block w-30">{"Mobile"}</b>
+                                <b className="inline-block w-35">{"Mobile"}</b>
                             </h2>
                             <span>: {getMobileFromLocalStorage}</span>
                         </div>
                         <div className="flex items-center">
                             <h2 className="font-small mt-1 block text-left text-black dark:text-white">
-                                <b className="inline-block w-30">{"Address "}</b>
+                                <b className="inline-block w-35">{"Address "}</b>
                             </h2>
                             <span>: {user?.address}</span>
                         </div>
