@@ -157,8 +157,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   return (
                     <React.Fragment>
                       <div
-                        className={`group relative flex items-center gap-2.5 rounded-lg px-4 py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${(pathname === '/profile' ||
-                          pathname.includes('profile')) &&
+                        className={`group relative flex items-center gap-2.5 rounded-lg px-4 py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${(pathname === '/profile' || pathname.includes('profile') && !pathname.includes('beneficiary-profiles')) &&
                           'bg-graydark dark:bg-meta-4'
                           }`}
                         onClick={() => {
@@ -191,15 +190,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </SidebarLinkGroup>
               <SidebarLinkGroup
                 activeCondition={
-                  pathname === '/profile' || pathname.includes('profile')
+                  pathname === '/linked-beneficiaries' || pathname.includes('linked-beneficiaries')
                 }
               >
                 {() => {
                   return (
                     <React.Fragment>
                       <div
-                        className={`group relative flex items-center gap-2.5 rounded-lg px-4 py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${(pathname === '/profile' ||
-                          pathname.includes('linked-beneficiaries')) &&
+                        className={`group relative flex items-center gap-2.5 rounded-lg px-4 py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${(pathname === '/linked-beneficiaries' || pathname.includes('linked-beneficiaries') || pathname.includes('beneficiary-profiles')) &&
                           'bg-graydark dark:bg-meta-4'
                           }`}
                         onClick={() => {

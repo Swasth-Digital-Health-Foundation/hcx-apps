@@ -155,6 +155,12 @@ const userProfile = () => {
                     <h2 className="relative text-bold mb-3 text-2xl font-bold text-black dark:text-white">
                         Beneficiary Profile
                     </h2>
+                    {beneficiaryId && (
+                        <div className="mb-3 text-base font-medium text-black dark:text-white">
+                            <h3 className="text-lg font-semibold">Beneficiary ID: {beneficiaryId}</h3>
+                        </div>
+                    )}
+                    {/* {{beneficiaryId}} */}
                     <div className="relative border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
                         <h2 className="text-bold text-base font-bold text-black dark:text-white">
                             Beneficiary Name :
@@ -208,9 +214,9 @@ const userProfile = () => {
                         </div>
                     </div>
                     {isEditing && (
-                        <div className='p-1 flex gap-6 justify-end'>
-                            <button onClick={handleSaveClick}>Save</button>
+                        <div className='p-1 flex justify-between'>
                             <button onClick={handleCancelClick}>Cancel</button>
+                            <button onClick={handleSaveClick}>Save</button>
                         </div>
                     )}
                     <h5 className="text-bold mt-2 mb-3 text-2xl font-bold text-black dark:text-white">
