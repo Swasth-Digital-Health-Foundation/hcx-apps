@@ -23,6 +23,42 @@ const userProfile = () => {
     const [popup, setPopup] = useState(false);
     const [beneficiaryId, setBeneficiaryId] = useState<any>("");
     const [entries, setEntries] = useState<any[]>([]);
+    const handleRefreshCoverageEligibility = async (insuranceId: string, payorName: string) => {
+        try {
+            setLoading(true);
+            const coverageEligibilityPayload = {
+                insuranceId: insuranceId,
+                mobile: localStorage.getItem('mobile'),
+                payor: payorName,
+                providerName: "Demo Provider",
+                serviceType: "OPD",
+                app: "BSP",
+                patientName: userInfo?.userName,
+                participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
+                password: process.env.SEARCH_PARTICIPANT_PASSWORD,
+                recipientCode: userInfo?.payorDetails && userInfo?.payorDetails[0]?.payor
+            };
+
+            const response = await generateOutgoingRequest(
+                "coverageeligibility/check",
+                coverageEligibilityPayload
+            );
+            console.log("response...",response)
+            if (response.status === 202) {
+                toast.success("Coverage eligibility request sent successfully.");
+                // Refresh the entries
+                const updatedEntries = await generateOutgoingRequest('request/list', EligibilityPayload);
+                setEntries(updatedEntries.data.entries);
+            } else {
+                toast.error("Failed to send coverage eligibility request.");
+            }
+        } catch (error) {
+            console.error("Error in handleRefreshCoverageEligibility:", error);
+            toast.error("Failed to send coverage eligibility request.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -297,6 +333,15 @@ const userProfile = () => {
                                                 <span className="ml-180 text-green-500">
                                                     Status: {entries.length > 0 ? getStatusForInsuranceId(detail.insurance_id, entries) : "Loading..."}
                                                 </span>
+                                                <button
+                                                    onClick={() => handleRefreshCoverageEligibility(detail.insurance_id, detail.payorName)}
+                                                    className="ml-2 text-blue-500"
+                                                    title="Refresh Coverage Eligibility"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                                    </svg>
+                                                </button>
                                             </h2>
                                             <span className="text-base font-medium">{detail.insurance_id}</span>
                                         </div>
