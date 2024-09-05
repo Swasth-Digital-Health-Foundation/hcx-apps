@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { searchUser, userUpdate } from '../../services/hcxMockService';
+import { generateOutgoingRequest, searchUser, userUpdate } from '../../services/hcxMockService';
 import { toast } from 'react-toastify';
 import InsuranceDetailsForm from '../../components/InsuranceDetailsForm';
 import TransparentLoader from '../../components/TransparentLoader';
@@ -7,7 +7,6 @@ import { useLocation } from 'react-router-dom';
 import * as _ from "lodash"
 
 const userProfile = () => {
-
     const [userInfo, setUserInformation] = useState<any>([]);
     const [isEditing, setIsEditing] = useState(false);
     const [editedUserName, setEditedUserName] = useState<string>('');
@@ -23,7 +22,7 @@ const userProfile = () => {
     const location = useLocation();
     const [popup, setPopup] = useState(false);
     const [beneficiaryId, setBeneficiaryId] = useState<any>("");
-
+    const [entries, setEntries] = useState<any[]>([]);
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -39,8 +38,19 @@ const userProfile = () => {
         setBeneficiaryId(location?.state?.userInfo?.beneficiaryId)
         console.log('user info', location?.state?.userInfo);
     }, []);
+    useEffect(() => {
+        const fetchEntries = async () => {
+            try {
+                const response = await generateOutgoingRequest('request/list', EligibilityPayload);
+                setEntries(response.data.entries);
+                console.log("CE request", response.data.entries)
+            } catch (error) {
+                console.error("Error fetching entries:", error);
+            }
+        };
 
-
+        fetchEntries();
+    }, []);
     const updatePayload = {
         mobile: searchedMobileNumber,
         beneficiary_id: beneficiaryId,
@@ -72,10 +82,10 @@ const userProfile = () => {
     };
 
     const handleStateChange = () => {
-        setInsuranceId(''),
-            setBeneficiaryName('')
-        setPayorName('')
-        setPayorParticipantCode('')
+        setInsuranceId('');
+        setBeneficiaryName('');
+        setPayorName('');
+        setPayorParticipantCode('');
     }
 
     const handleDelete = async (payorCode: any) => {
@@ -105,6 +115,22 @@ const userProfile = () => {
         }
     };
 
+    let coverageeligibilityPayload = {
+        insuranceId: insuranceId,
+        mobile: localStorage.getItem('mobile'),
+        payor: payorName,
+        providerName: "Demo Provider",
+        serviceType: "OPD",
+        app: "BSP",
+        patientName: userInfo?.userName,
+        participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
+        password: process.env.SEARCH_PARTICIPANT_PASSWORD,
+        recipientCode: userInfo?.payorDetails && userInfo?.payorDetails[0]?.payor
+    }
+    let EligibilityPayload = {
+        mobile: localStorage.getItem('mobile'),
+        app: "BSP",
+    }
     const handleAddRemoveClick = () => {
         handleStateChange()
         setOpen(!isOpen);
@@ -128,15 +154,19 @@ const userProfile = () => {
                 mobile: searchedMobileNumber,
                 payor_details: updatePayorDetails,
                 beneficiary_id: beneficiaryId,
-            }
+            };
             const response: any = await userUpdate("user/update", updatePayload);
             if (response.status === 200) {
                 setTimeout(async () => {
                     let searchResponse: any = await searchUser("user/search", searchedMobileNumber);
                     let filteredResults = searchResponse?.data?.filter((user: any) => user.beneficiaryId === beneficiaryId);
                     setUserInformation(filteredResults[0]);
-                    setLoading(false)
+                    setLoading(false);
                     toast.success("Details updated successfully.");
+                    await generateOutgoingRequest(
+                        "coverageeligibility/check",
+                        coverageeligibilityPayload
+                    );
                 }, 2000);
             } else {
                 toast.error("Failed to update details.");
@@ -144,8 +174,18 @@ const userProfile = () => {
         } catch (error) {
             toast.error("Failed to update details.");
         } finally {
-            setOpen(false)
+            setOpen(false);
         }
+    };
+    const getStatusForInsuranceId = (insuranceId: string, entries: any[]): string => {
+        for (const entry of entries) {
+            const workflowId = Object.keys(entry)[0];
+            const details = entry[workflowId][0];
+            if (details.insurance_id === insuranceId) {
+                return details.status;
+            }
+        }
+        return "Pending";
     };
 
     return (
@@ -254,6 +294,9 @@ const userProfile = () => {
                                         <div className="gap-2 mt-1.5">
                                             <h2 className="text-bold text-base font-bold text-black dark:text-white">
                                                 Insurance ID:
+                                                <span className="ml-180 text-green-500">
+                                                    Status: {entries.length > 0 ? getStatusForInsuranceId(detail.insurance_id, entries) : "Loading..."}
+                                                </span>
                                             </h2>
                                             <span className="text-base font-medium">{detail.insurance_id}</span>
                                         </div>
