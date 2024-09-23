@@ -1,12 +1,15 @@
+import { useState } from "react";
+
 const ReferenceAppsPage = () => {
+  const [selectedValue, setSelectedValue] = useState("");
 
   const appLabels = [
-    { label: "Reference Apps", value: "" },
-    { label: "SSP", value: process.env.ssp },
-    { label: "OPD", value: process.env.opd },
-    { label: "BSP", value: process.env.bsp },
-    { label: "ABSP", value: process.env.absp },
-    { label: "PAYOR", value: process.env.payor },
+    { label: "Visit Other Apps", value: "" },
+    { label: "Self-Service Portal (SSP)", value: process.env.ssp },
+    { label: "Provider App (OPD)", value: process.env.opd },
+    { label: "Beneficiary Service Platform (BSP)", value: process.env.bsp },
+    { label: "Assisted Beneficiary Service Platform (ABSP)", value: process.env.absp },
+    { label: "Payor App ", value: process.env.payor },
   ];
 
   const handleNavigation = (event: any) => {
@@ -14,15 +17,19 @@ const ReferenceAppsPage = () => {
     if (url) {
       window.open(url, '_blank');
     }
+    setSelectedValue("");
   }
 
   return (
     <div className="absolute right-0 top-0 p-3 z-20 inline-block rounded bg-white  dark:bg-boxdark">
       <select
-        name=""
-        id=""
-        onChange={handleNavigation}
-        className="z-20 inline-flex appearance-none rounded border border-stroke bg-transparent py-2 pl-4 pr-9 text-sm font-medium outline-none dark:border-strokedark">
+        value={selectedValue}
+        onChange={(event) => {
+          setSelectedValue(event.target.value);
+          handleNavigation(event);
+        }}
+        className="z-20 inline-flex appearance-none rounded border border-stroke bg-transparent py-2 pl-4 pr-9 text-sm font-medium outline-none dark:border-strokedark"
+      >
         {appLabels.map((opt: any, index: any) => (
           <option key={index} value={opt.value}>
             {opt.label}

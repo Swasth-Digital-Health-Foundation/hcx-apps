@@ -73,7 +73,7 @@ const SignUp = () => {
   };
 
   const handleAddRemoveClick = () => {
-    setOpen(!isOpen); // Toggle isOpen state
+    setOpen(!isOpen); 
   };
 
   return (
