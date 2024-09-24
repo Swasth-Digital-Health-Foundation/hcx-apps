@@ -13,6 +13,7 @@ import ViewPatientDetails from "./pages/ViewPatientDetails/ViewPatientDetails";
 import VerifyClaim from "./pages/VerifyClaim/VerifyClaim";
 import SendBankDetails from "./pages/SendBankDetails/SendBankDetails";
 import Notification from "./pages/Notification/Notification";
+import NotFound from "./components/NotFound";
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -67,6 +68,7 @@ const App = () => {
           <Route path="/request-success" element={<RequestSuccess />} />
           <Route path="/notification" element={<Notification />} />
         </Route>
+        <Route path="*" element={<NotFound />} /> 
       </Routes>
     </>
   );

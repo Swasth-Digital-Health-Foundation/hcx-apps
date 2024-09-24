@@ -12,6 +12,7 @@ import Login from "./pages/Authentication/Login";
 import AddConsultation from "./pages/AddConsultation/AddConsultation";
 import ViewPatientDetails from "./pages/ViewPatientDetails/ViewPatientDetails";
 import UserProfile from "./pages/UserProfile/userProfile";
+import NotFound from "./components/NotFound";
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -70,6 +71,7 @@ const App = () => {
           />
           <Route path="/request-success" element={<RequestSuccess />} />
         </Route>
+        <Route path="*" element={<NotFound />} /> {/* Wildcard route */}
       </Routes>
     </>
   );

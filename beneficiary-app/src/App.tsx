@@ -20,6 +20,7 @@ import CoverageEligibilitySuccessPage from './components/CoverageEligibilitySucc
 import Notification from './pages/Notification/Notification';
 import LinkedBeneficiaries from './pages/linkedBeneficiaries/LinkedBeneficiaries';
 import BeneficiaryProfiles from './pages/beneficiary-profiles/BeneficiaryProfiles';
+import NotFound from './components/NotFound';
 
 const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -84,8 +85,9 @@ const App = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/linked-beneficiaries" element={<LinkedBeneficiaries />} />
           <Route path="/bank-details" element={<SendBankDetails />} />
-          <Route path="/success" element={<Success />} />
+          <Route path="/success" element={<Success />} /> 
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );
