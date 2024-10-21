@@ -13,10 +13,17 @@ import MultiSelectSearch, { Option } from "../../components/MultiSelectSearch";
 import { MultiValue } from "react-select";
 
 const InitiateNewClaimRequest = () => {
+
   const navigate = useNavigate();
   const location = useLocation();
 
+
+
+
+
+
   const [amount, setAmount] = useState<string>("");
+  const [billAmount, setBillAmount] = useState<string>("");
   const [serviceType, setServiceType] = useState<string>();
   const [documentType, setDocumentType] = useState<string>("prescription");
 
@@ -73,7 +80,6 @@ const InitiateNewClaimRequest = () => {
       setFiles((prevFiles) => [...prevFiles, ...Array.from(newFiles)]);
     }
   };
-
 
 
   const generateSupportingDocuments = (selectedFiles: any, uploadedFiles: any[]): any[] => {
@@ -135,7 +141,8 @@ const InitiateNewClaimRequest = () => {
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
     diagnosis: diagnosis,
     procedures:procedures,
-    items:items
+    items:items,
+    amountItems:billAmount
   };
 
 
@@ -154,6 +161,7 @@ const InitiateNewClaimRequest = () => {
   };
 
   useEffect(() => {
+    console.log("request payload",requestPayload);
     getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData)
   }, []);
 
@@ -268,9 +276,23 @@ const InitiateNewClaimRequest = () => {
               onChange={(e: any) => setServiceType(e.target.value)}
               options={treatmentOptions}
             />
+
             <MultiSelectSearch label="Diagnosis :" onSelect={(value: MultiValue<Option>) => setDiagnosis(value)}></MultiSelectSearch>
             <MultiSelectSearch label="Procedures performed:" onSelect={(value) => setProcedures(value)}></MultiSelectSearch>
             <MultiSelectSearch label="Billing Items :" onSelect={(value) => setItems(value)}></MultiSelectSearch>
+            {items.length !== 0 ?
+              <>
+              <TextInputWithLabel
+              label="Billing Items amount : *"
+              value={billAmount}
+              onChange={(e: any) => setBillAmount(e.target.value)}
+              placeholder="Enter amount"
+              disabled={false}
+              type="text"
+            />
+              <p className="italic font-s"> *Please enter the billing items amount separated by a comma</p>
+              </> : null
+             }
             <TextInputWithLabel
               label="Bill amount : *"
               value={amount}

@@ -40,33 +40,17 @@ const MultiSelectSearch: React.FC<MultiProps> = ({ label, onSelect }:MultiProps)
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
-            url: `https://staging-hcx.swasth.app/hapi-fhir/fhir/ValueSet/$expand?url=https://example.com/dhruv3&filter=${query}`,
+            url: `${process.env.hcx_mock_service}/procedures/list/${query}`,
             headers: { }
           };
           
           axios.request(config)
           .then((response) => {
-            response.data.expansion.contains? response.data.expansion.contains.map((value: any, index: any) => {
+            response.data.resultList? response.data.resultList.map((value: any, index: any) => {
                 dataUser.push({"value": value.code, "label":value.display,"system":value.system})
               }) : null;
               setOptions(dataUser);
           });
-          let config1 = {
-            method: 'get',
-            maxBodyLength: Infinity,
-            url: `https://staging-hcx.swasth.app/hapi-fhir/fhir/ValueSet/$expand?url=https://staging-hcx.swasth.app/hapi-fhir/fhir/ValueSet/example-vs-01&filter=${query}`,
-            headers: { }
-          };
-          axios.request(config1)
-          .then((response) => {
-            
-            response.data.expansion.contains? response.data.expansion.contains.map((value: any, index: any) => {
-                dataUser.push({"value": value.code, "label":value.display,"system":value.system})
-              }) : null;
-              setOptions(dataUser);
-            }).catch(err => {
-              console.error('Error fetching options:', err);
-            });
     } catch (error) {
       console.error('Error fetching options:', error);
     } finally {

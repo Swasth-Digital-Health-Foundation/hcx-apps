@@ -357,7 +357,7 @@ const AddPatientAndInitiateCoverageEligibility = () => {
   const checkForExistingPatient = () => {
     console.log("user input", userInput)
     console.log("patient infot", patientInfo)
-    console.log("check ", patientInfo[0].gender === gender && patientInfo[0].age === parseInt(age))
+    //console.log("check ", patientInfo[0].gender === gender && patientInfo[0].age === parseInt(age))
     const existingPatient = patientInfo.find((patient: { mobile: any; age: any; gender: any; }) =>
       patient.gender === _.get(userInput, 'gender') && patient.age === _.get(userInput, 'age')
     );

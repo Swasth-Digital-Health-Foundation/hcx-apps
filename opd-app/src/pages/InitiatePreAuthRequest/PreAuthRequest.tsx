@@ -179,6 +179,7 @@ const PreAuthRequest = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("participant payor", payorResponse);
       let payorname = payorResponse.data?.participants[0]?.participant_name;
       setPayorName(payorname);
     } catch (err) {
