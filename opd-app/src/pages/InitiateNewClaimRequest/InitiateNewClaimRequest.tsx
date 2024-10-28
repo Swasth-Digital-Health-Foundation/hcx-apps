@@ -9,25 +9,35 @@ import SelectInput from "../../components/SelectInput";
 import TextInputWithLabel from "../../components/inputField";
 import TransparentLoader from "../../components/TransparentLoader";
 import * as _ from "lodash";
+import MultiSelectSearch, { Option } from "../../components/MultiSelectSearch";
+import { MultiValue } from "react-select";
 
 const InitiateNewClaimRequest = () => {
+
   const navigate = useNavigate();
   const location = useLocation();
-  const [fileErrorMessage, setFileErrorMessage]: any = useState();
+
+
+
+
+
 
   const [amount, setAmount] = useState<string>("");
+  const [billAmount, setBillAmount] = useState<string>("");
   const [serviceType, setServiceType] = useState<string>();
   const [documentType, setDocumentType] = useState<string>("prescription");
 
   const [loading, setLoading] = useState(false);
   const [payorName, setPayorName] = useState<string>("");
 
-  const [userInfo, setUserInformation] = useState<any>([]);
   const [activeRequests, setActiveRequests] = useState<any>([]);
   const [finalData, setFinalData] = useState<any>([]);
   const [displayedData, setDisplayedData] = useState<any>(
     finalData.slice(0, 5)
   );
+  const [diagnosis, setDiagnosis] = useState<MultiValue<Option>>([]);
+  const [procedures, setProcedures] = useState<MultiValue<Option>>([]);
+  const [items, setItems] = useState<MultiValue<Option>>([]);
 
   const [submitLoading, setSubmitLoading] = useState(false);
   const [consultationDetails, setConsultationDetails] = useState<any>();
@@ -70,7 +80,6 @@ const InitiateNewClaimRequest = () => {
       setFiles((prevFiles) => [...prevFiles, ...Array.from(newFiles)]);
     }
   };
-
 
 
   const generateSupportingDocuments = (selectedFiles: any, uploadedFiles: any[]): any[] => {
@@ -117,33 +126,25 @@ const InitiateNewClaimRequest = () => {
     insuranceId: _.get(data, 'requestDetails.insuranceId', '') || displayedData[0]?.insurance_id,
     insurancePlan: _.get(data, 'requestDetails.insurancePlan', '') || null,
     mobile: displayedData[0]?.mobile || localStorage.getItem("mobile"),
-    patientName: displayedData[0]?.patientName || userInfo[0]?.name || localStorage.getItem("patientName") || data?.requestDetails?.patientName,
+    patientName: displayedData[0]?.patientName || location?.state?.userName || localStorage.getItem("patientName") || data?.requestDetails?.patientName,
     participantCode:
       _.get(data, 'requestDetails.participantCode', '') || localStorage.getItem("senderCode") || email,
     payor: _.get(data, 'requestDetails.payor', '') || payorName,
     providerName: _.get(data, 'requestDetails.providerName', '') || localStorage.getItem("providerName"),
     serviceType: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
-    billAmount: amount,
+    billAmount: amount, 
     workflowId: _.get(data, 'requestDetails.workflowId', ''),
     supportingDocuments: [],
     type: _.get(data, 'requestDetails.serviceType', '') || displayedData[0]?.claimType,
     app: "OPD",
     password: password,
     recipientCode: _.get(data, 'requestDetails.recipientCode', ''),
+    diagnosis: diagnosis,
+    procedures:procedures,
+    items:items,
+    amountItems:billAmount
   };
 
-  const search = async () => {
-    try {
-      let responseData: any = await searchUser("user/search", mobile || localStorage.getItem("mobile") || data?.requestDetails?.patientMobile);
-      setUserInformation(responseData?.data?.result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    search();
-  }, []);
 
   const payorCodePayload = {
     filters: {
@@ -152,6 +153,7 @@ const InitiateNewClaimRequest = () => {
       },
     },
   };
+  
 
   const requestPayload = {
     sender_code: localStorage.getItem("senderCode"),
@@ -159,6 +161,7 @@ const InitiateNewClaimRequest = () => {
   };
 
   useEffect(() => {
+    console.log("request payload",requestPayload);
     getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData)
   }, []);
 
@@ -193,8 +196,10 @@ const InitiateNewClaimRequest = () => {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFiles)) {
         const response = await handleUpload(mobile, files);
-        const supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
-        addConsultationUrls(supportingDocs, consultationDocs)
+        var supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
+        if (urls != "{}") {
+          addConsultationUrls(supportingDocs, consultationDocs);
+        }
         _.set(initiateClaimRequestBody, "supportingDocuments", supportingDocs)
         if (response?.status === 200) {
           handleClaimRequest()
@@ -204,7 +209,9 @@ const InitiateNewClaimRequest = () => {
         }
       } else {
         toast.dismiss()
-        _.set(initiateClaimRequestBody, "supportingDocuments", addConsultationUrls([], consultationDocs));
+        if (urls != "{}") {
+          _.set(initiateClaimRequestBody, "supportingDocuments", addConsultationUrls([], consultationDocs));
+        }
         const response = await generateOutgoingRequest("claim/submit", initiateClaimRequestBody);
         if (response?.status === 200) {
           toast.success("Claim request initiated successfully!");
@@ -269,6 +276,23 @@ const InitiateNewClaimRequest = () => {
               onChange={(e: any) => setServiceType(e.target.value)}
               options={treatmentOptions}
             />
+
+            <MultiSelectSearch label="Diagnosis :" onSelect={(value: MultiValue<Option>) => setDiagnosis(value)}></MultiSelectSearch>
+            <MultiSelectSearch label="Procedures performed:" onSelect={(value) => setProcedures(value)}></MultiSelectSearch>
+            <MultiSelectSearch label="Billing Items :" onSelect={(value) => setItems(value)}></MultiSelectSearch>
+            {items.length !== 0 ?
+              <>
+              <TextInputWithLabel
+              label="Billing Items amount : *"
+              value={billAmount}
+              onChange={(e: any) => setBillAmount(e.target.value)}
+              placeholder="Enter amount"
+              disabled={false}
+              type="text"
+            />
+              <p className="italic font-s"> *Please enter the billing items amount separated by a comma</p>
+              </> : null
+             }
             <TextInputWithLabel
               label="Bill amount : *"
               value={amount}
@@ -397,7 +421,7 @@ const InitiateNewClaimRequest = () => {
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
-                disabled={amount === "" || fileErrorMessage}
+                disabled={amount === ""}
                 onClick={() => {
                   submitClaim();
                 }}

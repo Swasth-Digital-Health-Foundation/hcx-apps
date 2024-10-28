@@ -24,6 +24,9 @@ const ViewPatientDetails = () => {
   const [patientDetails, setPatientDetails] = useState<any>([]);
   const [consultationDetail, setConsultationDetails] = useState<any>();
   const [isRejected, setIsRejected] = useState<boolean>(false)
+  const [patientName , setPatientName] = useState<string>("");
+  const [insuranceId , setInsuranceId] = useState<string>("")
+  const [payorCode , setPayorCode] = useState<string>("")
 
   const requestDetails = {
     providerName: providerName,
@@ -54,26 +57,26 @@ const ViewPatientDetails = () => {
 
   const personalDeatails = [
     {
-      key: "Patient name",
-      value: patientDetails?.userName,
+      key: "Patient Name",
+      value: patientDetails?.userName || patientName,
     },
     {
-      key: "Mobile no",
+      key: "Patient Mobile No.",
       value: patientDetails?.mobile || location.state?.patientMobile || localStorage.getItem("patientMobile"),
     },
     {
       key: "Address",
       value: patientDetails?.address,
-    },
+    },  
   ];
 
   const consultationDetailsData = [
     {
-      key: "Treatment type",
+      key: "Treatment Type",
       value: consultationDetail?.service_type,
     },
     {
-      key: "Service type",
+      key: "Service Type",
       value: consultationDetail?.treatment_type,
     },
     {
@@ -94,7 +97,7 @@ const ViewPatientDetails = () => {
 
   const payorCodePayload = {
     filters: {
-      participant_code: { eq: location.state?.payorCode },
+      participant_code: { eq: payorCode },
     },
   };
 
@@ -131,7 +134,7 @@ const ViewPatientDetails = () => {
     } catch (err) {
       console.log(err);
     }
-  }, [token]);
+  }, [token, payorCode]);
 
   const preauthOrClaimListPayload = {
     workflow_id: requestDetails?.workflowId || location.state?.workflowId,
@@ -206,7 +209,6 @@ const ViewPatientDetails = () => {
       setConsultationDetails(data);
     } catch (err: any) {
       console.log(err);
-      // toast.error()
     }
   };
 
@@ -237,6 +239,9 @@ const ViewPatientDetails = () => {
         (obj: any) => obj.type === "coverageeligibility"
       );
       const status = eligibilityObject.status;
+      setPatientName(eligibilityObject?.patientName);
+      setInsuranceId(eligibilityObject?.insurance_id);
+      setPayorCode(eligibilityObject?.recipient_code)
       setcoverageStatus(status);
     } else {
       console.log(
@@ -274,7 +279,7 @@ const ViewPatientDetails = () => {
           </div>
           <div className="flex items-center justify-between">
             <label className="block text-left text-2xl font-bold text-black dark:text-white">
-              Patient details
+              Patient Details
             </label>
             <h2 className="sm:text-title-xl1 text-end font-semibold text-success dark:text-success">
               {coverageEligibilityStatus === "response.complete" ? (
@@ -286,17 +291,17 @@ const ViewPatientDetails = () => {
           </div>
           <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
-              Personal details
+              Personal Details
             </label>
             <div className="items-center justify-between"></div>
             <div>
               {_.map(personalDeatails, (ele: any, index: any) => {
                 return (
                   <div key={index} className="mb-2 flex gap-2">
-                    <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
+                    <h2 className="text-bold inline-block w-35 text-base font-medium text-black dark:text-white">
                       {ele.key}
                     </h2>
-                    <div className="mr-6">:</div>
+                    <div className="mr-2">:</div>
                     <span className="text-base font-medium">{ele.value}</span>
                   </div>
                 );
@@ -305,25 +310,25 @@ const ViewPatientDetails = () => {
             {patientDetails?.medicalHistory && !_.isEmpty(patientDetails?.medicalHistory?.allergies) ?
               <>
                 <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
-                  Medical history
+                  Medical History
                 </label>
                 <div className="items-center justify-between"></div>
                 <div>
                   <div className="mb-2">
-                    <div className="mb-2 flex gap-2">
+                    <div className="mb-2 flex gap-6.5">
                       <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
                         Allergies
                       </h2>
-                      <div className="mr-6">:</div>
+                      <div className="mr-1">:</div>
                       <span className="text-base font-medium">
                         {patientDetails?.medicalHistory?.allergies || ""}
                       </span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-6.5">
                       <h2 className=" text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                        Blood group
+                        Blood Group
                       </h2>
-                      <div className="mr-6">:</div>
+                      <div className="mr-1">:</div>
                       <span className="text-base font-medium">
                         {patientDetails?.medicalHistory?.blood_group || ""}
                       </span>
@@ -333,7 +338,7 @@ const ViewPatientDetails = () => {
               </>
               : <></>}
             <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
-              Insurance details
+              Insurance Details
             </label>
             <div className="items-center justify-between"></div>
             <div>
@@ -342,21 +347,21 @@ const ViewPatientDetails = () => {
               >
                 <div className="mb-2 flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                    Insurance ID
+                    Insurance No
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
 
-                    {patientInsuranceId || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.insurance_id : "")}
+                    {patientInsuranceId || insuranceId}
                   </span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
-                    Payor name
+                    Payor Name
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName || (!_.isEmpty(patientDetails) ? patientDetails?.payorDetails[0]?.payorName : "")}
+                    {patientDetails?.payorName || payorName}
                   </span>
                 </div>
               </div>
@@ -365,7 +370,7 @@ const ViewPatientDetails = () => {
           {consultationDetail && (
             <div className="mt-4 rounded-lg border border-stroke bg-white p-2 px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
               <label className="text-1xl mb-2.5 block text-left font-bold text-black dark:text-white">
-                Consultation details
+                Consultation Details
               </label>
               <div className="items-center justify-between"></div>
               <div>
@@ -384,7 +389,7 @@ const ViewPatientDetails = () => {
               {urls === "{}" || urls === undefined ? <> </> :
                 <>
                   <h2 className="text-bold text-base font-medium text-black dark:text-white">
-                    Supporting documents :
+                    Supporting Documents :
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {_.map(urlArray, (ele: string, index: number) => {
@@ -409,7 +414,7 @@ const ViewPatientDetails = () => {
                 <div className=" flex items-center justify-between">
                   <h2 className="sm:text-title-xl1 mt-3 text-2xl font-semibold text-black dark:text-white">
                     {ele?.type.charAt(0).toUpperCase() + ele?.type.slice(1)}{" "}
-                    details :
+                    Details :
                   </h2>
                   {ele?.status === "response.complete" ? (
                     <div className="sm:text-title-xl1 mb-1 text-end font-semibold text-success dark:text-success">
@@ -435,7 +440,7 @@ const ViewPatientDetails = () => {
                     <div className="mb-2 ">
                       <div className="flex gap-2">
                         <h2 className="text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
-                          Service type
+                          Service Type
                         </h2>
                         <div className="mr-6">:</div>
                         <span className="text-base font-medium">
@@ -444,7 +449,7 @@ const ViewPatientDetails = () => {
                       </div>
                       <div className="flex gap-2">
                         <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
-                          Bill amount
+                          Bill Amount
                         </h2>
                         <div className="mr-6">:</div>
                         <span className="text-base font-medium">
@@ -454,7 +459,7 @@ const ViewPatientDetails = () => {
                       {ele?.status === 'response.complete' ?
                         <div className="flex gap-2">
                           <h2 className=" text-bold inline-block w-30 text-base font-bold text-black dark:text-white">
-                            Approved amount
+                            Approved Amount
                           </h2>
                           <div className="mr-6">:</div>
                           <span className="text-base font-medium">
@@ -486,7 +491,7 @@ const ViewPatientDetails = () => {
                     <></> :
                     <>
                       <h2 className="text-bold text-base font-medium text-black dark:text-white">
-                        Supporting documents :
+                        Supporting Documents :
                       </h2>
                       <div className="flex flex-wrap gap-2">
                         {_.map(ele?.supportingDocuments?.slice(1, -1)?.split(",") ?? [], (ele: string, index: number) => {
@@ -523,7 +528,7 @@ const ViewPatientDetails = () => {
                       })}
                       className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                     >
-                      Initiate claim
+                      Initiate Claim
                     </button>
                     <button
                       onClick={() => navigate("/initiate-preauth-request", {
@@ -531,7 +536,7 @@ const ViewPatientDetails = () => {
                       })}
                       className="align-center mt-4 flex w-full justify-center rounded py-4 font-medium text-primary border border-primary disabled:cursor-not-allowed disabled:border-secondary disabled:text-primary"
                     >
-                      Initiate pre-auth
+                      Initiate Pre-auth
                     </button>
                   </div>
                 }
@@ -549,7 +554,7 @@ const ViewPatientDetails = () => {
                   Home
                 </button> : <button
                   onClick={() => navigate("/initiate-claim-request", {
-                    state: { requestDetails: requestDetails, recipientCode: patientDetails[0]?.payor_details[0]?.recipientCode },
+                    state: { requestDetails: requestDetails, recipientCode: payorCode },
                   })}
                   className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
                 >

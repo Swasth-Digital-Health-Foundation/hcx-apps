@@ -41,6 +41,14 @@ async function createUser(url: any,payload: any) {
   return response;
 }
 
+async function userUpdate(url: any, payload: any) {
+  const response = await axios.post(
+    `${process.env.hcx_mock_service}/${url}`,
+    payload
+  );
+  return response;
+}
+
 async function sendOTP(payload: any) {
   const response = await axios.post(
     `${process.env.hcx_mock_service}/send/otp`,
@@ -176,5 +184,6 @@ export {
   getActivePlans,
   getNotifications,
   searchUser,
-  createUser
+  createUser,
+  userUpdate
 };

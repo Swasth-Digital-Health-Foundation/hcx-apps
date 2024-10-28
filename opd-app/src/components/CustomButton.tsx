@@ -1,4 +1,3 @@
-import React from 'react';
 
 const CustomButton = ({ disabled, onClick, text,className }: any) => {
   return (

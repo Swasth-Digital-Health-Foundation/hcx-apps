@@ -26,6 +26,8 @@ const SignUp = () => {
   const [beneficiaryName, setBeneficiaryName] = useState<string>('');
   const [beneficiaryName1, setBeneficiaryName1] = useState<string>('');
   const [isOpen, setOpen] = useState<boolean>(false)
+  const [gender, setGender] = useState<string>("")
+  const [age, setAge] = useState<number>(1);
 
 
   const bloodGroupOptions = [
@@ -78,12 +80,31 @@ const SignUp = () => {
     mobile: getMobileFromLocalStorage,
     name: userName,
     payor_details: insuranceList,
-    address : address,
+    address: address,
     medical_history:
     {
       blood_group: bloodGroup,
       allergies: allergies
     }
+  };
+
+  const genderOptions = [
+    {
+      label: "Select",
+      value: "",
+    },
+    { label: "Male", value: "Male" },
+    { label: "Female", value: "Female" },
+    { label: "Others", value: "Others" }
+
+  ]
+
+  const generateAgeOptions = (): any => {
+    const options: any = [];
+    for (let i = 1; i <= 100; i++) {
+      options.push({ value: i.toString(), label: `${i.toString()} yrs`});
+    }
+    return options;
   };
 
 
@@ -181,6 +202,20 @@ const SignUp = () => {
                   }
                 />
               </div>
+              <SelectInput
+                label="Gender : "
+                value={gender}
+                onChange={(e: any) => setGender(e.target.value)}
+                disabled={false}
+                options={genderOptions}
+              />
+              <SelectInput
+                label="Age : "
+                value={age}
+                onChange={(e: any) => setAge(e.target.value)}
+                disabled={false}
+                options={generateAgeOptions()}
+              />
             </div>
           </div>
         </form>
@@ -217,12 +252,12 @@ const SignUp = () => {
             className="mt-2 text-blue-500 underline cursor-pointer justify-center"
           >
             {isOpen ? (
-              "Remove"       
+              "Remove"
             ) : (
-             "Add Another"
+              "Add Another"
             )}
           </button>
-       
+
         </div>
 
         {isOpen && (
@@ -242,7 +277,7 @@ const SignUp = () => {
               registerUser();
             }}
             type="submit"
-            disabled= {bloodGroup !== ""|| allergies !== ""}
+            disabled={bloodGroup !== "" || allergies !== ""}
             className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
           >
             {strings.SAVE_PROFILE_DETAILS}

@@ -8,10 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "postbuild": "mkdir build/opd && mv build/assets build/opd/assets"
-    },
+  },
   "dependencies": {
     "-": "^0.0.1",
     "@heroicons/react": "^2.0.18",
+    "@types/react-select": "^5.0.1",
     "apexcharts": "^3.37.0",
     "axios": "^1.5.0",
     "dayjs": "^1.11.10",
@@ -28,6 +29,7 @@
     "react-flatpickr": "^3.10.13",
     "react-form-stepper": "^2.0.3",
     "react-router-dom": "^6.8.1",
+    "react-select": "^5.8.0",
     "react-toastify": "^9.1.3",
     "save-dev": "^0.0.1-security",
     "simple-datatables": "^7.2.0",

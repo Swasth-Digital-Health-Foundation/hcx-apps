@@ -10,7 +10,6 @@ import { toast } from "react-toastify";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as _ from "lodash";
 import thumbnail from "../../images/pngwing.com.png"
-import { isEmpty } from "lodash";
 
 const ViewPatientDetails = () => {
   const navigate = useNavigate();
@@ -34,7 +33,9 @@ const ViewPatientDetails = () => {
   const [isRejected, setIsRejected] = useState<boolean>(false)
 
   const [type, setType] = useState<string[]>([]);
-
+  const [patientName, setPatientName] = useState<string>("");
+  const [insuranceId, setInsuranceId] = useState<string>("")
+  const [payorCode, setPayorCode] = useState<string>("")
 
   const getPatientDetails = async () => {
     try {
@@ -48,13 +49,16 @@ const ViewPatientDetails = () => {
     }
   };
 
+  console.log("patient info", patientDetails)
+
   localStorage.setItem("patientMobile", patientDetails?.mobile);
   localStorage.setItem("patientName", patientDetails?.userName);
+
 
   const personalDeatails = [
     {
       key: "Beneficiary name",
-      value: patientDetails?.userName,
+      value: patientDetails?.userName || patientName,
     },
     {
       key: "Mobile no",
@@ -222,6 +226,9 @@ const ViewPatientDetails = () => {
       );
       const status = eligibilityObject.status;
       setcoverageStatus(status);
+      setPatientName(eligibilityObject?.patientName);
+      setInsuranceId(eligibilityObject?.insurance_id);
+      setPayorCode(eligibilityObject?.recipient_code)
     } else {
       console.log(
         "Object with type 'coverageeligibility' not found for the given ID."
@@ -301,7 +308,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientInsuranceId === "undefined" ? (patientDetails?.payorDetails?.insurance_id) : patientInsuranceId}                  </span>
+                    {patientDetails?.insuranceId || insuranceId || patientInsuranceId }</span>
                 </div>
                 <div className="flex gap-2">
                   <h2 className="text-bold inline-block w-30 text-base font-medium text-black dark:text-white">
@@ -309,7 +316,7 @@ const ViewPatientDetails = () => {
                   </h2>
                   <div className="mr-6">:</div>
                   <span className="text-base font-medium">
-                    {patientPayorName === "undefined" ? (patientDetails?.payorDetails?.payorName) : patientPayorName}                  </span>
+                    {patientDetails?.payorName || payorName || patientPayorName}</span>
                 </div>
               </div>
             </div>

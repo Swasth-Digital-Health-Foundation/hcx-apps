@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { searchUser, userUpdate } from '../../services/hcxMockService';
 import { toast } from 'react-toastify';
-import InsuranceDetailsForm from '../../components/InsuranceDetailsForm';
 import SelectInput from '../../components/SelectInput';
 import TransparentLoader from '../../components/TransparentLoader';
 import { useLocation } from 'react-router-dom';
 import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import * as _ from "lodash"
 import Accordion from '../../components/Accordion';
+import InsuranceDetailsForm from '../../components/InsuranceDetailsForm';
 
 const userProfile = () => {
 

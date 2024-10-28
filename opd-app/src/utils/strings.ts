@@ -35,7 +35,7 @@ export default {
   PROVIDE_DETAILS_FOR_NEW_CLAIM: 'Provide details to initiate claim request',
   INITIATE_CLAIM_REQUEST: 'Initiate claim request',
   NEW_CLAIM_REQUEST: 'New claim request',
-  TREATMENT_AND_BILLING_DETAILS: 'Treatment & billing details : *',
+  TREATMENT_AND_BILLING_DETAILS: 'Treatment & Billing Details : *',
   BILL_AMOUNT: 'Bill amount : *',
   SUPPORTING_DOCS: 'Supporting documents :',
   DOC_TYPE: 'Document type :',
@@ -54,8 +54,8 @@ export default {
   INITIATE_NEW_CLAIM_REQUEST: 'Initiate new claim request',
   PROCEED: 'Proceed',
   ADD_NEW_PATIENT:"+ Add new patient",
-  SEARCH_PATIENT:"Search patient :",
+  SEARCH_PATIENT:"Search Patient :",
   PATIENT_MOBILE:"Patient mobile no. :",
   VIEW_MORE:"View More",
-  ACTIVE_LIST:"Recent active patients :"
+  ACTIVE_LIST:"Recent Active Patients :"
 };
