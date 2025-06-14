@@ -5,11 +5,10 @@ import LoadingButton from '../../components/LoadingButton';
 import { toast } from 'react-toastify';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
-import * as _ from "lodash";
+import { map } from 'lodash';
 import SupportingDocuments from '../../components/SupportingDocuments';
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
-import { } from '../../services/hcxMockService';
 
 
 const InitiateNewClaimRequest = () => {
@@ -33,45 +32,47 @@ const InitiateNewClaimRequest = () => {
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
   const [payorDetails, setPayorDetails] = useState<any>({});
 
+  const claimDetails = location.state || {};
+  
+
   let FileLists: any;
   if (selectedFile !== undefined) {
     FileLists = Array.from(selectedFile);
   }
 
-  const [cliamDetails, setClaimDetails] = useState(location.state);
   const claimRequestDetails: any = [
     {
       key: 'Provider :',
-      value: cliamDetails?.providerName || providerName,
+      value: claimDetails?.providerName || providerName,
     },
     {
       key: 'Treatment/Service type :',
-      value: cliamDetails?.serviceType || '',
+      value: claimDetails?.serviceType || '',
     },
     {
       key: 'Payor name :',
-      value: payorDetails[0]?.payorName || cliamDetails?.payor || payorName,
+      value: payorDetails?.[0]?.payorName || claimDetails?.payor || payorName,
     },
     {
       key: 'Insurance ID :',
-      value: cliamDetails?.insuranceId || 'null',
+      value: claimDetails?.insuranceId || 'null',
     },
   ];  
 
   let requestBody: any = {
-    insuranceId: cliamDetails?.insuranceId || '',
+    insuranceId: claimDetails?.insuranceId || '',
     mobile: localStorage.getItem('mobile') || '',
-    participantCode: cliamDetails?.participantCode || '',
-    payor: payorDetails[0]?.payorName || cliamDetails?.payor || payorName,
-    providerName: cliamDetails?.providerName || '',
+    participantCode: claimDetails?.participantCode || '',
+    payor: payorDetails?.[0]?.payorName || claimDetails?.payor || payorName,
+    providerName: claimDetails?.providerName || '',
     patientName: userInfo?.userName,
-    serviceType: cliamDetails?.serviceType || '',
+    serviceType: claimDetails?.serviceType || '',
     billAmount: amount,
-    workflowId: cliamDetails?.workflowId,
+    workflowId: claimDetails?.workflowId,
     supportingDocuments: [
       {
         documentType: documentType,
-        urls: _.map(fileUrlList, (ele: any) => {
+        urls: map(fileUrlList, (ele: any) => {
           return ele.url;
         }),
       },
@@ -79,7 +80,7 @@ const InitiateNewClaimRequest = () => {
     type: 'OPD',
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: payorDetails[0]?.payor,
+    recipientCode: payorDetails?.[0]?.payor,
     app: "BSP"
   };
 
@@ -92,7 +93,7 @@ const InitiateNewClaimRequest = () => {
 
   const payorCodePayload = {
     filters: {
-      participant_code: { eq: payorDetails[0]?.payor },
+      participant_code: { eq: payorDetails?.[0]?.payor },
     },
   };
 
@@ -101,13 +102,15 @@ const InitiateNewClaimRequest = () => {
   const submitClaim = async () => {
     try {
       setLoading(true);
-      handleUpload(mobileNumber, FileLists, requestBody, setUrlList);
+      if (FileLists && FileLists.length) {
+        handleUpload(mobileNumber, FileLists, requestBody, setUrlList);
+      }
       setTimeout(async () => {
-        let submitClaim = await generateOutgoingRequest(
+        const response = await generateOutgoingRequest(
           'claim/submit',
           requestBody
         );
-        if (submitClaim.status === 202) {
+        if (response.status === 202) {
           setLoading(false);
           toast.success("Claim request initiated successfully")
           navigate('/home');
@@ -136,7 +139,7 @@ const InitiateNewClaimRequest = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setPayorName(payorResponse.data?.participants[0].participant_name);
+        setPayorName(payorResponse.data?.participants?.[0].participant_name);
       };
       search();
     } catch (err) {
@@ -146,9 +149,14 @@ const InitiateNewClaimRequest = () => {
 
   const search = async () => {
     try {
-      let response: any = await searchUser("user/search", mobileNumber || location.state?.patientMobile)
-      setUserInformation(response?.data?.result);
-      setPayorDetails(response?.data?.result?.payorDetails && response?.data?.result?.payorDetails.filter((ele: any) => ele.insurance_id === cliamDetails?.insuranceId))
+      let response: any = await searchUser("user/search", mobileNumber || location.state?.patientMobile);
+      if (response?.data?.length === 0) {
+        toast.error('No user found with this mobile number');
+        return;
+      }
+      setUserInformation(response.data || []);
+      const filteredObject = response.data.map((ele: any) => ele.payorDetails).flat().filter((ele: any) => ele.insurance_id === claimDetails?.insuranceId);
+      setPayorDetails(filteredObject)
     } catch (error) {
       console.log(error);
     }
@@ -159,7 +167,7 @@ const InitiateNewClaimRequest = () => {
   }, []);
 
   const preauthOrClaimListPayload = {
-    workflow_id: cliamDetails?.workflowId || '',
+    workflow_id: claimDetails?.workflowId || '',
     app: 'BSP',
   };
 
@@ -193,6 +201,7 @@ const InitiateNewClaimRequest = () => {
         <div className="relative z-20 bg-white dark:bg-form-input">
           <select
             onChange={(e: any) => setServiceType(e.target.value)}
+            value={serviceType}
             required
             className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent bg-transparent py-4 px-6 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
           >
