@@ -179,7 +179,7 @@ const NewClaim = () => {
               <option value="">select</option>
               {_.map(payorDetails, (ele: any, index: any) => (
                 <option key={index} value={ele?.insurance_id}>
-                  {ele?.insurance_id}
+                  {`${ele?.insurance_id} ( ${ele?.payorName} )`}
                 </option>
               ))}
             </select>

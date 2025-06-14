@@ -81,7 +81,7 @@ const getActivePlans = async ({ setLoading, preauthOrClaimListPayload, setpreaut
   try {
     setLoading(true);
     let response = await generateOutgoingRequest(
-      '/request/list',
+      'request/list',
       preauthOrClaimListPayload
     );
     let preAuthAndClaimList = response.data?.entries;
