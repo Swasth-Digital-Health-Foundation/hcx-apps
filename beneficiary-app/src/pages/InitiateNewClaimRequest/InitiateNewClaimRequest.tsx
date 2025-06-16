@@ -9,6 +9,7 @@ import { map } from 'lodash';
 import SupportingDocuments from '../../components/SupportingDocuments';
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
+import { useUserSearch } from '../../hooks/useUserSearch';
 
 
 const InitiateNewClaimRequest = () => {
@@ -27,13 +28,14 @@ const InitiateNewClaimRequest = () => {
   const [providerName, setProviderName] = useState<string>('');
   const [payorName, setPayorName] = useState<string>('');
   const [fileUrlList, setUrlList] = useState<any>([]);
-  const [userInfo, setUserInformation] = useState<any>([]);
   const [popup, setPopup] = useState(false);
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
-  const [payorDetails, setPayorDetails] = useState<any>({});
 
+  const mobileNumber: any = localStorage.getItem('mobile');
   const claimDetails = location.state || {};
-  
+  const { userInfo } = useUserSearch(mobileNumber);
+  const payorDetails = userInfo?.[0]?.payorDetails || {};
+
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -65,7 +67,7 @@ const InitiateNewClaimRequest = () => {
     participantCode: claimDetails?.participantCode || '',
     payor: payorDetails?.[0]?.payorName || claimDetails?.payor || payorName,
     providerName: claimDetails?.providerName || '',
-    patientName: userInfo?.userName,
+    patientName: userInfo?.[0]?.userName || 'USER NAME NOT FOUND',
     serviceType: claimDetails?.serviceType || '',
     billAmount: amount,
     workflowId: claimDetails?.workflowId,
@@ -97,7 +99,6 @@ const InitiateNewClaimRequest = () => {
     },
   };
 
-  const mobileNumber: any = localStorage.getItem('mobile');
 
   const submitClaim = async () => {
     try {
@@ -145,25 +146,6 @@ const InitiateNewClaimRequest = () => {
     } catch (err) {
       console.log(err);
     }
-  }, []);
-
-  const search = async () => {
-    try {
-      let response: any = await searchUser("user/search", mobileNumber || location.state?.patientMobile);
-      if (response?.data?.length === 0) {
-        toast.error('No user found with this mobile number');
-        return;
-      }
-      setUserInformation(response.data || []);
-      const filteredObject = response.data.map((ele: any) => ele.payorDetails).flat().filter((ele: any) => ele.insurance_id === claimDetails?.insuranceId);
-      setPayorDetails(filteredObject)
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    search();
   }, []);
 
   const preauthOrClaimListPayload = {
