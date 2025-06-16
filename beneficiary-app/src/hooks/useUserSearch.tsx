@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { searchUser } from '../services/hcxMockService';
 import { useLocation } from 'react-router-dom';
 import { isEmpty } from 'lodash';
@@ -37,5 +37,7 @@ export const useUserSearch = (mobile: string | null) => {
         fetchData();
     }, [mobile]);
 
-    return { userInfo, loading, error };
+    const findUserByDynamicKey = useCallback((key: string, value: string) =>  (userInfo ? [userInfo.find((ele: any) => ele.payorDetails.length > 0 && ele.payorDetails[0][key] === value)] : []), [userInfo]);
+
+    return { userInfo, loading, error, findUserByDynamicKey };
 };
