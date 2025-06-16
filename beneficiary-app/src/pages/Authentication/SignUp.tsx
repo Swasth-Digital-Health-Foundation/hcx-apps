@@ -90,7 +90,7 @@ const SignUp = () => {
   const registerUser = async () => {
     try {
       setLoading(true);
-      let registerResponse: any = createUser("/user/create", payload);
+      let registerResponse: any = createUser("user/create", payload);
       if (registerResponse?.status === 200) {
         setLoading(false);
         toast.success('User registered successfully!');
@@ -242,7 +242,7 @@ const SignUp = () => {
               registerUser();
             }}
             type="submit"
-            disabled= {bloodGroup !== ""|| allergies !== ""}
+            disabled= {bloodGroup === ""|| allergies === ""}
             className="align-center mt-4 flex w-full justify-center rounded bg-primary py-4 font-medium text-gray disabled:cursor-not-allowed disabled:bg-secondary disabled:text-gray"
           >
             {strings.SAVE_PROFILE_DETAILS}
