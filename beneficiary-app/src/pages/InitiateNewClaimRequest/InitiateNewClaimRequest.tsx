@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { generateOutgoingRequest, handleUpload, getActivePlans, searchUser } from '../../services/hcxMockService';
+import { generateOutgoingRequest, handleUpload, getActivePlans } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import { toast } from 'react-toastify';
 import strings from '../../utils/strings';
