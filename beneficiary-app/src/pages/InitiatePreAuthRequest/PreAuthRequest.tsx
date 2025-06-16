@@ -8,6 +8,7 @@ import { generateToken, searchParticipant } from '../../services/hcxService';
 import * as _ from 'lodash';
 import SupportingDocuments from '../../components/SupportingDocuments';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
+import { useUserSearch } from '../../hooks/useUserSearch';
 
 const PreAuthRequest = () => {
   const navigate = useNavigate();
@@ -26,8 +27,9 @@ const PreAuthRequest = () => {
   const [payorName, setPayorName] = useState<string>('');
   const [fileUrlList, setUrlList] = useState<any>([]);
   let mobile: any = localStorage.getItem('mobile');
-  const [userInfo, setUserInformation] = useState<any>([]);
   const [popup, setPopup] = useState(false);
+
+  const { userInfo } = useUserSearch(mobile);
 
   let FileLists: any;
   if (selectedFile !== undefined) {
@@ -55,20 +57,6 @@ const PreAuthRequest = () => {
     },
   ];
 
-
-  const search = async () => {
-    try {
-      let response: any = await searchUser("user/search", localStorage.getItem('mobile'))
-      setUserInformation(response?.data?.result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    search();
-  }, []);
-
   const requestBody = {
     providerName: dataFromCard?.providerName || providerName,
     participantCode: dataFromCard?.participantCode,
@@ -77,7 +65,7 @@ const PreAuthRequest = () => {
     insuranceId: dataFromCard?.insuranceId,
     mobile: localStorage.getItem('mobile'),
     billAmount: estimatedAmount,
-    patientName: userInfo?.userName,
+    patientName: userInfo?.[0]?.userName || 'USER NAME NOT FOUND',
     workflowId: dataFromCard?.workflowId,
     supportingDocuments: [
       {
@@ -90,7 +78,7 @@ const PreAuthRequest = () => {
     type: 'OPD',
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: userInfo?.payorDetails?.payor,
+    recipientCode: userInfo?.[0]?.payorDetails?.[0]?.payor,
     app: "BSP"
   };
 
