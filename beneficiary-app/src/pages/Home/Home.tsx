@@ -3,18 +3,21 @@ import Html5QrcodePlugin from '../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from 'react';
 import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import strings from '../../utils/strings';
-import { generateOutgoingRequest, getCoverageEligibilityRequestList, searchUser } from '../../services/hcxMockService';
+import {
+  generateOutgoingRequest,
+  getCoverageEligibilityRequestList
+} from '../../services/hcxMockService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useUserSearch } from '../../hooks/useUserSearch';
 
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [qrCodeData, setQrCodeData] = useState<any>();
   const [currentIndex, setCurrentIndex] = useState(5);
-  const [userInformation, setUserInformation] = useState<any>([]);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(true);
   const getMobileFromLocalStorage = localStorage.getItem('mobile');
@@ -25,6 +28,11 @@ const Home = () => {
     finalData.slice(0, 5)
   );
   const [latestStatusByEntry, setlatestStatusByEntry] = useState<any>({});
+  const { userInfo: userInformation, findUserByDynamicKey } = useUserSearch(
+    getMobileFromLocalStorage || location.state?.patientMobile
+  );
+
+  const userInfo = userInformation?.[0] || {};
 
   const onNewScanResult = (decodedText: any, decodedResult: any) => {
     setQrCodeData(decodedText);
@@ -36,24 +44,28 @@ const Home = () => {
     app: "BSP"
   };
 
-
   useEffect(() => {
     if (qrCodeData !== undefined) {
-      let obj = JSON.parse(qrCodeData);
-      let payload = {
+      const obj = JSON.parse(qrCodeData) || {};
+      const payorDetails = findUserByDynamicKey('insurance_id', obj?.insuranceId)[0];
+      if (!payorDetails) {
+        toast.error('No payor details found for the provided insurance ID');
+        return;
+      }
+    
+      const payload = {
         providerName: obj?.provider_name,
         participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         serviceType: 'OPD',
-        mobile: localStorage.getItem('mobile'),
-        payor: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payorName,
-        insuranceId: userInformation?.payorDetails && userInformation?.payorDetails[0]?.insurance_id,
-        patientName: userInformation?.userName,
-        app: "BSP",
+        mobile: getMobileFromLocalStorage,
+        payor: payorDetails?.[0]?.payorName,
+        insuranceId: payorDetails?.[0]?.insurance_id,
+        patientName: payorDetails?.userName,
+        app: 'BSP',
         bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-        recipientCode: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payor
+        recipientCode: payorDetails?.[0]?.payor
       };
-
       const sendCoverageEligibilityRequest = async () => {
         try {
           setLoading(true);
@@ -74,17 +86,6 @@ const Home = () => {
       sendCoverageEligibilityRequest();
     }
   }, [qrCodeData]);
-
-  
-
-  const search = async () => {
-    try {
-      let response: any = await searchUser("user/search", getMobileFromLocalStorage || location.state?.patientMobile)
-      setUserInformation(response?.data?.result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const loadMoreData = () => {
     const nextData = finalData.slice(currentIndex, currentIndex + 5);
@@ -111,17 +112,21 @@ const Home = () => {
   });
 
   useEffect(() => {
-    search().then(() => {
-        getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
-    });
-}, []);
+    getCoverageEligibilityRequestList(
+      setLoading,
+      requestPayload,
+      setActiveRequests,
+      setFinalData,
+      setDisplayedData
+    );
+  }, []);
 
   return (
     <div>
       <div className="flex justify-between">
         <div>
           <h1 className="text-1xl mb-3 font-bold text-black dark:text-white">
-            {strings.WELCOME_TEXT} {userInformation?.userName || '...'}
+            {strings.WELCOME_TEXT} {userInfo?.userName || '...'}
           </h1>
         </div>
       </div>
@@ -257,7 +262,9 @@ const Home = () => {
                     mobile={location.state}
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
-                    patientName={ userInformation?.userName || ele.patientName }
+                    patientName={
+                      findUserByDynamicKey('insurance_id', ele.insurance_id)?.[0]?.userName || ele.patientName
+                    }
                     approvedAmount={approvedAmount}
                     data={data}
                   />
