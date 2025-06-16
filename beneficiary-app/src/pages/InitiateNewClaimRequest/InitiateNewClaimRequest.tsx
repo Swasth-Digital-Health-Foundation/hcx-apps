@@ -10,6 +10,7 @@ import SupportingDocuments from '../../components/SupportingDocuments';
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
 import { useUserSearch } from '../../hooks/useUserSearch';
+import { IPD_TREATMENT_OR_SERVICE_CATEGORIES, OPD_TREATMENT_OR_SERVICE_CATEGORIES } from '../../constants';
 
 
 const InitiateNewClaimRequest = () => {
@@ -187,10 +188,13 @@ const InitiateNewClaimRequest = () => {
             required
             className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent bg-transparent py-4 px-6 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
           >
-            <option value="Consultation">Consultation</option>
-            <option value="Drugs">Drugs</option>
-            <option value="Wellness">Wellness</option>
-            <option value="Diagnostics">Diagnostics</option>
+            {
+              (claimDetails.serviceType === "OPD" ? OPD_TREATMENT_OR_SERVICE_CATEGORIES : IPD_TREATMENT_OR_SERVICE_CATEGORIES).map((option: string) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))
+            }
           </select>
           <span className="absolute top-1/2 right-4 z-10 -translate-y-1/2">
             <svg
