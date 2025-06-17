@@ -12,6 +12,7 @@ import TransparentLoader from '../../components/TransparentLoader';
 import { toast } from 'react-toastify';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useUserSearch } from '../../hooks/useUserSearch';
+import { formatDateTime } from '../../utils';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -216,53 +217,48 @@ const Home = () => {
               if (ele?.type === 'claim') {
                 // approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
-              const date = new Date(parseInt(ele.date));
-              const day = date.getDate().toString().padStart(2, "0");
-              const month = (date.getMonth() + 1).toString().padStart(2, "0");
-              const year = date.getFullYear();
 
-              const formattedDate = `${day}-${month}-${year}`;
               // This data isn't used 
               // TODO: Remove this if not needed
-              const data: any = [
-                {
-                  key: "Beneficiary name",
-                  value: ele.patientName,
-                },
-                {
-                  key: "Initiation date",
-                  value: formattedDate,
-                },
-                {
-                  key: "Insurance ID",
-                  value: `${ele.insurance_id || "null"}`,
-                },
-                {
-                  key: "ServiceType",
-                  value: `${claimType}`,
-                },
-                {
-                  key: "Status",
-                  value: (
-                    <span
-                      className={`${latestStatusByEntry[ele.workflow_id] === "Pending"
-                        ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
-                        : latestStatusByEntry[ele.workflow_id] === "Rejected"
-                          ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
-                          : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
-                        }`}
-                    >
-                      {latestStatusByEntry[ele.workflow_id]}
-                    </span>
-                  ),
-                },
-              ];
+              // const data: any = [
+              //   {
+              //     key: "Beneficiary name",
+              //     value: ele.patientName,
+              //   },
+              //   {
+              //     key: "Initiation date",
+              //     value: formatDateTime(parseInt(ele.date)),
+              //   },
+              //   {
+              //     key: "Insurance ID",
+              //     value: `${ele.insurance_id || "null"}`,
+              //   },
+              //   {
+              //     key: "ServiceType",
+              //     value: `${claimType}`,
+              //   },
+              //   {
+              //     key: "Status",
+              //     value: (
+              //       <span
+              //         className={`${latestStatusByEntry[ele.workflow_id] === "Pending"
+              //           ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
+              //           : latestStatusByEntry[ele.workflow_id] === "Rejected"
+              //             ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
+              //             : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
+              //           }`}
+              //       >
+              //         {latestStatusByEntry[ele.workflow_id]}
+              //       </span>
+              //     ),
+              //   },
+              // ];
               return (
                 <div className="mt-2" key={index}>
                   <ActiveClaimCycleCard
                     participantCode={ele.sender_code}
                     payorCode={ele.recipient_code}
-                    date={ele.date}
+                    date={formatDateTime(parseInt(ele.date))}
                     insurance_id={ele.insurance_id}
                     claimType={claimType}
                     apiCallId={ele.apiCallId}
@@ -275,7 +271,6 @@ const Home = () => {
                       findUserByDynamicKey('insurance_id', ele.insurance_id)?.[0]?.userName || ele.patientName
                     }
                     approvedAmount={approvedAmount}
-                    data={data}
                   />
                 </div>
               );
