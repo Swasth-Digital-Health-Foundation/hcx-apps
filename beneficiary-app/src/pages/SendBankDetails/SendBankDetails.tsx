@@ -217,7 +217,7 @@ const SendBankDetails = () => {
         <div className="mt-2 p-2 rounded-lg border border-stroke bg-white px-3 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between">
             <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
-              Policy consent : <span className='text-success'>&#10004; Approved</span>
+              Policyholer consent : <span className='text-success'>&#10004; Approved</span>
             </h2>
           </div>
         </div>
