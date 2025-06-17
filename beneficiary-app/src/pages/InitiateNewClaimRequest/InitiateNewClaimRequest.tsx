@@ -116,20 +116,6 @@ const InitiateNewClaimRequest = () => {
         );
         if (response.status === 202) {
           setLoading(false);
-          // Below logic is temporary fix
-          // store service_type in postgres in future
-          // clean up this logic after that
-          let cd = localStorage.getItem('claimDetails');
-          if (cd) {
-            const parsedJson: { [mobileNumber: string]: { id: string; type: 'OPD' | 'IPD' }[]} | null = JSON.parse(cd);
-            if (parsedJson) {
-              parsedJson[mobileNumber] = parsedJson[mobileNumber] || [];
-              parsedJson[mobileNumber].push({ id: response.data?.workflowId, type: claimDetails?.serviceType });
-              localStorage.setItem('claimDetails', JSON.stringify(parsedJson));
-            }
-          } else {
-            localStorage.setItem('claimDetails', JSON.stringify({ [mobileNumber]: [{ id: response.data?.workflowId, type: claimDetails?.serviceType }] }));
-          }
           toast.success("Claim request initiated successfully")
           navigate('/home');
         }

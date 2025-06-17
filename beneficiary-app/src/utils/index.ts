@@ -28,3 +28,24 @@ export const formatDateTime = (dateString: string | number) => {
 
   return new Intl.DateTimeFormat('en-US', options).format(date);
 };
+
+export const getClaimSubTypeCode = (bundle: any): string => {
+  if (!bundle || !bundle.entry) {
+    return 'OPD';
+  }
+  const claimEntry = bundle.entry?.find(
+    (e: any) => e.resource?.resourceType === 'Claim'
+  );
+  return claimEntry?.resource?.subType?.coding?.[0]?.code || 'OPD';
+};
+
+export function getPatientNameText(bundle: any): string {
+  if (!bundle || !bundle.entry) {
+    return '';
+  }
+  const patientEntry = bundle.entry?.find(
+    (e: any) => e.resource?.resourceType === 'Patient'
+  );
+  const name = patientEntry?.resource?.name?.[0]?.text || '';
+  return name;
+}

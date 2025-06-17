@@ -3,16 +3,16 @@ import Html5QrcodePlugin from '../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from 'react';
 import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import strings from '../../utils/strings';
-import {
-  generateOutgoingRequest,
+import { 
+  // generateOutgoingRequest,
   getCoverageEligibilityRequestList,
 } from '../../services/hcxMockService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
-import { toast } from 'react-toastify';
+// import { toast } from 'react-toastify';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useUserSearch } from '../../hooks/useUserSearch';
-import { formatDateTime } from '../../utils';
+import { formatDateTime, getClaimSubTypeCode, getPatientNameText } from '../../utils';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -22,9 +22,6 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(true);
   const getMobileFromLocalStorage = localStorage.getItem('mobile');
-  const claimDetails: {
-    [mobileNumber: string]: { id: string; type: 'OPD' | 'IPD' }[];
-  } = JSON.parse(localStorage.getItem('claimDetails') || '[]');
 
   const [activeRequests, setActiveRequests] = useState<any>([]);
   const [finalData, setFinalData] = useState<any>([]);
@@ -32,7 +29,7 @@ const Home = () => {
     finalData.slice(0, 5)
   );
   const [latestStatusByEntry, setlatestStatusByEntry] = useState<any>({});
-  const { userInfo: userInformation, findUserByDynamicKey, loading: isUserDataLoading, error: isUserDataError } = useUserSearch(
+  const { userInfo: userInformation, loading: isUserDataLoading, error: isUserDataError } = useUserSearch(
     getMobileFromLocalStorage || location.state?.patientMobile
   );
 
@@ -237,10 +234,7 @@ const Home = () => {
           <div>
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
               let approvedAmount: any = '';
-              const claimType =
-                claimDetails[ele.mobile]?.find(
-                  (claim) => claim.id === ele.workflow_id
-                )?.type || 'OPD';
+              const parsedJson = JSON.parse(ele?.requestFhir);
               if (ele?.type === 'claim') {
                 // approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
@@ -287,19 +281,14 @@ const Home = () => {
                     payorCode={ele.recipient_code}
                     date={formatDateTime(parseInt(ele.date))}
                     insurance_id={ele.insurance_id}
-                    claimType={claimType}
+                    claimType={getClaimSubTypeCode(parsedJson)}
                     apiCallId={ele.apiCallId}
                     status={latestStatusByEntry[ele.workflow_id]}
                     type={ele.type}
                     mobile={ele.mobile}
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
-                    patientName={
-                      findUserByDynamicKey(
-                        'insurance_id',
-                        ele.insurance_id
-                      )?.[0]?.userName || ele.patientName
-                    }
+                    patientName={getPatientNameText(parsedJson)}
                     approvedAmount={approvedAmount}
                   />
                 </div>
