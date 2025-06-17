@@ -21,6 +21,7 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(true);
   const getMobileFromLocalStorage = localStorage.getItem('mobile');
+  const claimDetails: { [mobileNumber: string]: { id: string; type: 'OPD' | 'IPD'}[]} = JSON.parse(localStorage.getItem('claimDetails') || '[]');
 
   const [activeRequests, setActiveRequests] = useState<any>([]);
   const [finalData, setFinalData] = useState<any>([]);
@@ -32,7 +33,7 @@ const Home = () => {
     getMobileFromLocalStorage || location.state?.patientMobile
   );
 
-  const userInfo = userInformation?.[0] || {};
+  const userInfo = userInformation?.[1] || {};
 
   const onNewScanResult = (decodedText: any, decodedResult: any) => {
     setQrCodeData(decodedText);
@@ -47,24 +48,27 @@ const Home = () => {
   useEffect(() => {
     if (qrCodeData !== undefined) {
       const obj = JSON.parse(qrCodeData) || {};
-      const payorDetails = findUserByDynamicKey('insurance_id', obj?.insuranceId)[0];
-      if (!payorDetails) {
-        toast.error('No payor details found for the provided insurance ID');
-        return;
-      }
+      // const payorDetails = findUserByDynamicKey('insurance_id', obj?.insuranceId)[0];
+      // if (!payorDetails) {
+      //   toast.error('No payor details found for the provided insurance ID');
+      //   return;
+      // }
+
+      const payorDetails = userInfo.payorDetails[0];
+      console.log("Payor Details", payorDetails);
     
       const payload = {
         providerName: obj?.provider_name,
         participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         serviceType: 'OPD',
         mobile: getMobileFromLocalStorage,
-        payor: payorDetails?.[0]?.payorName,
-        insuranceId: payorDetails?.[0]?.insurance_id,
-        patientName: payorDetails?.userName,
+        payor: payorDetails?.payorName,
+        insuranceId: payorDetails?.insurance_id,
+        patientName: userInfo?.userName,
         app: 'BSP',
         bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
         password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-        recipientCode: payorDetails?.[0]?.payor
+        recipientCode: payorDetails?.payor
       };
       const sendCoverageEligibilityRequest = async () => {
         try {
@@ -206,6 +210,9 @@ const Home = () => {
           <div>
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
               let approvedAmount: any = "";
+              const claimType = claimDetails[ele.mobile]?.find(
+                (claim) => claim.id === ele.workflow_id
+              )?.type || "OPD";
               if (ele?.type === 'claim') {
                 // approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
@@ -215,6 +222,8 @@ const Home = () => {
               const year = date.getFullYear();
 
               const formattedDate = `${day}-${month}-${year}`;
+              // This data isn't used 
+              // TODO: Remove this if not needed
               const data: any = [
                 {
                   key: "Beneficiary name",
@@ -230,7 +239,7 @@ const Home = () => {
                 },
                 {
                   key: "ServiceType",
-                  value: `${ele.claimType}`,
+                  value: `${claimType}`,
                 },
                 {
                   key: "Status",
@@ -255,11 +264,11 @@ const Home = () => {
                     payorCode={ele.recipient_code}
                     date={ele.date}
                     insurance_id={ele.insurance_id}
-                    claimType={ele.claimType}
+                    claimType={claimType}
                     apiCallId={ele.apiCallId}
                     status={latestStatusByEntry[ele.workflow_id]}
                     type={ele.type}
-                    mobile={location.state}
+                    mobile={ele.mobile}
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
                     patientName={

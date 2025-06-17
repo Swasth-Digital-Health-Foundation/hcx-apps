@@ -18,7 +18,7 @@ const ActiveClaimCycleCard = (Props: any) => {
     apiCallId: Props.apiCallId,
     participantCode: Props.participantCode,
     payorCode: Props.payorCode,
-    mobile: localStorage.getItem('mobile'),
+    mobile: Props.mobile,
     billAmount: Props.billAmount,
     workflowId: Props.workflowId,
     patientName: Props.patientName,

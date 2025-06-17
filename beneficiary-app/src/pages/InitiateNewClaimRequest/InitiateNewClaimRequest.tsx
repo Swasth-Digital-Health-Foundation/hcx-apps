@@ -16,6 +16,7 @@ import { IPD_TREATMENT_OR_SERVICE_CATEGORIES, OPD_TREATMENT_OR_SERVICE_CATEGORIE
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const claimDetails = location.state || {};
 
   const [selectedFile, setSelectedFile]: any = useState<FileList | undefined>(
     undefined
@@ -23,7 +24,7 @@ const InitiateNewClaimRequest = () => {
   const [fileErrorMessage, setFileErrorMessage]: any = useState();
   const [isSuccess, setIsSuccess]: any = useState(false);
   const [amount, setAmount] = useState<string>('');
-  const [serviceType, setServiceType] = useState<string>('Consultation');
+  const [serviceType, setServiceType] = useState<string>(claimDetails?.serviceType === "OPD" ? OPD_TREATMENT_OR_SERVICE_CATEGORIES[0] : IPD_TREATMENT_OR_SERVICE_CATEGORIES[0]);
   const [documentType, setDocumentType] = useState<string>('Bill/invoice');
   const [loading, setLoading] = useState(false);
   const [providerName, setProviderName] = useState<string>('');
@@ -33,7 +34,6 @@ const InitiateNewClaimRequest = () => {
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
 
   const mobileNumber: any = localStorage.getItem('mobile');
-  const claimDetails = location.state || {};
   const { userInfo } = useUserSearch(mobileNumber);
   const payorDetails = userInfo?.[0]?.payorDetails || {};
 
@@ -69,7 +69,7 @@ const InitiateNewClaimRequest = () => {
     payor: payorDetails?.[0]?.payorName || claimDetails?.payor || payorName,
     providerName: claimDetails?.providerName || '',
     patientName: userInfo?.[0]?.userName || 'USER NAME NOT FOUND',
-    serviceType: claimDetails?.serviceType || '',
+    serviceType,
     billAmount: amount,
     workflowId: claimDetails?.workflowId,
     supportingDocuments: [
@@ -80,7 +80,7 @@ const InitiateNewClaimRequest = () => {
         }),
       },
     ],
-    type: 'OPD',
+    type: claimDetails?.serviceType,
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
     recipientCode: payorDetails?.[0]?.payor,
@@ -114,6 +114,20 @@ const InitiateNewClaimRequest = () => {
         );
         if (response.status === 202) {
           setLoading(false);
+          // Below logic is temporary fix
+          // store service_type in postgres in future
+          // clean up this logic after that
+          let cd = localStorage.getItem('claimDetails');
+          if (cd) {
+            const parsedJson: { [mobileNumber: string]: { id: string; type: 'OPD' | 'IPD' }[]} | null = JSON.parse(cd);
+            if (parsedJson) {
+              parsedJson[mobileNumber] = parsedJson[mobileNumber] || [];
+              parsedJson[mobileNumber].push({ id: response.data?.workflowId, type: claimDetails?.serviceType });
+              localStorage.setItem('claimDetails', JSON.stringify(parsedJson));
+            }
+          } else {
+            localStorage.setItem('claimDetails', JSON.stringify({ [mobileNumber]: [{ id: response.data?.workflowId, type: claimDetails?.serviceType }] }));
+          }
           toast.success("Claim request initiated successfully")
           navigate('/home');
         }
