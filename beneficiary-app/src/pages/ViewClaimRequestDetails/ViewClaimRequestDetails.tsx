@@ -77,8 +77,8 @@ const ViewClaimRequestDetails = () => {
 
   const claimRequestDetails: any = [
     {
-      key: 'Provider :',
-      value: providerName || '',
+      key: 'Provider Participant Code :',
+      value: `${providerName} (${details?.participantCode})` || '',
     },
     {
       key: 'Treatment/Service type :',

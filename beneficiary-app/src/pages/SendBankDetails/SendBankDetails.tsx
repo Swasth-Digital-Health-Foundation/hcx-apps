@@ -25,12 +25,8 @@ const SendBankDetails = () => {
 
   const claimRequestDetails: any = [
     {
-      key: 'Provider name :',
-      value: details?.providerName || '',
-    },
-    {
-      key: 'Participant code :',
-      value: details?.participantCode || '',
+      key: 'Provider Participant Code :',
+      value: `${details?.providerName} (${details?.participantCode})` || '',
     },
     {
       key: 'Treatment/Service type :',
