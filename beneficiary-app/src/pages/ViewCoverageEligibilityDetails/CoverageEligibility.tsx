@@ -325,7 +325,7 @@ const CoverageEligibility = () => {
                       <>
                      <div className="flex items-center justify-between">
                         <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
-                          Policyholer consent : <span className='text-success'>&#10004; Approved</span>
+                          Policyholder consent : <span className='text-success'>&#10004; Approved</span>
                         </h2>
                       </div>
                       </>  : <></>
