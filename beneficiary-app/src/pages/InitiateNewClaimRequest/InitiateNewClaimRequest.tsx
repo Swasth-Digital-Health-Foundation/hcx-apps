@@ -43,10 +43,12 @@ const InitiateNewClaimRequest = () => {
     FileLists = Array.from(selectedFile);
   }
 
+  console.log(claimDetails, 'claimDetails');
+
   const claimRequestDetails: any = [
     {
-      key: 'Provider :',
-      value: claimDetails?.providerName || providerName,
+      key: 'Provider Participant Code :',
+      value: `${claimDetails?.providerName || providerName} (${claimDetails?.participantCode})`,
     },
     {
       key: 'Treatment/Service type :',

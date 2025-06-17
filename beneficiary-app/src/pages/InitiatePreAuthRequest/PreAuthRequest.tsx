@@ -40,8 +40,8 @@ const PreAuthRequest = () => {
 
   const preauthRequestDetails: any = [
     {
-      key: 'Provider :',
-      value: dataFromCard?.providerName || '',
+      key: 'Provider Participant Code :',
+      value: `${dataFromCard?.providerName} (${dataFromCard?.participantCode})` || '',
     },
     {
       key: 'Treatment/Service type :',
