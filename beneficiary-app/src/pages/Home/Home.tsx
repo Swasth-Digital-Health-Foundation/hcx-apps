@@ -32,7 +32,7 @@ const Home = () => {
     finalData.slice(0, 5)
   );
   const [latestStatusByEntry, setlatestStatusByEntry] = useState<any>({});
-  const { userInfo: userInformation, findUserByDynamicKey } = useUserSearch(
+  const { userInfo: userInformation, findUserByDynamicKey, loading: isUserDataLoading, error: isUserDataError } = useUserSearch(
     getMobileFromLocalStorage || location.state?.patientMobile
   );
 
@@ -133,14 +133,16 @@ const Home = () => {
   });
 
   useEffect(() => {
-    getCoverageEligibilityRequestList(
-      setLoading,
-      requestPayload,
-      setActiveRequests,
-      setFinalData,
-      setDisplayedData
-    );
-  }, []);
+    if (!isUserDataLoading && !isUserDataError) {
+      getCoverageEligibilityRequestList(
+        setLoading,
+        requestPayload,
+        setActiveRequests,
+        setFinalData,
+        setDisplayedData
+      );
+    }
+  }, [isUserDataLoading, isUserDataError]);
 
   return (
     <div>
