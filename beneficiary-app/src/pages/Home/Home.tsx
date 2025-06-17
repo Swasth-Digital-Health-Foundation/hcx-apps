@@ -5,7 +5,7 @@ import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import strings from '../../utils/strings';
 import {
   generateOutgoingRequest,
-  getCoverageEligibilityRequestList
+  getCoverageEligibilityRequestList,
 } from '../../services/hcxMockService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
@@ -17,12 +17,14 @@ import { formatDateTime } from '../../utils';
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [qrCodeData, setQrCodeData] = useState<any>();
+  // const [qrCodeData, setQrCodeData] = useState<any>();
   const [currentIndex, setCurrentIndex] = useState(5);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(true);
   const getMobileFromLocalStorage = localStorage.getItem('mobile');
-  const claimDetails: { [mobileNumber: string]: { id: string; type: 'OPD' | 'IPD'}[]} = JSON.parse(localStorage.getItem('claimDetails') || '[]');
+  const claimDetails: {
+    [mobileNumber: string]: { id: string; type: 'OPD' | 'IPD' }[];
+  } = JSON.parse(localStorage.getItem('claimDetails') || '[]');
 
   const [activeRequests, setActiveRequests] = useState<any>([]);
   const [finalData, setFinalData] = useState<any>([]);
@@ -36,61 +38,75 @@ const Home = () => {
 
   const userInfo = userInformation?.[1] || {};
 
-  const onNewScanResult = (decodedText: any, decodedResult: any) => {
-    setQrCodeData(decodedText);
+  const onNewScanResult = (decodedText: any) => {
+    const obj: {
+      serviceType: 'OPD' | 'IPD';
+      participantCode: string;
+      patientName: string;
+    } = JSON.parse(decodedText) || {};
+    // setQrCodeData(decodedText);
     setInitialized(false);
+    const information = {
+      serviceType: obj.serviceType,
+      participantCode: obj.participantCode,
+      patientName: obj.patientName,
+      disabledDropdown: true, // temporary fix to disable dropdown
+    };
+
+    navigate('/new-claim', { state: information });
   };
 
   const requestPayload = {
     mobile: getMobileFromLocalStorage,
-    app: "BSP"
+    app: 'BSP',
   };
 
-  useEffect(() => {
-    if (qrCodeData !== undefined) {
-      const obj = JSON.parse(qrCodeData) || {};
-      // const payorDetails = findUserByDynamicKey('insurance_id', obj?.insuranceId)[0];
-      // if (!payorDetails) {
-      //   toast.error('No payor details found for the provided insurance ID');
-      //   return;
-      // }
+  // useEffect(() => {
+  //   if (qrCodeData !== undefined) {
+  //     const obj = JSON.parse(qrCodeData) || {};
 
-      const payorDetails = userInfo.payorDetails[0];
-      console.log("Payor Details", payorDetails);
-    
-      const payload = {
-        providerName: obj?.provider_name,
-        participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
-        serviceType: 'OPD',
-        mobile: getMobileFromLocalStorage,
-        payor: payorDetails?.payorName,
-        insuranceId: payorDetails?.insurance_id,
-        patientName: userInfo?.userName,
-        app: 'BSP',
-        bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
-        password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-        recipientCode: payorDetails?.payor
-      };
-      const sendCoverageEligibilityRequest = async () => {
-        try {
-          setLoading(true);
-          let response = await generateOutgoingRequest(
-            'coverageeligibility/check',
-            payload
-          );
-          if (response?.status === 202) {
-            toast.success("Coverage eligibility initiated successfully")
-            setQrCodeData(undefined)
-            setLoading(false)
-          }
-        } catch (error) {
-          // setLoading(false);
-          toast.error(_.get(error, 'response.data.error.message'));
-        }
-      };
-      sendCoverageEligibilityRequest();
-    }
-  }, [qrCodeData]);
+  //     // const payorDetails = findUserByDynamicKey('insurance_id', obj?.insuranceId)[0];
+  //     // if (!payorDetails) {
+  //     //   toast.error('No payor details found for the provided insurance ID');
+  //     //   return;
+  //     // }
+
+  //     // const payorDetails = userInfo.payorDetails[0];
+  //     // console.log("Payor Details", payorDetails);
+
+  //     // const payload = {
+  //     //   providerName: obj?.provider_name,
+  //     //   participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
+  //     //   serviceType: 'OPD',
+  //     //   mobile: getMobileFromLocalStorage,
+  //     //   payor: payorDetails?.payorName,
+  //     //   insuranceId: payorDetails?.insurance_id,
+  //     //   patientName: userInfo?.userName,
+  //     //   app: 'BSP',
+  //     //   bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
+  //     //   password: process.env.SEARCH_PARTICIPANT_PASSWORD,
+  //     //   recipientCode: payorDetails?.payor
+  //     // };
+  //     // const sendCoverageEligibilityRequest = async () => {
+  //     //   try {
+  //     //     setLoading(true);
+  //     //     let response = await generateOutgoingRequest(
+  //     //       'coverageeligibility/check',
+  //     //       payload
+  //     //     );
+  //     //     if (response?.status === 202) {
+  //     //       toast.success("Coverage eligibility initiated successfully")
+  //     //       setQrCodeData(undefined)
+  //     //       setLoading(false)
+  //     //     }
+  //     //   } catch (error) {
+  //     //     // setLoading(false);
+  //     //     toast.error(_.get(error, 'response.data.error.message'));
+  //     //   }
+  //     // };
+  //     // sendCoverageEligibilityRequest();
+  //   }
+  // }, [qrCodeData]);
 
   const loadMoreData = () => {
     const nextData = finalData.slice(currentIndex, currentIndex + 5);
@@ -162,7 +178,7 @@ const Home = () => {
             </a>
           </div>
         </div>
-        { loading ? (<></>) : <></>}
+        {loading ? (<></> ): <></>}
       </div>
       <div className="mt-6">
         {loading ? (
@@ -180,11 +196,15 @@ const Home = () => {
             <>
               <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(
+                    setLoading,
+                    requestPayload,
+                    setActiveRequests,
+                    setFinalData,
+                    setDisplayedData
+                  );
                 }}
-                className={
-                  loading ? "animate-spin h-7 w-7" : "h-7 w-7"
-                }
+                className={loading ? "animate-spin h-7 w-7" : "h-7 w-7"}
                 aria-hidden="true"
               />
             </>
@@ -197,11 +217,15 @@ const Home = () => {
             <>
               <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(
+                    setLoading,
+                    requestPayload,
+                    setActiveRequests,
+                    setFinalData,
+                    setDisplayedData
+                  );
                 }}
-                className={
-                  loading ? "animate-spin h-7 w-7" : "h-7 w-7"
-                }
+                className={loading ? "animate-spin h-7 w-7" : "h-7 w-7"}
                 aria-hidden="true"
               />
             </>
@@ -210,15 +234,16 @@ const Home = () => {
         {!loading ? (
           <div>
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
-              let approvedAmount: any = "";
-              const claimType = claimDetails[ele.mobile]?.find(
-                (claim) => claim.id === ele.workflow_id
-              )?.type || "OPD";
+              let approvedAmount: any = '';
+              const claimType =
+                claimDetails[ele.mobile]?.find(
+                  (claim) => claim.id === ele.workflow_id
+                )?.type || 'OPD';
               if (ele?.type === 'claim') {
                 // approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
 
-              // This data isn't used 
+              // This data isn't used
               // TODO: Remove this if not needed
               // const data: any = [
               //   {
@@ -268,7 +293,10 @@ const Home = () => {
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
                     patientName={
-                      findUserByDynamicKey('insurance_id', ele.insurance_id)?.[0]?.userName || ele.patientName
+                      findUserByDynamicKey(
+                        'insurance_id',
+                        ele.insurance_id
+                      )?.[0]?.userName || ele.patientName
                     }
                     approvedAmount={approvedAmount}
                   />

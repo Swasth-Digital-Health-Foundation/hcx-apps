@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { generateToken, searchParticipant } from '../../services/hcxService';
 import { searchUser } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
@@ -28,11 +28,16 @@ const KeyboardArrowDownIcon = () => (
 );
 
 const NewClaim = () => {
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const claimDetails = location.state || {};
+
+
   const [insurancePlan, setInsurancePlan] = useState<string>('');
-  const [treatmentType, setTreatmentType] = useState<string>('');
-  const [providerName, setProviderName] = useState<string>('');
-  const [participantCode, setParticipantCode] = useState<string>('');
+  const [treatmentType, setTreatmentType] = useState<string>(claimDetails?.serviceType || '');
+  const [providerName, setProviderName] = useState<string>(claimDetails?.patientName || '');
+  const [participantCode, setParticipantCode] = useState<string>(claimDetails?.participantCode || '');
   const [isLoading, setIsLoading] = useState(false);
   const [payor, setPayor] = useState<string>('');
   const [insuranceId, setInsuranceId] = useState<string>('');
@@ -146,6 +151,7 @@ const NewClaim = () => {
           setOpenDropdown={setOpenDropdown}
           filteredResults={filteredResults}
           handleSelect={handleSelect}
+          disabled={claimDetails.disabledDropdown || false}
         />
         <div className="mt-4">
           <label className="mb-2.5 block text-left font-medium text-black dark:text-white">
@@ -155,6 +161,8 @@ const NewClaim = () => {
             <select
               onChange={(e) => setTreatmentType(e.target.value)}
               required
+              value={treatmentType}
+              disabled={claimDetails.disabledDropdown || false}
               className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent px-6 py-4 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
             >
               <option value="">select</option>

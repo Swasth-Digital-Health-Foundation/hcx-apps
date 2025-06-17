@@ -2,7 +2,7 @@ import strings from '../../utils/strings';
 import * as _ from "lodash";
 
 const ProviderSearch = (props: any) => {
-    const { providerName, participantCode, openDropdown, setProviderName, searchResults, setOpenDropdown, filteredResults, handleSelect } = props;
+    const { providerName, participantCode, openDropdown, setProviderName, searchResults, setOpenDropdown, filteredResults, handleSelect, disabled = false } = props;
     return (
         <div>
             <h2 className="text-bold text-base font-bold text-black dark:text-white">
@@ -21,6 +21,7 @@ const ProviderSearch = (props: any) => {
                             setOpenDropdown(hasMatchingRecords);
                         }
                         }
+                        disabled={disabled}
                         className="mt-2 w-full rounded-lg border-[1.5px] border-stroke bg-white py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                     />
                     <span
