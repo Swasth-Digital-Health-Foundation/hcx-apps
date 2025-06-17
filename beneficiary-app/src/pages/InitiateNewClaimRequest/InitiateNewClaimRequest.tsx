@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { generateOutgoingRequest, handleUpload, getActivePlans, searchUser } from '../../services/hcxMockService';
+import { generateOutgoingRequest, handleUpload, getActivePlans } from '../../services/hcxMockService';
 import LoadingButton from '../../components/LoadingButton';
 import { toast } from 'react-toastify';
 import strings from '../../utils/strings';
 import { generateToken, searchParticipant } from '../../services/hcxService';
-import * as _ from "lodash";
+import { map } from 'lodash';
 import SupportingDocuments from '../../components/SupportingDocuments';
 import RequestDetails from '../ViewCoverageEligibilityDetails/RequestDetails';
 import { supportingDocumentsOptions } from '../../utils/selectInputOptions';
-import { } from '../../services/hcxMockService';
+import { useUserSearch } from '../../hooks/useUserSearch';
+import { IPD_TREATMENT_OR_SERVICE_CATEGORIES, OPD_TREATMENT_OR_SERVICE_CATEGORIES } from '../../constants';
 
 
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const claimDetails = location.state || {};
 
   const [selectedFile, setSelectedFile]: any = useState<FileList | undefined>(
     undefined
@@ -22,64 +24,68 @@ const InitiateNewClaimRequest = () => {
   const [fileErrorMessage, setFileErrorMessage]: any = useState();
   const [isSuccess, setIsSuccess]: any = useState(false);
   const [amount, setAmount] = useState<string>('');
-  const [serviceType, setServiceType] = useState<string>('Consultation');
+  const [serviceType, setServiceType] = useState<string>(claimDetails?.serviceType === "OPD" ? OPD_TREATMENT_OR_SERVICE_CATEGORIES[0] : IPD_TREATMENT_OR_SERVICE_CATEGORIES[0]);
   const [documentType, setDocumentType] = useState<string>('Bill/invoice');
   const [loading, setLoading] = useState(false);
   const [providerName, setProviderName] = useState<string>('');
   const [payorName, setPayorName] = useState<string>('');
   const [fileUrlList, setUrlList] = useState<any>([]);
-  const [userInfo, setUserInformation] = useState<any>([]);
   const [popup, setPopup] = useState(false);
   const [preauthOrClaimList, setpreauthOrClaimList] = useState<any>([]);
-  const [payorDetails, setPayorDetails] = useState<any>({});
+
+  const mobileNumber: any = localStorage.getItem('mobile');
+  const { userInfo } = useUserSearch(mobileNumber);
+  const payorDetails = userInfo?.[0]?.payorDetails || {};
+
 
   let FileLists: any;
   if (selectedFile !== undefined) {
     FileLists = Array.from(selectedFile);
   }
 
-  const [cliamDetails, setClaimDetails] = useState(location.state);
+  console.log(claimDetails, 'claimDetails');
+
   const claimRequestDetails: any = [
     {
-      key: 'Provider :',
-      value: cliamDetails?.providerName || providerName,
+      key: 'Provider Participant Code :',
+      value: `${claimDetails?.providerName || providerName} (${claimDetails?.participantCode})`,
     },
     {
       key: 'Treatment/Service type :',
-      value: cliamDetails?.serviceType || '',
+      value: claimDetails?.serviceType || '',
     },
     {
       key: 'Payor name :',
-      value: payorDetails[0]?.payorName || cliamDetails?.payor || payorName,
+      value: payorDetails?.[0]?.payorName || claimDetails?.payor || payorName,
     },
     {
       key: 'Insurance ID :',
-      value: cliamDetails?.insuranceId || 'null',
+      value: claimDetails?.insuranceId || 'null',
     },
   ];  
 
   let requestBody: any = {
-    insuranceId: cliamDetails?.insuranceId || '',
+    insuranceId: claimDetails?.insuranceId || '',
     mobile: localStorage.getItem('mobile') || '',
-    participantCode: cliamDetails?.participantCode || '',
-    payor: payorDetails[0]?.payorName || cliamDetails?.payor || payorName,
-    providerName: cliamDetails?.providerName || '',
-    patientName: userInfo?.userName,
-    serviceType: cliamDetails?.serviceType || '',
+    participantCode: claimDetails?.participantCode || '',
+    payor: payorDetails?.[0]?.payorName || claimDetails?.payor || payorName,
+    providerName: claimDetails?.providerName || '',
+    patientName: userInfo?.[0]?.userName || 'USER NAME NOT FOUND',
+    serviceType,
     billAmount: amount,
-    workflowId: cliamDetails?.workflowId,
+    workflowId: claimDetails?.workflowId,
     supportingDocuments: [
       {
         documentType: documentType,
-        urls: _.map(fileUrlList, (ele: any) => {
+        urls: map(fileUrlList, (ele: any) => {
           return ele.url;
         }),
       },
     ],
-    type: 'OPD',
+    type: claimDetails?.serviceType,
     bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
     password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-    recipientCode: payorDetails[0]?.payor,
+    recipientCode: payorDetails?.[0]?.payor,
     app: "BSP"
   };
 
@@ -92,22 +98,23 @@ const InitiateNewClaimRequest = () => {
 
   const payorCodePayload = {
     filters: {
-      participant_code: { eq: payorDetails[0]?.payor },
+      participant_code: { eq: payorDetails?.[0]?.payor },
     },
   };
 
-  const mobileNumber: any = localStorage.getItem('mobile');
 
   const submitClaim = async () => {
     try {
       setLoading(true);
-      handleUpload(mobileNumber, FileLists, requestBody, setUrlList);
+      if (FileLists && FileLists.length) {
+        handleUpload(mobileNumber, FileLists, requestBody, setUrlList);
+      }
       setTimeout(async () => {
-        let submitClaim = await generateOutgoingRequest(
+        const response = await generateOutgoingRequest(
           'claim/submit',
           requestBody
         );
-        if (submitClaim.status === 202) {
+        if (response.status === 202) {
           setLoading(false);
           toast.success("Claim request initiated successfully")
           navigate('/home');
@@ -136,7 +143,7 @@ const InitiateNewClaimRequest = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setPayorName(payorResponse.data?.participants[0].participant_name);
+        setPayorName(payorResponse.data?.participants?.[0].participant_name);
       };
       search();
     } catch (err) {
@@ -144,22 +151,8 @@ const InitiateNewClaimRequest = () => {
     }
   }, []);
 
-  const search = async () => {
-    try {
-      let response: any = await searchUser("user/search", mobileNumber || location.state?.patientMobile)
-      setUserInformation(response?.data?.result);
-      setPayorDetails(response?.data?.result?.payorDetails && response?.data?.result?.payorDetails.filter((ele: any) => ele.insurance_id === cliamDetails?.insuranceId))
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    search();
-  }, []);
-
   const preauthOrClaimListPayload = {
-    workflow_id: cliamDetails?.workflowId || '',
+    workflow_id: claimDetails?.workflowId || '',
     app: 'BSP',
   };
 
@@ -193,13 +186,17 @@ const InitiateNewClaimRequest = () => {
         <div className="relative z-20 bg-white dark:bg-form-input">
           <select
             onChange={(e: any) => setServiceType(e.target.value)}
+            value={serviceType}
             required
             className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent bg-transparent py-4 px-6 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark"
           >
-            <option value="Consultation">Consultation</option>
-            <option value="Drugs">Drugs</option>
-            <option value="Wellness">Wellness</option>
-            <option value="Diagnostics">Diagnostics</option>
+            {
+              (claimDetails.serviceType === "OPD" ? OPD_TREATMENT_OR_SERVICE_CATEGORIES : IPD_TREATMENT_OR_SERVICE_CATEGORIES).map((option: string) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))
+            }
           </select>
           <span className="absolute top-1/2 right-4 z-10 -translate-y-1/2">
             <svg

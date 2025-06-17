@@ -3,13 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 const ActiveClaimCycleCard = (Props: any) => {
   const navigate = useNavigate();
-  const date = new Date(parseInt(Props.date));
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
   const [popup, setPopup] = useState(false);
 
-  const formattedDate = `${day}-${month}-${year}`;
   const information = {
     insuranceId: Props.insurance_id,
     serviceType: Props.claimType,
@@ -18,11 +13,12 @@ const ActiveClaimCycleCard = (Props: any) => {
     apiCallId: Props.apiCallId,
     participantCode: Props.participantCode,
     payorCode: Props.payorCode,
-    mobile: localStorage.getItem('mobile'),
+    mobile: Props.mobile,
     billAmount: Props.billAmount,
     workflowId: Props.workflowId,
     patientName: Props.patientName,
-    approvedAmount: Props.approvedAmount
+    approvedAmount: Props.approvedAmount,
+    requestType: Props.type,
   };
 
   localStorage.setItem('recipientCode', information?.payorCode)
@@ -33,7 +29,7 @@ const ActiveClaimCycleCard = (Props: any) => {
     },
     {
       key: 'Initiation date :',
-      value: formattedDate,
+      value: Props.date,
     },
     {
       key: 'Insurance ID :',

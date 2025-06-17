@@ -26,7 +26,7 @@ const VerifyOTP = () => {
   };
 
   const verifyOTPrequestBody = {
-    mobile: location.state,
+    mobile: location.state || localStorage.getItem('mobile'),
     otp_code: OTP,
   };
 
@@ -162,7 +162,7 @@ const VerifyOTP = () => {
             <div>
               <label className="mb-2.5 block text-left font-medium text-black dark:text-white">
                 {/* {strings.OTP_SENT} */}
-                Please enter the 6-digit OTP sent to your mobile no. {maskMobileNumber(location.state)} below :
+                Please enter the 6-digit OTP sent to your mobile no. {location.state && maskMobileNumber(location.state)} below :
               </label>
             </div>
             <div className="mt-5">

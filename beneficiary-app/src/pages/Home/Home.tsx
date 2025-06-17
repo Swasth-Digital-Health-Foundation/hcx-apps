@@ -3,18 +3,22 @@ import Html5QrcodePlugin from '../../components/Html5QrcodeScannerPlugin/Html5Qr
 import { useEffect, useState } from 'react';
 import ActiveClaimCycleCard from '../../components/ActiveClaimCycleCard';
 import strings from '../../utils/strings';
-import { generateOutgoingRequest, getCoverageEligibilityRequestList, searchUser } from '../../services/hcxMockService';
+import { 
+  // generateOutgoingRequest,
+  getCoverageEligibilityRequestList,
+} from '../../services/hcxMockService';
 import * as _ from 'lodash';
 import TransparentLoader from '../../components/TransparentLoader';
-import { toast } from 'react-toastify';
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+// import { toast } from 'react-toastify';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useUserSearch } from '../../hooks/useUserSearch';
+import { formatDateTime, getClaimSubTypeCode, getPatientNameText } from '../../utils';
 
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [qrCodeData, setQrCodeData] = useState<any>();
+  // const [qrCodeData, setQrCodeData] = useState<any>();
   const [currentIndex, setCurrentIndex] = useState(5);
-  const [userInformation, setUserInformation] = useState<any>([]);
   const [loading, setLoading] = useState(false);
   const [initialized, setInitialized] = useState(true);
   const getMobileFromLocalStorage = localStorage.getItem('mobile');
@@ -25,66 +29,81 @@ const Home = () => {
     finalData.slice(0, 5)
   );
   const [latestStatusByEntry, setlatestStatusByEntry] = useState<any>({});
+  const { userInfo: userInformation, loading: isUserDataLoading, error: isUserDataError } = useUserSearch(
+    getMobileFromLocalStorage || location.state?.patientMobile
+  );
 
-  const onNewScanResult = (decodedText: any, decodedResult: any) => {
-    setQrCodeData(decodedText);
+  const userInfo = userInformation?.[1] || {};
+
+  const onNewScanResult = (decodedText: any) => {
+    const obj: {
+      serviceType: 'OPD' | 'IPD';
+      participantCode: string;
+      patientName: string;
+    } = JSON.parse(decodedText) || {};
+    // setQrCodeData(decodedText);
     setInitialized(false);
+    const information = {
+      serviceType: obj.serviceType,
+      participantCode: obj.participantCode,
+      patientName: obj.patientName,
+      disabledDropdown: true, // temporary fix to disable dropdown
+    };
+
+    navigate('/new-claim', { state: information });
   };
 
   const requestPayload = {
     mobile: getMobileFromLocalStorage,
-    app: "BSP"
+    app: 'BSP',
   };
 
+  // useEffect(() => {
+  //   if (qrCodeData !== undefined) {
+  //     const obj = JSON.parse(qrCodeData) || {};
 
-  useEffect(() => {
-    if (qrCodeData !== undefined) {
-      let obj = JSON.parse(qrCodeData);
-      let payload = {
-        providerName: obj?.provider_name,
-        participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
-        serviceType: 'OPD',
-        mobile: localStorage.getItem('mobile'),
-        payor: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payorName,
-        insuranceId: userInformation?.payorDetails && userInformation?.payorDetails[0]?.insurance_id,
-        patientName: userInformation?.userName,
-        app: "BSP",
-        bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
-        password: process.env.SEARCH_PARTICIPANT_PASSWORD,
-        recipientCode: userInformation?.payorDetails && userInformation?.payorDetails[0]?.payor
-      };
+  //     // const payorDetails = findUserByDynamicKey('insurance_id', obj?.insuranceId)[0];
+  //     // if (!payorDetails) {
+  //     //   toast.error('No payor details found for the provided insurance ID');
+  //     //   return;
+  //     // }
 
-      const sendCoverageEligibilityRequest = async () => {
-        try {
-          setLoading(true);
-          let response = await generateOutgoingRequest(
-            'coverageeligibility/check',
-            payload
-          );
-          if (response?.status === 202) {
-            toast.success("Coverage eligibility initiated successfully")
-            setQrCodeData(undefined)
-            setLoading(false)
-          }
-        } catch (error) {
-          // setLoading(false);
-          toast.error(_.get(error, 'response.data.error.message'));
-        }
-      };
-      sendCoverageEligibilityRequest();
-    }
-  }, [qrCodeData]);
+  //     // const payorDetails = userInfo.payorDetails[0];
+  //     // console.log("Payor Details", payorDetails);
 
-  
-
-  const search = async () => {
-    try {
-      let response: any = await searchUser("user/search", getMobileFromLocalStorage || location.state?.patientMobile)
-      setUserInformation(response?.data?.result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  //     // const payload = {
+  //     //   providerName: obj?.provider_name,
+  //     //   participantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
+  //     //   serviceType: 'OPD',
+  //     //   mobile: getMobileFromLocalStorage,
+  //     //   payor: payorDetails?.payorName,
+  //     //   insuranceId: payorDetails?.insurance_id,
+  //     //   patientName: userInfo?.userName,
+  //     //   app: 'BSP',
+  //     //   bspParticipantCode: process.env.SEARCH_PARTICIPANT_USERNAME,
+  //     //   password: process.env.SEARCH_PARTICIPANT_PASSWORD,
+  //     //   recipientCode: payorDetails?.payor
+  //     // };
+  //     // const sendCoverageEligibilityRequest = async () => {
+  //     //   try {
+  //     //     setLoading(true);
+  //     //     let response = await generateOutgoingRequest(
+  //     //       'coverageeligibility/check',
+  //     //       payload
+  //     //     );
+  //     //     if (response?.status === 202) {
+  //     //       toast.success("Coverage eligibility initiated successfully")
+  //     //       setQrCodeData(undefined)
+  //     //       setLoading(false)
+  //     //     }
+  //     //   } catch (error) {
+  //     //     // setLoading(false);
+  //     //     toast.error(_.get(error, 'response.data.error.message'));
+  //     //   }
+  //     // };
+  //     // sendCoverageEligibilityRequest();
+  //   }
+  // }, [qrCodeData]);
 
   const loadMoreData = () => {
     const nextData = finalData.slice(currentIndex, currentIndex + 5);
@@ -111,17 +130,23 @@ const Home = () => {
   });
 
   useEffect(() => {
-    search().then(() => {
-        getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
-    });
-}, []);
+    if (!isUserDataLoading && !isUserDataError) {
+      getCoverageEligibilityRequestList(
+        setLoading,
+        requestPayload,
+        setActiveRequests,
+        setFinalData,
+        setDisplayedData
+      );
+    }
+  }, [isUserDataLoading, isUserDataError]);
 
   return (
     <div>
       <div className="flex justify-between">
         <div>
           <h1 className="text-1xl mb-3 font-bold text-black dark:text-white">
-            {strings.WELCOME_TEXT} {userInformation?.userName || '...'}
+            {strings.WELCOME_TEXT} {userInfo?.userName || '...'}
           </h1>
         </div>
       </div>
@@ -152,7 +177,7 @@ const Home = () => {
             </a>
           </div>
         </div>
-        { loading ? (<></>) : <></>}
+        {loading ? (<></> ): <></>}
       </div>
       <div className="mt-6">
         {loading ? (
@@ -170,11 +195,15 @@ const Home = () => {
             <>
               <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(
+                    setLoading,
+                    requestPayload,
+                    setActiveRequests,
+                    setFinalData,
+                    setDisplayedData
+                  );
                 }}
-                className={
-                  loading ? "animate-spin h-7 w-7" : "h-7 w-7"
-                }
+                className={loading ? "animate-spin h-7 w-7" : "h-7 w-7"}
                 aria-hidden="true"
               />
             </>
@@ -187,11 +216,15 @@ const Home = () => {
             <>
               <ArrowPathIcon
                 onClick={() => {
-                  getCoverageEligibilityRequestList(setLoading, requestPayload, setActiveRequests, setFinalData, setDisplayedData);
+                  getCoverageEligibilityRequestList(
+                    setLoading,
+                    requestPayload,
+                    setActiveRequests,
+                    setFinalData,
+                    setDisplayedData
+                  );
                 }}
-                className={
-                  loading ? "animate-spin h-7 w-7" : "h-7 w-7"
-                }
+                className={loading ? "animate-spin h-7 w-7" : "h-7 w-7"}
                 aria-hidden="true"
               />
             </>
@@ -200,66 +233,63 @@ const Home = () => {
         {!loading ? (
           <div>
             {_.map(coverageAndClaimData, (ele: any, index: any) => {
-              let approvedAmount: any = "";
+              let approvedAmount: any = '';
+              const parsedJson = JSON.parse(ele?.requestFhir);
               if (ele?.type === 'claim') {
                 // approvedAmount = JSON.parse(ele?.additionalInfo)?.financial?.approved_amount
               }
-              const date = new Date(parseInt(ele.date));
-              const day = date.getDate().toString().padStart(2, "0");
-              const month = (date.getMonth() + 1).toString().padStart(2, "0");
-              const year = date.getFullYear();
 
-              const formattedDate = `${day}-${month}-${year}`;
-              const data: any = [
-                {
-                  key: "Beneficiary name",
-                  value: ele.patientName,
-                },
-                {
-                  key: "Initiation date",
-                  value: formattedDate,
-                },
-                {
-                  key: "Insurance ID",
-                  value: `${ele.insurance_id || "null"}`,
-                },
-                {
-                  key: "ServiceType",
-                  value: `${ele.claimType}`,
-                },
-                {
-                  key: "Status",
-                  value: (
-                    <span
-                      className={`${latestStatusByEntry[ele.workflow_id] === "Pending"
-                        ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
-                        : latestStatusByEntry[ele.workflow_id] === "Rejected"
-                          ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
-                          : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
-                        }`}
-                    >
-                      {latestStatusByEntry[ele.workflow_id]}
-                    </span>
-                  ),
-                },
-              ];
+              // This data isn't used
+              // TODO: Remove this if not needed
+              // const data: any = [
+              //   {
+              //     key: "Beneficiary name",
+              //     value: ele.patientName,
+              //   },
+              //   {
+              //     key: "Initiation date",
+              //     value: formatDateTime(parseInt(ele.date)),
+              //   },
+              //   {
+              //     key: "Insurance ID",
+              //     value: `${ele.insurance_id || "null"}`,
+              //   },
+              //   {
+              //     key: "ServiceType",
+              //     value: `${claimType}`,
+              //   },
+              //   {
+              //     key: "Status",
+              //     value: (
+              //       <span
+              //         className={`${latestStatusByEntry[ele.workflow_id] === "Pending"
+              //           ? "mr-2 rounded bg-warning px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-warning dark:text-gray"
+              //           : latestStatusByEntry[ele.workflow_id] === "Rejected"
+              //             ? "mr-2 rounded bg-danger px-2.5 py-0.5 text-xs font-medium text-gray dark:bg-danger dark:text-gray"
+              //             : "dark:text-green border-green mr-2 rounded bg-success px-2.5 py-0.5 text-xs font-medium text-gray"
+              //           }`}
+              //       >
+              //         {latestStatusByEntry[ele.workflow_id]}
+              //       </span>
+              //     ),
+              //   },
+              // ];
               return (
                 <div className="mt-2" key={index}>
                   <ActiveClaimCycleCard
                     participantCode={ele.sender_code}
                     payorCode={ele.recipient_code}
-                    date={ele.date}
+                    date={formatDateTime(parseInt(ele.date))}
                     insurance_id={ele.insurance_id}
-                    claimType={ele.claimType}
+                    claimType={getClaimSubTypeCode(parsedJson)}
                     apiCallId={ele.apiCallId}
                     status={latestStatusByEntry[ele.workflow_id]}
                     type={ele.type}
-                    mobile={location.state}
+                    mobile={ele.mobile}
                     billAmount={ele.billAmount}
                     workflowId={ele.workflow_id}
-                    patientName={ userInformation?.userName || ele.patientName }
+                    patientName={getPatientNameText(parsedJson)}
                     approvedAmount={approvedAmount}
-                    data={data}
                   />
                 </div>
               );

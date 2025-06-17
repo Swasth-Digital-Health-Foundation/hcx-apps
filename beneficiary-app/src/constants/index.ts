@@ -1,0 +1,2 @@
+export const OPD_TREATMENT_OR_SERVICE_CATEGORIES = ["Consultation", "Drugs", "Wellness", "Diagnostics"];
+export const IPD_TREATMENT_OR_SERVICE_CATEGORIES = ["Hospitalization", "Investigation", "Drugs", "Professional fees/Consultation"];

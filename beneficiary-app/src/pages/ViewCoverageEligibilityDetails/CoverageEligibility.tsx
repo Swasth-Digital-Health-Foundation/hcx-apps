@@ -21,10 +21,12 @@ const CoverageEligibility = () => {
   const [apicallIdForClaim, setApicallID] = useState<any>();
   const [popup, setPopup] = useState(false)
 
+  const details = location.state || {};
+
   const requestDetails = {
-    ...location.state,
+    ...details,
     providerName: providerName,
-    billAmount: location.state?.billAmount || preauthOrClaimList[0]?.billAmount,
+    billAmount: details?.billAmount || preauthOrClaimList[0]?.billAmount,
     apiCallId: apicallIdForClaim,
   };
 
@@ -32,8 +34,8 @@ const CoverageEligibility = () => {
 
   const claimRequestDetails: any = [
     {
-      key: 'Provider :',
-      value: providerName || '',
+      key: 'Provider Participant Code :',
+      value: `${providerName} (${details?.participantCode})` || '',
     },
     {
       key: 'Treatment/Service type :',
@@ -53,14 +55,14 @@ const CoverageEligibility = () => {
 
   const participantCodePayload = {
     filters: {
-      participant_code: { eq: location.state?.participantCode },
+      participant_code: { eq: details?.participantCode },
     },
   };
 
   const payorCodePayload = {
     filters: {
       participant_code: {
-        eq: location.state?.payorCode || location.state?.payor,
+        eq: details?.payorCode || details?.payor,
       },
     },
   };
@@ -70,6 +72,8 @@ const CoverageEligibility = () => {
       Authorization: `Bearer ${token}`,
     },
   };
+
+  console.log(location.state, 'location.state');
 
   const tokenGeneration = async () => {
     try {
@@ -237,7 +241,7 @@ const CoverageEligibility = () => {
               </svg>
             </div>
             {popup ? <div className='absolute top-8 right-2 bg-black text-white p-4'>
-              Api call Id : {location.state?.apiCallId} <br />
+              Api call Id : {details?.apiCallId} <br />
               BSP_hcx_code : {requestDetails?.participantCode} <br />
               workflowId : {requestDetails.workflowId || ''}
             </div> : null}
@@ -321,7 +325,7 @@ const CoverageEligibility = () => {
                       <>
                      <div className="flex items-center justify-between">
                         <h2 className="sm:text-title-xl1 text-1xl mt-1 mb-1 font-semibold text-black dark:text-white">
-                          Policy consent : <span className='text-success'>&#10004; Approved</span>
+                          Policyholder consent : <span className='text-success'>&#10004; Approved</span>
                         </h2>
                       </div>
                       </>  : <></>

@@ -77,8 +77,8 @@ const ViewClaimRequestDetails = () => {
 
   const claimRequestDetails: any = [
     {
-      key: 'Provider :',
-      value: providerName || '',
+      key: 'Provider Participant Code :',
+      value: `${providerName} (${details?.participantCode})` || '',
     },
     {
       key: 'Treatment/Service type :',
@@ -117,16 +117,16 @@ const ViewClaimRequestDetails = () => {
       setRefresh(false);
       if (res.status === 200 && res?.data?.result?.otpStatus === 'initiated') {
         setInitiated(true)
-        toast.success('Policy consent is initiated.');
+        toast.success('Policyholder consent is initiated.');
       } else if (res?.data?.result?.otpStatus === 'failed') {
         toast.error("Failed to verify consent. Please ask the payor to resend the request.")
       } else {
         setInitiated(false)
-        toast.error('Policy consent is not initiated.');
+        toast.error('Policyholder consent is not initiated.');
       }
     } catch (err) {
       setRefresh(false);
-      toast.error('Policy consent is not initiated.');
+      toast.error('Policyholder consent is not initiated.');
     }
   };
 
